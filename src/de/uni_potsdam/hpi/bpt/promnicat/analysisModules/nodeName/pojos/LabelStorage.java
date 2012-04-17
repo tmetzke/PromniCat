@@ -21,12 +21,18 @@ import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.AbstractPojo;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
 
 
+/**
+ * This class can be used to store a label of one node and the type of the node together with the {@link Representation}.
+ * 
+ * @author Andrina Mascher
+ *
+ */
 public class LabelStorage extends AbstractPojo{
 	
-	String label = null;
-	String className = null;
-	String representationId = null;
-	transient Representation representation = null; //Don't store representation connection in db, but store dbId instead for performance reasons
+	String label = null; // the label within the node
+	String className = null; // the type of the node, e.g. DataNode
+	String representationId = null; // the process model id that this node belongs to
+	transient Representation representation = null; //the representation object, but don't store representation connection in db, but store dbId instead for performance reasons
 	
 	public LabelStorage() {
 	}

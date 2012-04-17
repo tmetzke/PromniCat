@@ -39,9 +39,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
  *
  */
 public class DbFilterConfig {
-	
-	// TODO metadata don't include separator
-	
+
 	// filter for models
 	private ArrayList<String> origins = new ArrayList<String>();
 	private ArrayList<String> titles = new ArrayList<String>();

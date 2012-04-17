@@ -23,6 +23,12 @@ import java.util.Collection;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.AbstractPojo;
 
 
+/**
+ * This class is used to group many instances of {@link LabelStorage}.
+ * 
+ * @author Andrina Mascher
+ *
+ */
 public class AnalysisRun extends AbstractPojo{
 	
 	private Collection<AbstractPojo> storages = new ArrayList<AbstractPojo>();

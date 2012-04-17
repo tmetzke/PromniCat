@@ -36,14 +36,17 @@ public class Model extends AbstractPojo {
 
 	/**
 	 * id used for identification of {@link Model} 
-	 * is independant of database id, needs to be managed by user
+	 * is independent of database id, needs to be managed by user
 	 */
 	private String importedId = "";
-	
+	// the title of ths process model as given by the user
 	private String title = "";
+	// the original process model collection's name
 	private String origin = "";
+	// group of connected revisions
 	private HashSet<Revision> revisions = new HashSet<Revision>();
-	private boolean completelyLoaded; //in case only one Revision is loaded with again only one Representation
+	// indicates whether all revisions and all their representations are loaded from the database, or just 1 of them.
+	private boolean completelyLoaded; 
 	
 	private final static Logger logger = Logger.getLogger(Model.class.getName());
 
@@ -76,6 +79,21 @@ public class Model extends AbstractPojo {
 						+ "]";
 	}
 	
+	public String toStringExtended() {
+		String s = toString();
+		try {
+			for(Revision rev : getRevisions()) {
+				s +="\n\t" + rev.toString();
+				for(Representation rep : rev.getRepresentations()) {
+					s +="\n\t\t" + rep.toString();
+				}
+			}
+		} catch(ClassCastException e) {
+			s += "\nModel is not fully loaded from database, call loadCompleteModel()";
+		}
+		return s;
+	}
+	
 	/**
 	 * Resets all values in this model by the values found in the database for this dbId.
 	 * Loads all revisions from the database and all their representations.
@@ -95,22 +113,10 @@ public class Model extends AbstractPojo {
 		setCompletelyLoaded(true);
 		return this;
 	}
-	
-	public String toStringExtended() {
-		String s = toString();
-		try {
-			for(Revision rev : getRevisions()) {
-				s +="\n\t" + rev.toString();
-				for(Representation rep : rev.getRepresentations()) {
-					s +="\n\t\t" + rep.toString();
-				}
-			}
-		} catch(ClassCastException e) {
-			s += "\nModel is not fully loaded from database, call loadCompleteModel()";
-		}
-		return s;
-	}
 
+	/**
+	 * @return the number of connected and loaded {@link Representation}s that are connected to the set of {@link Revision}s
+	 */
 	public int getNrOfRepresentations() {
 		int i = 0;
 		for(Revision r : revisions) {
@@ -119,10 +125,18 @@ public class Model extends AbstractPojo {
 		return i;
 	}
 	
+	/**
+	 * @return the number of connected and loaded {@link Revision}s
+	 */
 	public int getNrOfRevisions() {
 		return revisions.size();
 	}
 
+	/**
+	 * Get all Revisions currently connected/loaded.
+	 * 
+	 * @return all connected {@link Revision}s
+	 */
 	public HashSet<Revision> getRevisions() {
 		return revisions;
 	}
@@ -142,6 +156,11 @@ public class Model extends AbstractPojo {
 		}
 	}
 	
+	/**
+	 * Connect a new {@link Revision}, no duplicates are added
+	 * 
+	 * @param revision
+	 */
 	public void connectRevision(Revision revision) {
 		if(revision != null) {
 			revision.model = this;
@@ -149,6 +168,12 @@ public class Model extends AbstractPojo {
 		}
 	}
 	
+	/**
+	 * Connects a {@link Revision} (without creating duplicates) and sets it's status to the latest Revision.
+	 * The previous lates revision is unset.
+	 * 
+	 * @param revision
+	 */
 	public void connectLatestRevision(Revision revision) {
 		if(revision != null) {
 			revision.model = this;
@@ -157,6 +182,12 @@ public class Model extends AbstractPojo {
 		}
 	}
 
+	
+	/**
+	 * Sets this revision as latest revision. The previous one is unset.
+	 * 
+	 * @param revision
+	 */
 	private void setLatestRevision(Revision revision) {
 		if(getLatestRevision() != null) {
 			getLatestRevision().setLatestRevision(false);
@@ -164,6 +195,9 @@ public class Model extends AbstractPojo {
 		revision.setLatestRevision(true);
 	}
 	
+	/**
+	 * @return the latest revision, if any.
+	 */
 	public Revision getLatestRevision() {
 		for(Revision r : getRevisions()) {
 			if(r.isLatestRevision()) {
@@ -188,29 +222,48 @@ public class Model extends AbstractPojo {
 		this.importedId = id;
 	}
 
+	/**
+	 * @return the title
+	 */
 	public String getTitle() {
 		return title;
 	}
 
+	/**
+	 * @param title the title to set
+	 */
 	public void setTitle(String title) {
 		this.title = title;
 	}
 
+	/**
+	 * @return the original collection name
+	 */
 	public String getOrigin() {
 		return origin;
 	}
 
+	/**
+	 * @param origin the original collection name to set
+	 */
 	public void setOrigin(String origin) {
 		this.origin = origin;
 	}
 
 	/**
+	 * Indicates whether all {@link Revision}s and their {@link Representation}s are loaded from the database or just one of them.
+	 * 
 	 * @return the completelyLoaded
 	 */
 	public boolean isCompletelyLoaded() {
 		return completelyLoaded;
 	}	
 	
+	/**
+	 * Set if all {@link Revision}s and their {@link Representation}s are loaded from the database or just one of them.
+	 * 
+	 * @param completelyLoaded
+	 */
 	public void setCompletelyLoaded(boolean completelyLoaded) {
 		this.completelyLoaded = completelyLoaded;
 	}

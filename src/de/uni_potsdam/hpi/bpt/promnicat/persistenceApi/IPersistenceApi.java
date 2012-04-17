@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Observer;
 
 /**
+ * This is the general interface for the database access.
+ * 
  * @author Tobias Hoppe and Andrina Mascher
  *
  */

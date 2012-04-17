@@ -26,8 +26,21 @@ import java.util.List;
 import org.apache.commons.collections.list.TreeList;
 
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.AbstractPojo;
+import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.orientdbObj.PersistenceApiOrientDbObj;
 
+
+/**
+ * To combine multiple index search criteria, the indices results can be intersected. Each individual index would load all selected database objects, but this class calculates the intersection of the referenced database ids first, before loading some of them.
+ * When loading an index intersection, the intersection is based on the referenced database id. Therefore the
+ * results are grouped by this database id. For each id, a {@link IndexCollectionElement} is created that points to
+ * multiple {@link IndexElement}s, with at least one {@link IndexElement} from each index.
+ * 
+ * @author Andrina Mascher
+ * 
+ * @param <V>
+ *            the Valuetype of these key/value indices, such as {@link Representation}.
+ */
 public class IndexIntersection<V extends AbstractPojo> {
 
 	@SuppressWarnings("rawtypes")
@@ -38,15 +51,26 @@ public class IndexIntersection<V extends AbstractPojo> {
 		this.papi = papi;
 	}
 	
+	/**
+	 * Add an index to the intersection.
+	 * 
+	 * @param index the index to add
+	 */
 	@SuppressWarnings("rawtypes")
 	public void add(AbstractIndex index) {
 		indices.add(index);
 	}
 	
+	/**
+	 * Load the intersecting referenced objects from the specified indices.
+	 * First load the database ids from all indices, intersect them, and load the remaining ids.
+	 * 
+	 * @return the resulting {@link IndexCollectionElement}s
+	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Collection<IndexCollectionElement<V>> load() {
 		
-		//load dbIds only and sort by result set size
+		//load dbIds only and sort them by result set size
 		TreeList rawResults = new TreeList(); //no generics possible
 		int maxSize = 0;
 		for(AbstractIndex index : indices) {
@@ -55,7 +79,8 @@ public class IndexIntersection<V extends AbstractPojo> {
 			maxSize = Math.max(maxSize,oneResultSet.getSize());
 		}
 		
-		//create a list of intersecting dbIds, start with smallest set
+		// create a list of intersecting dbIds
+		// start with the smallest result set and intersect with the second smallest, intersect this result with the third smallest a.s.o.
 		HashSet<String> intersectingDbIds = new HashSet<String>(maxSize);
 		for(Object r : rawResults) {
 			ResultSet<V> aResult = (ResultSet<V>) r;
@@ -72,7 +97,7 @@ public class IndexIntersection<V extends AbstractPojo> {
 			}
 		}
 		
-		//create Map of IndexElements each
+		//create Map of IndexElements each, i.e. group by referenced id. Every group is stored in a IndexCollectedElement
 		HashMap<String,IndexCollectionElement<V>> finalElements = new HashMap<String,IndexCollectionElement<V>>(indices.size());
 		for(Object r : rawResults) {
 			ResultSet<V> aResult = (ResultSet<V>) r;
@@ -96,6 +121,14 @@ public class IndexIntersection<V extends AbstractPojo> {
 	}
 }
 
+/**
+ * Each index loads a set of IndexElements stored in this class, together with its size.
+ * This size is used to compare different instances to finally sort them. 
+ * 
+ * @author Andrina Mascher
+ *
+ * @param <V> the Valuetype of the {@link IndexElement}s
+ */
 @SuppressWarnings("rawtypes")
 class ResultSet<V extends AbstractPojo> implements Comparable<ResultSet>{
 	List<IndexElement> resultSet;
@@ -106,6 +139,12 @@ class ResultSet<V extends AbstractPojo> implements Comparable<ResultSet>{
 		setList(aList);
 		this.indexName = name;
 	}
+	
+	/**
+	 * Find all dbIds within the IndexElements
+	 * 
+	 * @return all dbIds
+	 */
 	public Collection<String> getDbIds() {
 		HashSet<String> dbIds = new HashSet<String>();
 		for(IndexElement e : resultSet) {

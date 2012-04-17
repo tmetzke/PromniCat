@@ -22,7 +22,8 @@ import java.util.HashSet;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.AbstractPojo;
 
 /**
- * This class is used to store the available index names.
+ * This class is used to store the available index names for later retrieval and internal checking.
+ * All index names must be unique.
  * 
  * @author Andrina Mascher
  *
@@ -88,6 +89,12 @@ public class IndexManager extends AbstractPojo{
 		this.stringIndices.remove(stringIndex);
 	}
 	
+	/**
+	 * Returns true if this name is already present for some index in the database.
+	 * 
+	 * @param index the index name to check
+	 * @return
+	 */
 	public boolean contains(String index) {
 		return numberIndices.contains(index) || stringIndices.contains(index);
 	}

@@ -185,7 +185,7 @@ public class Revision extends AbstractPojo{
 	}
 
 	/**
-	 * @return all connected {@link Representation}
+	 * @return all connected and loaded {@link Representation}
 	 */
 	public HashSet<Representation> getRepresentations() {
 		return representations;

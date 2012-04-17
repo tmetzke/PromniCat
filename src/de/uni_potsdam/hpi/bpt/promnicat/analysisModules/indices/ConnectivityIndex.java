@@ -39,132 +39,124 @@ import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.orientdbObj.index.NumberI
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 
-
+/**
+ * This is an example of how to use PromniCAT indices to store the connectivity values of {@link Representation}
+ * instances.
+ * 
+ * @author Andrina Mascher
+ * 
+ */
 public class ConnectivityIndex {
 
 	PersistenceApiOrientDbObj papi;
 	ProcessMetricsCalculator metrics;
 	ModelParser parser;
-	NumberIndex<Double,Representation> connectivityIndex;
-	
+	NumberIndex<Double, Representation> connectivityIndex; //remark: also works with Float
+
 	ConnectivityIndex() {
 		papi = PersistenceApiOrientDbObj.getInstance("configuration.properties");
-		papi.openDb();
-		connectivityIndex = new NumberIndex<Double,Representation>("connectivityIndex", papi);
+		connectivityIndex = new NumberIndex<Double, Representation>("connectivityIndex", papi);
 	}
-	
-	/**
-	 * 
-	 * @param papi
-	 * @throws IllegalTypeException 
-	 */
+
 	private void run() throws IllegalTypeException {
-//		connectivityIndex.dropIndex();
+		// connectivityIndex.dropIndex();
 		connectivityIndex.createIndex();
 		writeIndex();
-		readIndex(); 
+		readIndex();
 		papi.closeDb();
 	}
-	
+
 	private void writeIndex() {
-		//get representations
+		// get representations
 		DbFilterConfig config = new DbFilterConfig();
 		config.setLatestRevisionsOnly(true);
 		config.addFormat(Constants.FORMAT_BPMAI_JSON);
-//		config.addNotation(Constants.NOTATION_EPC);
+		// config.addNotation(Constants.NOTATION_EPC);
 		List<Representation> reps = papi.loadRepresentations(config);
-		
-		//calculate metrices and save in index
+
+		// calculate metrices and save in index
 		int cnt = 0;
 		metrics = new ProcessMetricsCalculator();
 		parser = new ModelParser(false);
-		//don't print parsing log messages
+		// don't print parsing log messages
 		Logger epcParserLog = Logger.getLogger(EpcParser.class.getName());
 		epcParserLog.setLevel(Level.SEVERE);
 		Logger bpmnParserLog = Logger.getLogger(BpmnParser.class.getName());
 		bpmnParserLog.setLevel(Level.SEVERE);
-		for(Representation rep : reps) {
+		for (Representation rep : reps) {
 			try {
 				cnt++;
 				String jsonString = rep.convertDataContentToString();
 				Diagram bpmaiDiagram = DiagramBuilder.parseJson(jsonString);
 				ProcessModel processModel = parser.transformProcess(bpmaiDiagram);
-				
-				//connectivity
+
+				// calculate and add connectivity
 				double connectivity = metrics.getCoefficientOfConnectivity(processModel, false);
 				System.out.println(connectivity + " is connectivity in " + rep);
-				connectivityIndex.add((Double)connectivity, rep.getDbId());
-				
-				System.out.println("inserted");
+				connectivityIndex.add((Double) connectivity, rep.getDbId());
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}
-		
+
 		System.out.println("found: " + cnt);
 	}
-
-
 
 	private void readIndex() {
 		System.out.println("--all");
 		connectivityIndex.setSelectAll();
-		List<IndexElement<Double,Representation>> list = connectivityIndex.load();
-		for(IndexElement<Double,Representation> e : list) {
+		List<IndexElement<Double, Representation>> list = connectivityIndex.load();
+		for (IndexElement<Double, Representation> e : list) {
 			System.out.println(e.toString());
 		}
-		
+
 		System.out.println("--- = 1.1");
 		connectivityIndex.setSelectEquals(1.1);
 		list = connectivityIndex.load();
-		for(IndexElement<Double,Representation> e : list) {
+		for (IndexElement<Double, Representation> e : list) {
 			System.out.println(e.toString());
 		}
-		
+
 		System.out.println("--- >= 0.8");
 		connectivityIndex.setSelectGreaterOrEquals(0.8);
 		list = connectivityIndex.load();
-		for(IndexElement<Double,Representation> e : list) {
+		for (IndexElement<Double, Representation> e : list) {
 			System.out.println(e.toString());
 		}
-		
+
 		System.out.println("--- <= 0.8");
 		connectivityIndex.setSelectLessOrEquals(0.8);
 		list = connectivityIndex.load();
-		for(IndexElement<Double,Representation> e : list) {
+		for (IndexElement<Double, Representation> e : list) {
 			System.out.println(e.toString());
 		}
-		
+
 		System.out.println("--- between 0.7 and 1.1");
 		connectivityIndex.setSelectBetween(0.7, 1.0);
-		list = connectivityIndex.load(); 
-		for(IndexElement<Double,Representation> e : list) {
+		list = connectivityIndex.load();
+		for (IndexElement<Double, Representation> e : list) {
 			System.out.println(e.toString());
 		}
-		
+
 		System.out.println("--- list 0.7, 0.8");
 		ArrayList<Double> keys = new ArrayList<Double>();
-		keys.add(5.0); keys.add(20.0); keys.add(13.0); keys.add(14.0);
+		keys.add(5.0);
+		keys.add(20.0);
+		keys.add(13.0);
+		keys.add(14.0);
 		connectivityIndex.setSelectElementsOf(keys);
 		list = connectivityIndex.load();
-		for(IndexElement<Double,Representation> e : list) {
+		for (IndexElement<Double, Representation> e : list) {
 			System.out.println(e.toString());
 		}
 	}
-	
 
-	/**
-	 * @param args
-	 * @throws IllegalTypeException 
-	 */
 	public static void main(String[] args) throws IllegalTypeException {
 		long start = System.currentTimeMillis();
 
 		(new ConnectivityIndex()).run();
-		
+
 		long time = System.currentTimeMillis() - start;
-		System.out.println("Time used: " 
-					+ (time/1000 / 60) + " min "
-					+ (time/1000 % 60) + " sec");
+		System.out.println("Time used: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec");
 	}
 }

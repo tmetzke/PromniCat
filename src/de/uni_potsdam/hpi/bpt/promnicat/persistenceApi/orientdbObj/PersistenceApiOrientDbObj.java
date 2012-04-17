@@ -94,10 +94,10 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 	String user = "";
 	String password = "";
 
-	ODatabaseObjectTx db;
-	private NoSqlBuilder noSqlBuilder;
-	String fetchplan = "";
-	IndexManager indexMngr = null;
+	ODatabaseObjectTx db;				// used by OrientDB to access object level
+	private NoSqlBuilder noSqlBuilder;	// creates NoSQL commands
+	String fetchplan = "";				// can be used to limit loading depth
+	IndexManager indexMngr = null;		// will remember index names and is stored as singleton in the database
 
 	private final static Logger logger = Logger.getLogger(PersistenceApiOrientDbObj.class.getName());
 	
@@ -173,8 +173,7 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 		//for StringIndex
 		executeCommand("CREATE PROPERTY StringIndexStorage.key STRING");
 		//for IndexManager
-		indexMngr = new IndexManager();
-		saveIndexMngr();
+		createIndexManager();
 	}
 	
 	/**
@@ -297,11 +296,20 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 	}
 	
 	/**
-	 * @return the indexMngr
+	 * @return the singleton index manager 
 	 */
 	public IndexManager getIndexMngr() {
 		return indexMngr;
 	}
+	
+	/**
+	 * create a new index manager
+	 */
+	private void createIndexManager() {
+		indexMngr = new IndexManager();
+		saveIndexMngr();
+	}
+	
 	
 	/**
 	 * save the index manager
@@ -316,9 +324,10 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 	private void loadIndexMngr() {
 		OObjectIteratorMultiCluster<Object> result = db.browseClass(IndexManager.class.getSimpleName());
 		if(!result.hasNext()) {
-			throw new IllegalArgumentException("IndexManager is corrupt");
+			createIndexManager();
+		} else {
+			indexMngr = (IndexManager) result.next();
 		}
-		indexMngr = (IndexManager) result.next();
 	}
 
 	//--------------------------------------------------------------------------------------------
@@ -339,7 +348,7 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 	public String savePojo(AbstractPojo pojo) {
 		try{
 			registerPojoClass(pojo.getClass());
-			db.save(pojo); //TODO saved dbid
+			db.save(pojo); 
 			String dbId = db.getIdentity(pojo).toString();
 			clearCache(); //remove this object from cache
 			return dbId;
@@ -372,7 +381,7 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 			tryToConvertDbId(dbId);
 		}
 		try {
-			db.begin();
+			db.begin(); 
 			executeCommand("DELETE FROM " + noSqlBuilder.buildIdList(dbIds));
 			db.commit();
 			return true;
@@ -654,6 +663,8 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 
 
 	/**
+	 * Used by all asynch queries internally
+	 * 
 	 * @param noSql
 	 * @param listener
 	 */
@@ -671,7 +682,7 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 	}
 	
 	/**
-	 * 
+	 * Sets the flag whether OrientDB should keep objects in RAM/cache
 	 */
 	private void retainObjects(boolean retain) {
 		db.setRetainObjects(retain);
@@ -679,7 +690,10 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 	}	
 	
 	/**
-	 * @param rid
+	 * Checks if this database id belongs to the class name.
+	 * Database Ids start with the class id up until the # sign.
+	 * 
+	 * @param rid the representation of a database id
 	 * @param className
 	 * @return
 	 */
@@ -688,7 +702,7 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 	}
 
 	/**
-	 * @param dbId
+	 * @param dbId the database id that should be converted to a internal id format if possible
 	 */
 	private ORecordId tryToConvertDbId(String dbId) {
 		try{
@@ -698,7 +712,15 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 		}
 	}
 
+	/**
+	 * Add custom functions that can be used in NoSQL queries
+	 */
 	private void addCustomFunctions() {	
+		
+		/*
+		 * add function e.g. containsValueSubstring(revision.metadata, [s1,s2,...,sn])
+		 * which searches for any occurence of one substring si in the metadata values.
+		 */
 		OSQLEngine.getInstance().registerFunction("containsValueSubstrings", new OSQLFunctionAbstract("containsValueSubstrings", 2, 2) {
 			public String getSyntax() {
 				return "containsValueSubstrings(<Map>, <SearchCriteriaList>)";
@@ -732,6 +754,13 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 		});
 	}
 
+	/**
+	 * If Representations are loaded, the number of sibling Representations and Revisions can grow huge,
+	 * therefore only load the directly connected Revision and Model until the user requests different.
+	 * 
+	 * @param o the Object that can be cast to a Representation
+	 * @return a Representation
+	 */
 	private Representation makeLightweightRepresentation(Object o) {
 		Representation rep = null;
 		try {

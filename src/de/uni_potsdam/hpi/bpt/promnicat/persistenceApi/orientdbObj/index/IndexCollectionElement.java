@@ -20,8 +20,20 @@ package de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.orientdbObj.index;
 import java.util.HashSet;
 
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.AbstractPojo;
+import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.orientdbObj.PersistenceApiOrientDbObj;
 
+/**
+ * This represents one entry in an index intersection and is given to the user after loading from the intersecting
+ * indices. When loading an index intersection, the intersection is based on the referenced database id. Therefore the
+ * results are grouped by this database id. For each id, a {@link IndexCollectionElement} is created that points to
+ * multiple {@link IndexElement}s, with at least one {@link IndexElement} from each index.
+ * 
+ * @author Andrina Mascher
+ * 
+ * @param <V>
+ *            the Valuetype of these key/value index elements, such as {@link Representation}.
+ */
 public class IndexCollectionElement<V extends AbstractPojo> {
 
 	protected String valueDbId = "";

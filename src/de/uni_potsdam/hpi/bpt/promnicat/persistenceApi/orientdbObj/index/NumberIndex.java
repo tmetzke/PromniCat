@@ -51,6 +51,7 @@ public class NumberIndex<K extends Number, V extends AbstractPojo>
 	@Override
 	public void createIndex() {
 		if(indexMngr.contains(name)) {
+			// consider: only add warning to log, but don't throw exception?
 			throw new IllegalStateException("cannot create index " + name + ", it already exists, drop or clear it");
 		}
 		indexMngr.addNumberIndex(name);
