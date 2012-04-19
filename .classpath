@@ -23,6 +23,6 @@
 	<classpathentry kind="lib" path="lib/orientdb-server-1.0rc6.jar"/>
 	<classpathentry kind="lib" path="lib/orientdb-tools-1.0rc6.jar"/>
 	<classpathentry kind="lib" path="lib/bpmai.jar"/>
-	<classpathentry kind="lib" path="lib/jbpt-0.2.157.jar"/>
+	<classpathentry kind="lib" path="lib/jbpt.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

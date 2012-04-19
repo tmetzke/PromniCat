@@ -17,11 +17,18 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.importer.bpmai;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 import org.json.JSONException;
 
@@ -47,14 +54,14 @@ public class BpmaiImporter extends AbstractImporter {
 
 	private static final String PROPERTY_AUTHOR = "author";
 	private static final String PROPERTY_LANGUAGE = "language";
-	
+
 	private int createdRepresentationsCount = 0;
 	private int createdRevisionsCount = 0;
-	
+
 	private IPersistenceApi persistenceApi = null;
-	
+
 	private final static Logger logger = Logger.getLogger(BpmaiImporter.class.getName());
-	
+
 	/**
 	 * Creates a new {@link BpmaiImporter} with the given {@link IPersistenceApi} used for database access.
 	 * @param persistenceApi persistence API used by importer
@@ -62,16 +69,99 @@ public class BpmaiImporter extends AbstractImporter {
 	public BpmaiImporter(IPersistenceApi persistenceApi) {
 		this.persistenceApi = persistenceApi;
 	}
-	
+
 	@Override
 	public void importModelsFrom(String modelDirectory) throws IOException, JSONException {
 		File rootDir = super.checkModelPath(modelDirectory, true);
 		//reset counter
 		this.createdRepresentationsCount = 0;
 		this.createdRevisionsCount = 0;
-		
+
 		//import all models
 		importAll(rootDir);
+	}
+
+	/**
+	 * Reads the given content and writes it into a  file with the given path.
+	 * @param in stream to read
+	 * @param targetPath path to write the read content to
+	 * @throws IOException if the specified path does not exists.
+	 */
+	private void copyInputStream(InputStream in, String targetPath)	throws IOException {
+		BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(targetPath));
+		byte[] buffer = new byte[1024];
+		int len;
+		while((len = in.read(buffer)) >= 0) {
+			bufferedOutputStream.write(buffer, 0, len);
+		}
+		in.close();
+		bufferedOutputStream.close();
+	}
+	
+	/**
+	 * Scans the given root directory for sgx-archives and extracts them into the dummy folder.
+	 * The extracted models can be parsed like any other process models from the BPM AI.
+	 * @param rootDir container of archives to extract
+	 * @param dummyFolder folder to extract the models to
+	 * @throws ZipException if archive extraction went wrong
+	 * @throws IOException if one of the given paths can not be read or written
+	 */
+	private void extractAvailableSgxArchives(File rootDir, File dummyFolder) throws ZipException, IOException {
+		for(File file : rootDir.listFiles()) {
+			if((!file.isDirectory()) && (file.getName().endsWith(".sgx"))) {
+				ZipFile zipFile = new ZipFile(file);
+				Enumeration<? extends ZipEntry> entries = zipFile.entries();
+				//iterate through files of an zip archive
+				while(entries.hasMoreElements()) {
+					ZipEntry entry = (ZipEntry)entries.nextElement();
+					String entryName = entry.getName();
+					if(entryName.contains("/")) {
+						//ignore meta data files
+						if(entryName.endsWith("_meta.json")){
+							continue;
+						}
+						//remove directory folder to fit into expected structure
+						String[] pathParts = entryName.split("/");
+						if(entryName.contains("directory_")) {
+							entryName = "";
+							for (int i = 0; i < pathParts.length; i++) {
+								if (!(pathParts[i].startsWith("directory_"))) {
+									entryName = entryName.concat(pathParts[i] + "/");
+								}
+							}
+							entryName = entryName.substring(0, entryName.length() - 1);
+						}
+						//rename process model files
+						String oldModelName = pathParts[pathParts.length - 1];
+						String[] nameParts = oldModelName.split("_");
+						if (nameParts.length > 2) {
+							String modelName = pathParts[pathParts.length - 2].split("_")[1] + "_rev" + nameParts[1] + nameParts[2];
+							entryName = entryName.replace(oldModelName, modelName);
+						}
+						//create directories
+						(new File(dummyFolder.getPath() + File.separatorChar + entryName.substring(0, entryName.lastIndexOf("/")))).mkdirs();
+					}
+					//extract process model
+					copyInputStream(zipFile.getInputStream(entry), dummyFolder.getPath() + File.separatorChar + entryName);
+				}
+				zipFile.close();
+			}
+		}
+	}
+
+	/**
+	 * Get the notation of the given {@link Diagram}.
+	 * 
+	 * @param diagram to get the notation of
+	 * @return simple name of this stencil set, e.g. bpmn2.0
+	 */
+	private String getNotation(Diagram diagram) {
+		String namespace = diagram.getStencilset().getNamespace();
+		// e.g. http://b3mn.org/stencilset/bpmn2.0#
+	
+		String[] array = namespace.split("/");
+		String format = array[array.length - 1].replace("#", "");
+		return ConstantsMapper.mapNotation(format);
 	}
 
 	/**
@@ -85,10 +175,17 @@ public class BpmaiImporter extends AbstractImporter {
 	 */
 	private void importAll(File rootDir) throws JSONException, IOException {
 		int modelCounter = 0;
+		
+		//temp folder being used for extraction of sgx archives
+		File container = new File(rootDir + File.separator + "dummy");
+		container.mkdir();
+		//search for sgx-archives and unzip them
+		extractAvailableSgxArchives(rootDir, container);
+		
 		// parse directory
 		BPMAIExport directoryWalker = BPMAIExportBuilder.parseDirectory(rootDir);
 		for (de.uni_potsdam.hpi.bpt.ai.collection.Model bpmAiModel : directoryWalker.getModels()) {
-			
+	
 			Model model = this.persistenceApi.loadCompleteModelWithImportedId(bpmAiModel.getId().toString());
 			if (model == null){
 				//create and save new Model
@@ -116,18 +213,29 @@ public class BpmaiImporter extends AbstractImporter {
 						this.persistenceApi.savePojo(model);
 					}
 				}
-					
+	
 			}
-			
+	
 			modelCounter++;
 			if(modelCounter % 100 == 0) {
 				logger.info("imported or updated " + modelCounter + " models");
 			}
 		}
 		this.persistenceApi.closeDb();
-
+		//delete dummy folder containing extracted sgx archives
+		deleteDirectory(container);
+	
 		logger.info("Finished import or update of " + modelCounter + " models," +
 				" and created " + this.createdRevisionsCount + " revisions and " + this.createdRepresentationsCount + " representations.");
+	}
+
+	private HashMap<String, String[]> parseMetadata(HashMap<String, String> properties) {
+		HashMap<String,String[]> newMap = new HashMap<String, String[]>();
+		for(Entry<String, String> e : properties.entrySet()) {
+			String[] newValue = {e.getValue()};
+			newMap.put(e.getKey(), newValue);
+		}
+		return newMap;
 	}
 
 	/**
@@ -161,31 +269,6 @@ public class BpmaiImporter extends AbstractImporter {
 	}
 
 	/**
-	 * Creates a new {@link Revision} with the meta data parsed from given {@link Diagram}.
-	 * 
-	 * @param diagram to parse the meta data from
-	 * @param number the index to use for this {@link Revision}
-	 * @return a new {@link Revision} with the given index and the meta data parsed from the given {@link Diagram}.
-	 */
-	private Revision parseRevision(Diagram diagram, Integer number) {
-		Revision revision = new Revision(number);
-		revision.setMetadata(parseMetadata(diagram.getProperties())); 
-		revision.setLanguage(parseProperty(diagram, PROPERTY_LANGUAGE));
-		revision.setAuthor(parseProperty(diagram, PROPERTY_AUTHOR));
-		this.createdRevisionsCount++;
-		return revision;
-	}
-
-	private HashMap<String, String[]> parseMetadata(HashMap<String, String> properties) {
-		HashMap<String,String[]> newMap = new HashMap<String, String[]>();
-		for(Entry<String, String> e : properties.entrySet()) {
-			String[] newValue = {e.getValue()};
-			newMap.put(e.getKey(), newValue);
-		}
-		return newMap;
-	}
-
-	/**
 	 * Looks up the value of a given property in the given diagram.
 	 * 
 	 * @param diagram to be used for look up
@@ -200,17 +283,18 @@ public class BpmaiImporter extends AbstractImporter {
 	}
 
 	/**
-	 * Get the notation of the given {@link Diagram}.
+	 * Creates a new {@link Revision} with the meta data parsed from given {@link Diagram}.
 	 * 
-	 * @param diagram to get the notation of
-	 * @return simple name of this stencil set, e.g. bpmn2.0
+	 * @param diagram to parse the meta data from
+	 * @param number the index to use for this {@link Revision}
+	 * @return a new {@link Revision} with the given index and the meta data parsed from the given {@link Diagram}.
 	 */
-	private String getNotation(Diagram diagram) {
-		String namespace = diagram.getStencilset().getNamespace();
-		// e.g. http://b3mn.org/stencilset/bpmn2.0#
-
-		String[] array = namespace.split("/");
-		String format = array[array.length - 1].replace("#", "");
-		return ConstantsMapper.mapNotation(format);
+	private Revision parseRevision(Diagram diagram, Integer number) {
+		Revision revision = new Revision(number);
+		revision.setMetadata(parseMetadata(diagram.getProperties())); 
+		revision.setLanguage(parseProperty(diagram, PROPERTY_LANGUAGE));
+		revision.setAuthor(parseProperty(diagram, PROPERTY_AUTHOR));
+		this.createdRevisionsCount++;
+		return revision;
 	}
 }

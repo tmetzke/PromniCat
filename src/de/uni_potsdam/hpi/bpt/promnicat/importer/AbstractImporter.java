@@ -82,4 +82,24 @@ public abstract class AbstractImporter implements IImporter {
 		}
 		return files;
 	}
+	
+	/**
+	 * Deletes the given file or directory and all sub-directories.
+	 * @param path to delete
+	 * @return <code>true</code> if deletion was successful, <code>false</code> otherwise
+	 */
+	protected boolean deleteDirectory(File path) {
+		if( path.exists() ) {
+			File[] files = path.listFiles();
+			for(int i=0; i<files.length; i++) {
+				if(files[i].isDirectory()) {
+					deleteDirectory(files[i]);
+				}
+				else {
+					files[i].delete();
+				}
+			}
+		}
+		return( path.delete() );
+	}
 }
