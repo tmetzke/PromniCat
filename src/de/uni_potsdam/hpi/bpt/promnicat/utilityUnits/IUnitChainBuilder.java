@@ -65,6 +65,14 @@ public interface IUnitChainBuilder {
 	 * @throws IllegalTypeException if the unit's input and output value classes are not compatible.
 	 */
 	public void createBpmaiJsonToJbptUnit() throws IllegalTypeException;
+	
+	/**
+	 * Add a {@link IUnit} to the internal {@link IUnitChain}, that is used to
+	 * check a given {@link ProcessModel} for BPMN Conformance Level conformance. 
+	 * @throws IllegalTypeException if the unit's input and output value classes are not compatible.
+	 */
+	public void createBpmnConformanceLevelCheckerUnit() throws IllegalTypeException;
+	
 	/**
 	 * Add a {@link IUnit} to the internal {@link IUnitChain}, that is used to filter out
 	 * jBPT {@link ProcessModel}s that are connected.

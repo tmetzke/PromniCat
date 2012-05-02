@@ -1,0 +1,163 @@
+/**
+ * PromniCAT - Collection and Analysis of Business Process Models
+ * Copyright (C) 2012 Cindy Fähnrich, Tobias Hoppe, Andrina Mascher
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData;
+
+import org.jbpt.petri.PetriNet;
+import org.jbpt.pm.ProcessModel;
+import org.jbpt.pm.bpmn.Bpmn;
+
+import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnit;
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnitChain;
+
+/**
+ * {@link IUnitChain} result type implementation containing the {@link Representation} id of the used 
+ * jBPT {@link ProcessModel} and the result value of the last {@link IUnit} in the {@link IUnitChain}.
+ * Furthermore the {@link PetriNet} parsed from a given {@link Bpmn} as well as some classification
+ * results concerning BPMN Conformance Levels, Soundness, Model Type, and structuring are stored.
+ * @author Tobias Hoppe
+ * 
+ */
+public class UnitDataClassification<V extends Object> extends UnitDataJbpt<V> implements IUnitDataClassification<V> {
+	
+	private String modelPath = "";
+	
+	private PetriNet petriNet = null;
+	private boolean isDescriptiveModelingConform = false;
+	private boolean isAnalyticModelingConform = false;
+	private boolean isCommonExecutableModelingConform = false;
+
+	/**
+	 * Creates an empty result with <code>null</code> elements.
+	 */
+	public UnitDataClassification() {
+		super();
+	}
+
+	/**
+	 * Creates a result type with the given value as result and <code>null</code>
+	 * as the database id of the used process model.
+	 *
+	 * @param value the result of the last {@link IUnit}
+	 */
+	public UnitDataClassification(V value) {
+		super(value);
+	}
+
+	/**
+	 * A result type with the given values.
+	 * @param value the result of the {@link IUnit}
+	 * @param dbId the database id of the {@link Representation} used for result value calculation
+	 */
+	public UnitDataClassification(V value, String dbId) {
+		super(value, dbId);
+	}
+	
+	@Override
+	public PetriNet getPetriNet() {
+		return this.petriNet;
+	}
+
+	@Override
+	public boolean getDescriptiveModelingConformance() {
+		return this.isDescriptiveModelingConform;
+	}
+
+	@Override
+	public boolean getAnalyticModelingConformance() {
+		return this.isAnalyticModelingConform;
+	}
+
+	@Override
+	public boolean getCommonExecutableModelingConformance() {
+		return this.isCommonExecutableModelingConform;
+	}
+
+	@Override
+	public void setPetriNet(PetriNet net) {
+		this.petriNet = net;
+	}
+
+	@Override
+	public void setDescriptiveModelingConformance(boolean isConform) {
+		this.isDescriptiveModelingConform = isConform;
+	}
+
+	@Override
+	public void setAnalyticModelingConformance(boolean isConform) {
+		this.isAnalyticModelingConform = isConform;
+	}
+
+	@Override
+	public void setCommonExecutableModelingConformance(boolean isConform) {
+		this.isCommonExecutableModelingConform = isConform;
+	}
+
+	@Override
+	public String getModelPath() {
+		return modelPath;
+	}
+
+	@Override
+	public void setModelPath(String modelPath) {
+		this.modelPath = modelPath;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder(super.toString() + "\n");
+		builder.append("UnitDataClassification [isDecriptiveModelingConform=");
+		builder.append(this.isDescriptiveModelingConform);
+		builder.append(", isAnalyticModelingConform=");
+		builder.append(this.isAnalyticModelingConform);
+		builder.append(", isCommonExecutableModelingConform=");
+		builder.append(this.isCommonExecutableModelingConform);
+		//TODO add further attributes here
+		builder.append("]\n");
+		return builder.toString();
+	}
+
+	@Override
+	public String toCsv(String itemseparator) {
+		StringBuilder builder = new StringBuilder();
+		builder.append(this.modelPath + itemseparator);
+		builder.append(this.getDbId() + itemseparator);
+		if (this.isDescriptiveModelingConform) {
+			builder.append("1" + itemseparator);
+		} else {
+			builder.append("0" + itemseparator);
+		}
+		if (this.isAnalyticModelingConform) {
+			builder.append("1" + itemseparator);
+		} else {
+			builder.append("0" + itemseparator);
+		}
+		if (this.isCommonExecutableModelingConform) {
+			builder.append("1" + itemseparator);
+		} else {
+			builder.append("0" + itemseparator);
+		}
+		//TODO add further attributes here
+		if (this.petriNet != null) {
+			builder.append(this.petriNet.toDOT());		
+		}
+		builder.append("\n");
+		return builder.toString();
+	}
+
+}

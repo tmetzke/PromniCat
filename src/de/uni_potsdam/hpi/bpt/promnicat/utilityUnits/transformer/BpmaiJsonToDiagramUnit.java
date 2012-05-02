@@ -28,6 +28,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitData;
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitDataClassification;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitDataProcessMetrics;
 
 /**
@@ -56,6 +57,8 @@ public class BpmaiJsonToDiagramUnit implements IUnit<IUnitData<Object>, IUnitDat
 		}
 		if(input instanceof IUnitDataProcessMetrics<?>){
 			((IUnitDataProcessMetrics<?>) input).setModelPath(((Representation)input.getValue()).getOriginalFilePath());
+		} else if (input instanceof IUnitDataClassification<?>) {
+			((IUnitDataClassification<?>) input).setModelPath(((Representation)input.getValue()).getOriginalFilePath());
 		}
 
 		try {

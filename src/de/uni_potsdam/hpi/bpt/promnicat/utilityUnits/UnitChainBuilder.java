@@ -29,10 +29,11 @@ import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.IPersistenceApi;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ConfigurationParser;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
-import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 import de.uni_potsdam.hpi.bpt.promnicat.util.FeatureConfig;
+import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.collector.ICollectorUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.collector.SimpleCollectorUnit;
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.BpmnConformanceLevelCheckerUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.ElementExtractorUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.ElementLabelExtractorUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.ProcessModelLabelExtractorUnit;
@@ -139,6 +140,12 @@ public class UnitChainBuilder implements IUnitChainBuilder {
 			throw new IllegalTypeException(jsonToDiagram.getInputType(), this.unitChain.getLastUnit().getOutputType(), INCOMPATIBLE_OUTPUT_INPUT_TYPES_FOR_UNITS);
 		}
 		
+	}
+
+	@Override
+	public void createBpmnConformanceLevelCheckerUnit() throws IllegalTypeException {
+		BpmnConformanceLevelCheckerUnit confLevelChecker = new BpmnConformanceLevelCheckerUnit();
+		checkForCompatibility(confLevelChecker);
 	}
 
 	@Override
