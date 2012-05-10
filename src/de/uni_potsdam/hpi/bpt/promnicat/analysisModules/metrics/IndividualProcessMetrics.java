@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,10 +53,10 @@ public class IndividualProcessMetrics {
 	/**
 	 * split element for CSV file values
 	 */
-	private static final String ITEMSEPARATOR = ";";
-	
+	private static final String ITEMSEPARATOR = ";";	
 	private static final String RESULT_FILE_PATH = new File("C:" + File.separator + "Users" + File.separator + "Tobi" + File.separator + "Documents" + File.separator + "EclipseWorkspaces" + File.separator + "SeminarProcessRepositories" + File.separator + "ProcessEvolutionAnalyzer" + File.separator + "resources" + File.separator + "old" + File.separator + "model_results_new.csv").getAbsolutePath();
-	private final static Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
+	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
+	private static boolean useFullDB = true;
 	
 	/**
 	 * @param args
@@ -66,64 +65,63 @@ public class IndividualProcessMetrics {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IllegalArgumentException, IllegalTypeException, IOException {
-		//configure for time measurement
-		long startTime = System.currentTimeMillis();
+		String analysisResult;
 		
-		//build up chain
-		//set to true if the whole DB data should be used for analysis otherwise only a small sub set is used.
-		boolean useFullDB = true;
-		IUnitChainBuilder chainBuilder = buildUpUnitChain(useFullDB);
+		IUnitChainBuilder chainBuilder = buildUpUnitChain(useFullDB);		
+		logger.info(chainBuilder.getChain().toString() + "\n");		
+		adjustLogger();
+
+		//run chain
+		@SuppressWarnings("unchecked")
+		Collection<IUnitDataProcessMetrics<Object> > result = 
+			(Collection<IUnitDataProcessMetrics<Object>>) chainBuilder.getChain().execute();
 		
-		logger.info(chainBuilder.getChain().toString() + "\n");
+		writeResultToFile(result);
+		analysisResult = analyzeResult(result);
+		writeAnalysisToFile(analysisResult);
+	}
+
+	private static void writeAnalysisToFile(String analysisResult) {
+		// TODO Auto-generated method stub
 		
-		//parser should not log parsing errors
+	}
+
+	private static String analyzeResult(
+			Collection<IUnitDataProcessMetrics<Object>> result) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/**
+	 * parser should not log parsing errors
+	 */
+	private static void adjustLogger() {
 		Logger epcParserLog = Logger.getLogger(EpcParser.class.getName());
 		epcParserLog.setLevel(Level.SEVERE);
 		Logger bpmnParserLog = Logger.getLogger(BpmnParser.class.getName());
 		bpmnParserLog.setLevel(Level.SEVERE);
-
-		//run chain
-		@SuppressWarnings("unchecked")
-		Collection<IUnitDataProcessMetrics<Object> > result = (Collection<IUnitDataProcessMetrics<Object>>) chainBuilder.getChain().execute();
-
-		//finish time measurement
-		long time = System.currentTimeMillis() - startTime;
-		
-		//print result
-		writeResultToFile(result, time);
-		
-		logger.info("Time needed for metric calculation: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
 	}
 
 	/**
 	 * Write the result into a CSV file
 	 * @param resultSet the collected result of the chain execution
+	 * @throws IOException if file can't be read or written
 	 */
-	private static void writeResultToFile(Collection<IUnitDataProcessMetrics<Object>> resultSet, long time) {
+	private static void writeResultToFile(Collection<IUnitDataProcessMetrics<Object>> resultSet) throws IOException {
 		BufferedWriter writer = null;
-		try {
-			//open file for writing
-			writer = new BufferedWriter( new FileWriter(RESULT_FILE_PATH));
-			//add date as first line
-			StringBuilder resultString = new StringBuilder("Finished calculation at: " + new Date().toString() + "\n");
-			resultString.append("Time needed for metric calculation: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
-			resultString.append(addHeader());
-			//collect result from each model
-			for(IUnitDataProcessMetrics<Object> resultItem : resultSet){
-				resultString.append(resultItem.toCsv(ITEMSEPARATOR));
-			}
-			writer.write(resultString.toString());
-		} catch (IOException e) {
-			logger.warning("Could not open file '" + RESULT_FILE_PATH + "' for writing!");
-		} finally {
-			try {
-				if (writer != null) {
-					writer.close(); 
-				}
-			} catch (IOException e) {
-				logger.warning("Could not close file '" + RESULT_FILE_PATH + "' after writing!");
-			}
-		}	
+		writer = new BufferedWriter(new FileWriter(RESULT_FILE_PATH));
+		StringBuilder resultString = new StringBuilder(addHeader());
+		// collect result from each model
+		for (IUnitDataProcessMetrics<Object> resultItem : resultSet)
+			resultString.append(toCsv(resultItem));
+
+		writer.write(resultString.toString());
+		writer.close();
+	}
+
+	private static Object toCsv(IUnitDataProcessMetrics<Object> resultItem) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	/**
