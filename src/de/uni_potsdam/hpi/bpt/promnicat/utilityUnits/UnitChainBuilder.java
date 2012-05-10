@@ -31,6 +31,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.ConfigurationParser;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.FeatureConfig;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
+import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.collector.ICollectorUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.collector.SimpleCollectorUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.BpmnConformanceLevelCheckerUnit;
@@ -54,7 +55,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitData;
  * @author Tobias Hoppe, Cindy Fähnrich
  *
  */
-public class UnitChainBuilder implements IUnitChainBuilder {
+public class UnitChainBuilder implements IFlexibleUnitChainBuilder {
 
 	private static final String INCOMPATIBLE_OUTPUT_INPUT_TYPES_FOR_UNITS = "Incompatible output/input types for units.";
 
@@ -239,6 +240,12 @@ public class UnitChainBuilder implements IUnitChainBuilder {
 		checkForCompatibility(metricsUnit);
 	}
 	
+	@Override
+	public void createProcessModelMetricsCalulatorUnit(Collection<METRICS> metricsToCalculate, boolean handleSubProcesses) throws IllegalTypeException {
+		ProcessModelMetricsCalculatorUnit metricsUnit = new ProcessModelMetricsCalculatorUnit(metricsToCalculate, handleSubProcesses);
+		checkForCompatibility(metricsUnit);	
+	}
+
 	@Override
 	public void createModelToFeatureVectorUnit(FeatureConfig conf) throws IllegalTypeException {
 		ModelToFeatureVectorUnit featureUnit = new ModelToFeatureVectorUnit(conf);

@@ -242,17 +242,17 @@ public class ProcessMetricConstants {
 				data.setNumberOfGateways(new ProcessMetricsCalculator().getNumberOfGateways((ProcessModel) data.getValue(), includeSubProcesses));
 			}
 		},
-//		NUM_ROLES(ProcessMetricConstants.NUM_ROLES){
-//			public double getAttribute(IUnitDataProcessMetrics<?> data){
-//				return data.getNumberOfRoles();
-//			}
-//
-//			@Override
-//			public void calculateAttribute(IUnitDataProcessMetrics<Object> data, boolean includeSubProcesses) {
-//				super.calculateAttribute(data, includeSubProcesses);
-//				data.setNumberOfRoles(new ProcessMetricsCalculator().getNumberOfRoles((ProcessModel) data.getValue(), includeSubProcesses));
-//			}
-//		},
+		NUM_ROLES(ProcessMetricConstants.NUM_ROLES){
+			public double getAttribute(IUnitDataProcessMetrics<?> data){
+				return data.getNumberOfRoles();
+			}
+
+			@Override
+			public void calculateAttribute(IUnitDataProcessMetrics<Object> data, boolean includeSubProcesses) {
+				super.calculateAttribute(data, includeSubProcesses);
+				data.setNumberOfRoles(new ProcessMetricsCalculator().getNumberOfRoles((ProcessModel) data.getValue(), includeSubProcesses));
+			}
+		},
 		AVERAGE_CONNECTOR_DEGREE(ProcessMetricConstants.AVERAGE_CONNECTOR_DEGREE){
 			public double getAttribute(IUnitDataProcessMetrics<?> data){
 				return data.getAverageConnectorDegree();
