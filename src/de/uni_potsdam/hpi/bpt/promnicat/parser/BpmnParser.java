@@ -390,10 +390,10 @@ public class BpmnParser implements IParser {
 			String id = subs.getResourceId();
 			Entry<Object, Subprocess> node = nodeIds.get(id);
 			if (node.getKey() instanceof FlowNode){
-				((FlowNode) node).addResource(f);
+				((FlowNode) node.getKey()).addResource(f);
 			} else {
 				if (node.getKey() instanceof Resource){
-					((Resource) node).setResource(f);
+					((Resource) node.getKey()).setResource(f);
 				}
 			}
 		}
