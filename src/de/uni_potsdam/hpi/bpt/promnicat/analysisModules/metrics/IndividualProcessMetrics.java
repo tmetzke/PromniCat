@@ -110,12 +110,12 @@ public class IndividualProcessMetrics {
 	private static void writeResultToFile(Collection<IUnitDataProcessMetrics<Object>> resultSet) throws IOException {
 		BufferedWriter writer = null;
 		writer = new BufferedWriter(new FileWriter(RESULT_FILE_PATH));
-		StringBuilder resultString = new StringBuilder(addHeader());
+		StringBuilder resultStringBuilder = new StringBuilder(addHeader());
 		// collect result from each model
 		for (IUnitDataProcessMetrics<Object> resultItem : resultSet)
-			resultString.append(toCsv(resultItem));
+			resultStringBuilder.append(toCsv(resultItem));
 
-		writer.write(resultString.toString());
+		writer.write(resultStringBuilder.toString());
 		writer.close();
 	}
 
