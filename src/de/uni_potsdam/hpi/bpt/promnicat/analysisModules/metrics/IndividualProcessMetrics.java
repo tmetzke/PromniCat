@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,9 +56,17 @@ public class IndividualProcessMetrics {
 	 * split element for CSV file values
 	 */
 	private static final String ITEMSEPARATOR = ";";	
-	private static final String RESULT_FILE_PATH = new File("C:" + File.separator + "Users" + File.separator + "Tobi" + File.separator + "Documents" + File.separator + "EclipseWorkspaces" + File.separator + "SeminarProcessRepositories" + File.separator + "ProcessEvolutionAnalyzer" + File.separator + "resources" + File.separator + "old" + File.separator + "model_results_new.csv").getAbsolutePath();
+	
+	private static final String RESULT_FILE_PATH = 
+			new File("").getAbsolutePath() + "/resources/analysis/model_results_new.csv";
+	
+	private static final String ANALYSIS_RESULT_FILE_PATH = 
+			new File("").getAbsolutePath() + "/resources/analysis/model_results_analyzed_new.csv";
+	
 	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
-	private static boolean useFullDB = true;
+	private static boolean useFullDB = false;
+	
+	private static final Collection<ProcessMetricConstants.METRICS> METRICS = new ArrayList<ProcessMetricConstants.METRICS>();
 	
 	/**
 	 * @param args
@@ -69,7 +79,11 @@ public class IndividualProcessMetrics {
 		
 		IUnitChainBuilder chainBuilder = buildUpUnitChain(useFullDB);		
 		logger.info(chainBuilder.getChain().toString() + "\n");		
-		adjustLogger();
+		// parser should not log parsing errors
+		Logger epcParserLog = Logger.getLogger(EpcParser.class.getName());
+		epcParserLog.setLevel(Level.SEVERE);
+		Logger bpmnParserLog = Logger.getLogger(BpmnParser.class.getName());
+		bpmnParserLog.setLevel(Level.SEVERE);
 
 		//run chain
 		@SuppressWarnings("unchecked")
@@ -77,29 +91,57 @@ public class IndividualProcessMetrics {
 			(Collection<IUnitDataProcessMetrics<Object>>) chainBuilder.getChain().execute();
 		
 		writeResultToFile(result);
+		logger.info("Wrote results to " + RESULT_FILE_PATH);
 		analysisResult = analyzeResult(result);
 		writeAnalysisToFile(analysisResult);
+		logger.info("Wrote results to " + ANALYSIS_RESULT_FILE_PATH);
 	}
 
-	private static void writeAnalysisToFile(String analysisResult) {
-		// TODO Auto-generated method stub
+	private static void writeAnalysisToFile(String analysisResult) throws IOException {
+		BufferedWriter writer = null;
+		writer = new BufferedWriter(new FileWriter(ANALYSIS_RESULT_FILE_PATH));
+		StringBuilder resultStringBuilder = new StringBuilder(addHeader()).append(analysisResult);
+		writer.write(resultStringBuilder.toString());
+		writer.close();
+	}
+
+	private static String analyzeResult(Collection<IUnitDataProcessMetrics<Object>> resultSet) {
+		StringBuilder resultStringBuilder = new StringBuilder();
+		Map<String,Map<ProcessMetricConstants.METRICS, Double>> oldValues = 
+				new HashMap<String,Map<ProcessMetricConstants.METRICS, Double>>();
 		
-	}
+		for (IUnitDataProcessMetrics<Object> resultItem : resultSet){
+			String modelPathWithRevision = resultItem.getModelPath();
+			int revisionStringIndex = modelPathWithRevision.indexOf("_rev");
+			String processFolder = "2011-04-19_signavio_academic_processes";
+			String modelPath = modelPathWithRevision.substring(modelPathWithRevision.indexOf(processFolder) + processFolder.length(),revisionStringIndex);
+			String revisionNumber = modelPathWithRevision.substring(revisionStringIndex + 4, modelPathWithRevision.indexOf(".json"));
 
-	private static String analyzeResult(
-			Collection<IUnitDataProcessMetrics<Object>> result) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	/**
-	 * parser should not log parsing errors
-	 */
-	private static void adjustLogger() {
-		Logger epcParserLog = Logger.getLogger(EpcParser.class.getName());
-		epcParserLog.setLevel(Level.SEVERE);
-		Logger bpmnParserLog = Logger.getLogger(BpmnParser.class.getName());
-		bpmnParserLog.setLevel(Level.SEVERE);
+			resultStringBuilder
+				.append(modelPath)
+				.append(ITEMSEPARATOR + revisionNumber);
+			
+			// new model to be analyzed, so add it to the map of models
+			if (!oldValues.containsKey(modelPath)) {
+				HashMap<ProcessMetricConstants.METRICS, Double> modelValues = new HashMap<ProcessMetricConstants.METRICS, Double>();
+				for (ProcessMetricConstants.METRICS metric : METRICS)
+					modelValues.put(metric, Double.valueOf(0));
+				oldValues.put(modelPath, modelValues);
+			}
+			
+			for (ProcessMetricConstants.METRICS metric : METRICS){
+				double actualValue = metric.getAttribute(resultItem);
+				double oldValue = oldValues.get(modelPath).get(metric);
+				double divisor = oldValue == 0 ? actualValue : oldValue;
+				if (divisor == 0) divisor = 1;
+				double difference = (actualValue - oldValue) * 100 / divisor;
+				oldValues.get(modelPath).put(metric, actualValue);
+				resultStringBuilder
+					.append(new String(ITEMSEPARATOR + difference).replace(".", ","));
+			}
+			resultStringBuilder.append("\n");
+		}
+		return resultStringBuilder.toString();
 	}
 
 	/**
@@ -113,15 +155,52 @@ public class IndividualProcessMetrics {
 		StringBuilder resultStringBuilder = new StringBuilder(addHeader());
 		// collect result from each model
 		for (IUnitDataProcessMetrics<Object> resultItem : resultSet)
-			resultStringBuilder.append(toCsv(resultItem));
+			resultStringBuilder.append(toCsvString(resultItem));
 
 		writer.write(resultStringBuilder.toString());
 		writer.close();
 	}
 
-	private static Object toCsv(IUnitDataProcessMetrics<Object> resultItem) {
-		// TODO Auto-generated method stub
-		return null;
+	private static String toCsvString(IUnitDataProcessMetrics<Object> resultItem) {
+		StringBuilder builder = new StringBuilder();
+		String modelPath = resultItem.getModelPath();
+		int revisionStringIndex = resultItem.getModelPath().indexOf("_rev");
+		String processFolder = "2011-04-19_signavio_academic_processes";
+		builder.append(modelPath.substring(modelPath.indexOf(processFolder) + processFolder.length(),revisionStringIndex) + ITEMSEPARATOR);
+		builder.append(modelPath.substring(revisionStringIndex + 4, modelPath.indexOf(".json")) + ITEMSEPARATOR);
+//		builder.append(resultItem.getnumberOfStartEvents + ITEMSEPARATOR);
+//		builder.append(resultItem.getnumberOfInternalEvents + ITEMSEPARATOR);
+//		builder.append(resultItem.getnumberOfEndEvents + ITEMSEPARATOR);
+		builder.append(resultItem.getNumberOfEvents() + ITEMSEPARATOR);
+		builder.append(resultItem.getNumberOfActivities() + ITEMSEPARATOR);
+//		builder.append(resultItem.getnumberOfAndSplits + ITEMSEPARATOR);
+//		builder.append(resultItem.getnumberOfAndJoins + ITEMSEPARATOR);
+//		builder.append(resultItem.getnumberOfXorSplits + ITEMSEPARATOR);
+//		builder.append(resultItem.getnumberOfXorJoins + ITEMSEPARATOR);
+//		builder.append(resultItem.getnumberOfOrSplits + ITEMSEPARATOR);
+//		builder.append(resultItem.getnumberOfOrJoins + ITEMSEPARATOR);
+		builder.append(resultItem.getNumberOfGateways() + ITEMSEPARATOR);
+		builder.append(resultItem.getNumberOfNodes() + ITEMSEPARATOR);
+		builder.append(resultItem.getNumberOfEdges() + ITEMSEPARATOR);
+//		builder.append(resultItem.getnumberOfDataNodes + ITEMSEPARATOR);
+		// extra line for less metrics, last metric shouldn't add a ITEMSEPARATOR
+		builder.append(resultItem.getNumberOfRoles());
+//		builder.append(resultItem.getNumberOfRoles() + ITEMSEPARATOR);
+//		builder.append(resultItem.getdiameter + ITEMSEPARATOR);
+//		builder.append(new String(resultItem.getdensity + ITEMSEPARATOR).replace(".", ","));
+//		builder.append(new String(resultItem.getdensityRelatedToNumberOfGateways + ITEMSEPARATOR).replace(".", ","));
+//		builder.append(new String(resultItem.getcoefficientOfConnectivity + ITEMSEPARATOR).replace(".", ","));
+//		builder.append(new String(resultItem.getcoefficientOfNetworkComplexity + ITEMSEPARATOR).replace(".", ","));
+//		builder.append(new String(resultItem.getcyclomaticNumber + ITEMSEPARATOR).replace(".", ","));
+//		builder.append(new String(resultItem.getaverageConnectorDegree + ITEMSEPARATOR).replace(".", ","));
+//		builder.append(new String(resultItem.getmaxConnectorDegree + ITEMSEPARATOR).replace(".", ","));
+//		builder.append(new String(resultItem.getseparability + ITEMSEPARATOR).replace(".", ","));
+//		builder.append(new String(resultItem.getdepth + ITEMSEPARATOR).replace(".", ","));
+//		builder.append(new String(resultItem.getcycling + ITEMSEPARATOR).replace(".", ","));
+//		builder.append(new String(resultItem.getcontrolFlowComplexity + ITEMSEPARATOR).replace(".", ","));
+//		builder.append(new String(resultItem.getcrossConnectivity + "").replace(".", ","));
+		builder.append("\n");
+		return builder.toString();
 	}
 
 	/**
@@ -148,9 +227,7 @@ public class IndividualProcessMetrics {
 		builder.append("Number of Nodes" + ITEMSEPARATOR);
 		builder.append("Number of Edges" + ITEMSEPARATOR);
 //		builder.append("Number of Data Nodes" + ITEMSEPARATOR);
-		//next line added, must be deleted when line after that line shall be reconsidered
-		builder.append("Number of Roles");
-//		builder.append("Number of Roles" + ITEMSEPARATOR);
+		builder.append("Number of Roles" + ITEMSEPARATOR);
 //		builder.append("Diameter" + ITEMSEPARATOR);
 //		builder.append("Density" + ITEMSEPARATOR);
 //		builder.append("Density related to number of Gateways" + ITEMSEPARATOR);
@@ -179,7 +256,7 @@ public class IndividualProcessMetrics {
 	 */
 	private static IUnitChainBuilder buildUpUnitChain(boolean useFullDB) throws IOException, IllegalTypeException {
 		IFlexibleUnitChainBuilder chainBuilder = null;
-		Collection<ProcessMetricConstants.METRICS> metricsToCalculate = defineProcessModelMetrics();
+		defineProcessModelMetrics();
 		if (useFullDB){
 			chainBuilder = new UnitChainBuilder("configuration(full).properties", Constants.DATABASE_TYPES.ORIENT_DB, UnitDataProcessMetrics.class);
 		} else {
@@ -196,25 +273,21 @@ public class IndividualProcessMetrics {
 		chainBuilder.addDbFilterConfig(dbFilter);
 		//transform to jBPT and calculate metrics
 		chainBuilder.createBpmaiJsonToJbptUnit(false);
-		chainBuilder.createProcessModelMetricsCalulatorUnit(metricsToCalculate,true);
+		chainBuilder.createProcessModelMetricsCalulatorUnit(METRICS,true);
 		
 		//collect results
 		chainBuilder.createSimpleCollectorUnit();
 		return chainBuilder;
 	}
 
-	
-	private static Collection<ProcessMetricConstants.METRICS> defineProcessModelMetrics() {
-		Collection<ProcessMetricConstants.METRICS> metrics = new ArrayList<ProcessMetricConstants.METRICS>();
-		Collections.addAll(metrics, 
+	private static void defineProcessModelMetrics() {
+		Collections.addAll(METRICS, 
 				ProcessMetricConstants.METRICS.NUM_EVENTS,
 				ProcessMetricConstants.METRICS.NUM_ACTIVITIES,
 				ProcessMetricConstants.METRICS.NUM_GATEWAYS,
 				ProcessMetricConstants.METRICS.NUM_NODES,
 				ProcessMetricConstants.METRICS.NUM_EDGES,
-				ProcessMetricConstants.METRICS.NUM_ROLES
-				);
-		return metrics;
+				ProcessMetricConstants.METRICS.NUM_ROLES);
 	}
 
 }
