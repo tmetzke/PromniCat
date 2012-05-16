@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -68,6 +69,9 @@ public class IndividualProcessMetrics {
 	
 	private static final Collection<ProcessMetricConstants.METRICS> METRICS = new ArrayList<ProcessMetricConstants.METRICS>();
 	
+	private static final Map<String,Map<Integer, Map<String, Double>>> models = 
+			new HashMap<String,Map<Integer,Map<String, Double>>>();
+	
 	/**
 	 * @param args
 	 * @throws IllegalTypeException 
@@ -90,11 +94,55 @@ public class IndividualProcessMetrics {
 		Collection<IUnitDataProcessMetrics<Object> > result = 
 			(Collection<IUnitDataProcessMetrics<Object>>) chainBuilder.getChain().execute();
 		
+		buildUpInternalDataStructure(result);
+
 		writeResultToFile(result);
 		logger.info("Wrote results to " + RESULT_FILE_PATH);
-		analysisResult = analyzeResult(result);
-		writeAnalysisToFile(analysisResult);
-		logger.info("Wrote results to " + ANALYSIS_RESULT_FILE_PATH);
+//		analysisResult = analyzeResult(result);
+//		writeAnalysisToFile(analysisResult);
+//		logger.info("Wrote results to " + ANALYSIS_RESULT_FILE_PATH);
+	}
+	
+	private static void buildUpInternalDataStructure(Collection<IUnitDataProcessMetrics<Object>> resultSet) {		
+		Collection<String> metricsCollection = new ArrayList<String>();
+		for (ProcessMetricConstants.METRICS metric : METRICS)
+			metricsCollection.add(metric.name());
+		
+		for (IUnitDataProcessMetrics<Object> resultItem : resultSet){
+			String modelPathWithRevision = resultItem.getModelPath();
+			int revisionStringIndex = modelPathWithRevision.indexOf("_rev");
+			String processFolder = "2011-04-19_signavio_academic_processes";
+			String modelPath = modelPathWithRevision.substring(modelPathWithRevision.indexOf(processFolder) + processFolder.length(),revisionStringIndex);
+			int revisionNumber = Integer.valueOf(modelPathWithRevision.substring(revisionStringIndex + 4, modelPathWithRevision.indexOf(".json")));
+			
+			// new model to be analyzed, so add it to the map of models
+			if (!models.containsKey(modelPath)) {
+				Map<Integer, Map<String, Double>> revisions = new HashMap<Integer, Map<String, Double>>();
+				models.put(modelPath, revisions);
+			}
+			
+			Map<String, Double> revisionValues = new HashMap<String, Double>();
+			for (String metric : metricsCollection)
+				revisionValues.put(metric, ProcessMetricConstants.METRICS.valueOf(metric).getAttribute(resultItem));
+			models.get(modelPath).put(revisionNumber, revisionValues);
+		}
+	}
+	
+	/**
+	 * Write the result into a CSV file
+	 * @param resultSet the collected result of the chain execution
+	 * @throws IOException if file can't be read or written
+	 */
+	private static void writeResultToFile(Collection<IUnitDataProcessMetrics<Object>> resultSet) throws IOException {
+		BufferedWriter writer = null;
+		writer = new BufferedWriter(new FileWriter(RESULT_FILE_PATH));
+		StringBuilder resultStringBuilder = new StringBuilder(addHeader());
+		// collect result from each model
+		for (Entry<String, Map<Integer, Map<String, Double>>> model : models.entrySet())
+			resultStringBuilder.append(toCsvString(model));
+
+		writer.write(resultStringBuilder.toString());
+		writer.close();
 	}
 
 	private static void writeAnalysisToFile(String analysisResult) throws IOException {
@@ -107,99 +155,33 @@ public class IndividualProcessMetrics {
 
 	private static String analyzeResult(Collection<IUnitDataProcessMetrics<Object>> resultSet) {
 		StringBuilder resultStringBuilder = new StringBuilder();
-		Map<String,Map<ProcessMetricConstants.METRICS, Double>> oldValues = 
-				new HashMap<String,Map<ProcessMetricConstants.METRICS, Double>>();
-		
-		for (IUnitDataProcessMetrics<Object> resultItem : resultSet){
-			String modelPathWithRevision = resultItem.getModelPath();
-			int revisionStringIndex = modelPathWithRevision.indexOf("_rev");
-			String processFolder = "2011-04-19_signavio_academic_processes";
-			String modelPath = modelPathWithRevision.substring(modelPathWithRevision.indexOf(processFolder) + processFolder.length(),revisionStringIndex);
-			String revisionNumber = modelPathWithRevision.substring(revisionStringIndex + 4, modelPathWithRevision.indexOf(".json"));
-
-			resultStringBuilder
-				.append(modelPath)
-				.append(ITEMSEPARATOR + revisionNumber);
-			
-			// new model to be analyzed, so add it to the map of models
-			if (!oldValues.containsKey(modelPath)) {
-				HashMap<ProcessMetricConstants.METRICS, Double> modelValues = new HashMap<ProcessMetricConstants.METRICS, Double>();
-				for (ProcessMetricConstants.METRICS metric : METRICS)
-					modelValues.put(metric, Double.valueOf(0));
-				oldValues.put(modelPath, modelValues);
-			}
-			
-			for (ProcessMetricConstants.METRICS metric : METRICS){
-				double actualValue = metric.getAttribute(resultItem);
-				double oldValue = oldValues.get(modelPath).get(metric);
-				double divisor = oldValue == 0 ? actualValue : oldValue;
-				if (divisor == 0) divisor = 1;
-				double difference = (actualValue - oldValue) * 100 / divisor;
-				oldValues.get(modelPath).put(metric, actualValue);
-				resultStringBuilder
-					.append(new String(ITEMSEPARATOR + difference).replace(".", ","));
-			}
-			resultStringBuilder.append("\n");
-		}
+//		for (String metric : metricsCollection){
+//			double actualValue = ProcessMetricConstants.METRICS.valueOf(metric).getAttribute(resultItem);
+//			double oldValue = oldValues.get(modelPath).get(metric);
+//			double divisor = oldValue == 0 ? actualValue : oldValue;
+//			if (divisor == 0) divisor = 1;
+//			double difference = (actualValue - oldValue) * 100 / divisor;
+//			
+//			models.get(modelPath).put(metric, actualValue);
+//			resultStringBuilder
+//				.append(new String(ITEMSEPARATOR + difference).replace(".", ","));
+//		}
+		resultStringBuilder.append("\n");
 		return resultStringBuilder.toString();
 	}
 
-	/**
-	 * Write the result into a CSV file
-	 * @param resultSet the collected result of the chain execution
-	 * @throws IOException if file can't be read or written
-	 */
-	private static void writeResultToFile(Collection<IUnitDataProcessMetrics<Object>> resultSet) throws IOException {
-		BufferedWriter writer = null;
-		writer = new BufferedWriter(new FileWriter(RESULT_FILE_PATH));
-		StringBuilder resultStringBuilder = new StringBuilder(addHeader());
-		// collect result from each model
-		for (IUnitDataProcessMetrics<Object> resultItem : resultSet)
-			resultStringBuilder.append(toCsvString(resultItem));
-
-		writer.write(resultStringBuilder.toString());
-		writer.close();
-	}
-
-	private static String toCsvString(IUnitDataProcessMetrics<Object> resultItem) {
+	private static String toCsvString(Entry<String, Map<Integer, Map<String, Double>>> model) {
 		StringBuilder builder = new StringBuilder();
-		String modelPath = resultItem.getModelPath();
-		int revisionStringIndex = resultItem.getModelPath().indexOf("_rev");
-		String processFolder = "2011-04-19_signavio_academic_processes";
-		builder.append(modelPath.substring(modelPath.indexOf(processFolder) + processFolder.length(),revisionStringIndex) + ITEMSEPARATOR);
-		builder.append(modelPath.substring(revisionStringIndex + 4, modelPath.indexOf(".json")) + ITEMSEPARATOR);
-//		builder.append(resultItem.getnumberOfStartEvents + ITEMSEPARATOR);
-//		builder.append(resultItem.getnumberOfInternalEvents + ITEMSEPARATOR);
-//		builder.append(resultItem.getnumberOfEndEvents + ITEMSEPARATOR);
-		builder.append(resultItem.getNumberOfEvents() + ITEMSEPARATOR);
-		builder.append(resultItem.getNumberOfActivities() + ITEMSEPARATOR);
-//		builder.append(resultItem.getnumberOfAndSplits + ITEMSEPARATOR);
-//		builder.append(resultItem.getnumberOfAndJoins + ITEMSEPARATOR);
-//		builder.append(resultItem.getnumberOfXorSplits + ITEMSEPARATOR);
-//		builder.append(resultItem.getnumberOfXorJoins + ITEMSEPARATOR);
-//		builder.append(resultItem.getnumberOfOrSplits + ITEMSEPARATOR);
-//		builder.append(resultItem.getnumberOfOrJoins + ITEMSEPARATOR);
-		builder.append(resultItem.getNumberOfGateways() + ITEMSEPARATOR);
-		builder.append(resultItem.getNumberOfNodes() + ITEMSEPARATOR);
-		builder.append(resultItem.getNumberOfEdges() + ITEMSEPARATOR);
-//		builder.append(resultItem.getnumberOfDataNodes + ITEMSEPARATOR);
-		// extra line for less metrics, last metric shouldn't add a ITEMSEPARATOR
-		builder.append(resultItem.getNumberOfRoles());
-//		builder.append(resultItem.getNumberOfRoles() + ITEMSEPARATOR);
-//		builder.append(resultItem.getdiameter + ITEMSEPARATOR);
-//		builder.append(new String(resultItem.getdensity + ITEMSEPARATOR).replace(".", ","));
-//		builder.append(new String(resultItem.getdensityRelatedToNumberOfGateways + ITEMSEPARATOR).replace(".", ","));
-//		builder.append(new String(resultItem.getcoefficientOfConnectivity + ITEMSEPARATOR).replace(".", ","));
-//		builder.append(new String(resultItem.getcoefficientOfNetworkComplexity + ITEMSEPARATOR).replace(".", ","));
-//		builder.append(new String(resultItem.getcyclomaticNumber + ITEMSEPARATOR).replace(".", ","));
-//		builder.append(new String(resultItem.getaverageConnectorDegree + ITEMSEPARATOR).replace(".", ","));
-//		builder.append(new String(resultItem.getmaxConnectorDegree + ITEMSEPARATOR).replace(".", ","));
-//		builder.append(new String(resultItem.getseparability + ITEMSEPARATOR).replace(".", ","));
-//		builder.append(new String(resultItem.getdepth + ITEMSEPARATOR).replace(".", ","));
-//		builder.append(new String(resultItem.getcycling + ITEMSEPARATOR).replace(".", ","));
-//		builder.append(new String(resultItem.getcontrolFlowComplexity + ITEMSEPARATOR).replace(".", ","));
-//		builder.append(new String(resultItem.getcrossConnectivity + "").replace(".", ","));
-		builder.append("\n");
+		String modelPath = model.getKey();
+		for (Entry<Integer, Map<String, Double>> revision : model.getValue().entrySet()) {
+			int revisionNumber = revision.getKey();
+			Map<String, Double> metricsValues = revision.getValue();
+			builder.append(modelPath);
+			builder.append(ITEMSEPARATOR + revisionNumber);
+			for (ProcessMetricConstants.METRICS metric : METRICS)
+				builder.append(ITEMSEPARATOR + (metricsValues.get(metric.name())).intValue());
+			builder.append("\n");
+		}
 		return builder.toString();
 	}
 
