@@ -61,7 +61,7 @@ public class DiagramToJbptUnit implements IUnit<IUnitData<Object>, IUnitData<Obj
 	
 	@Override
 	public IUnitData<Object> execute(IUnitData<Object> input) throws IllegalTypeException {
-		if (input == null) {
+		if (input == null || input.getValue() == null) {
 			throw new IllegalArgumentException("Got an invalid null pointer input!");
 		}
 		if (!(input.getValue() instanceof Diagram)){

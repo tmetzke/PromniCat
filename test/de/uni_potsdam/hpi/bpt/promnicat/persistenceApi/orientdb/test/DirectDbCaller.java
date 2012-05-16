@@ -191,6 +191,7 @@ public class DirectDbCaller {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private void inspectAllDocsInCluster(String name) {
 		ODatabaseDocumentTx dbDoc = (ODatabaseDocumentTx) db.getUnderlying();
 		for (ORecordAbstract<?> doc : dbDoc.browseCluster(name)) {

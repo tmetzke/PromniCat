@@ -218,6 +218,7 @@ public class BpmaiImporter extends AbstractImporter {
 	
 			modelCounter++;
 			if(modelCounter % 100 == 0) {
+				this.persistenceApi.clearCache();
 				logger.info("imported or updated " + modelCounter + " models");
 			}
 		}
@@ -229,6 +230,11 @@ public class BpmaiImporter extends AbstractImporter {
 				" and created " + this.createdRevisionsCount + " revisions and " + this.createdRepresentationsCount + " representations.");
 	}
 
+	/**
+	 * Transform given meta data into an other format
+	 * @param properties current meta data
+	 * @return original given meta data, but the value is represented as an array 
+	 */
 	private HashMap<String, String[]> parseMetadata(HashMap<String, String> properties) {
 		HashMap<String,String[]> newMap = new HashMap<String, String[]>();
 		for(Entry<String, String> e : properties.entrySet()) {
