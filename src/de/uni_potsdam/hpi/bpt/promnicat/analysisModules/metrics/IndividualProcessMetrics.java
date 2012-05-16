@@ -37,7 +37,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.parser.EpcParser;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
-import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants;
+import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IFlexibleUnitChainBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnitChainBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.UnitChainBuilder;
@@ -47,8 +47,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataProcessMet
 /**
  * Analysis module to calculate metrics from all {@link ProcessModel}s of a given database.
  * 
- * @author Tobias Hoppe
- * edited by Tobias Metzke
+ * @author Tobias Metzke
  *
  */
 public class IndividualProcessMetrics {
@@ -65,12 +64,9 @@ public class IndividualProcessMetrics {
 			new File("").getAbsolutePath() + "/resources/analysis/model_results_analyzed_new.csv";
 	
 	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
-	private static boolean useFullDB = false;
+	private static final boolean useFullDB = false;
 	
-	private static final Collection<ProcessMetricConstants.METRICS> METRICS = new ArrayList<ProcessMetricConstants.METRICS>();
-	
-	private static final Map<String,Map<Integer, Map<String, Double>>> models = 
-			new HashMap<String,Map<Integer,Map<String, Double>>>();
+	private static Collection<METRICS> processModelMetrics;
 	
 	/**
 	 * @param args
@@ -79,10 +75,10 @@ public class IndividualProcessMetrics {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IllegalArgumentException, IllegalTypeException, IOException {
-		String analysisResult;
-		
+
 		IUnitChainBuilder chainBuilder = buildUpUnitChain(useFullDB);		
 		logger.info(chainBuilder.getChain().toString() + "\n");		
+		
 		// parser should not log parsing errors
 		Logger epcParserLog = Logger.getLogger(EpcParser.class.getName());
 		epcParserLog.setLevel(Level.SEVERE);
@@ -94,139 +90,16 @@ public class IndividualProcessMetrics {
 		Collection<IUnitDataProcessMetrics<Object> > result = 
 			(Collection<IUnitDataProcessMetrics<Object>>) chainBuilder.getChain().execute();
 		
-		buildUpInternalDataStructure(result);
+		Map<String,Map<Integer, Map<String, Double>>> models = buildUpInternalDataStructure(result);
 
-		writeResultToFile(result);
+		writeToFile(models);
 		logger.info("Wrote results to " + RESULT_FILE_PATH);
-//		analysisResult = analyzeResult(result);
-//		writeAnalysisToFile(analysisResult);
-//		logger.info("Wrote results to " + ANALYSIS_RESULT_FILE_PATH);
-	}
-	
-	private static void buildUpInternalDataStructure(Collection<IUnitDataProcessMetrics<Object>> resultSet) {		
-		Collection<String> metricsCollection = new ArrayList<String>();
-		for (ProcessMetricConstants.METRICS metric : METRICS)
-			metricsCollection.add(metric.name());
 		
-		for (IUnitDataProcessMetrics<Object> resultItem : resultSet){
-			String modelPathWithRevision = resultItem.getModelPath();
-			int revisionStringIndex = modelPathWithRevision.indexOf("_rev");
-			String processFolder = "2011-04-19_signavio_academic_processes";
-			String modelPath = modelPathWithRevision.substring(modelPathWithRevision.indexOf(processFolder) + processFolder.length(),revisionStringIndex);
-			int revisionNumber = Integer.valueOf(modelPathWithRevision.substring(revisionStringIndex + 4, modelPathWithRevision.indexOf(".json")));
-			
-			// new model to be analyzed, so add it to the map of models
-			if (!models.containsKey(modelPath)) {
-				Map<Integer, Map<String, Double>> revisions = new HashMap<Integer, Map<String, Double>>();
-				models.put(modelPath, revisions);
-			}
-			
-			Map<String, Double> revisionValues = new HashMap<String, Double>();
-			for (String metric : metricsCollection)
-				revisionValues.put(metric, ProcessMetricConstants.METRICS.valueOf(metric).getAttribute(resultItem));
-			models.get(modelPath).put(revisionNumber, revisionValues);
-		}
+//		Map<String,Map<Integer, Map<String, Double>>> analyzedModels = analyze(models);
+//		writeToFile(analyzedModels);
+//		logger.info("Wrote analysis results to " + ANALYSIS_RESULT_FILE_PATH);
 	}
 	
-	/**
-	 * Write the result into a CSV file
-	 * @param resultSet the collected result of the chain execution
-	 * @throws IOException if file can't be read or written
-	 */
-	private static void writeResultToFile(Collection<IUnitDataProcessMetrics<Object>> resultSet) throws IOException {
-		BufferedWriter writer = null;
-		writer = new BufferedWriter(new FileWriter(RESULT_FILE_PATH));
-		StringBuilder resultStringBuilder = new StringBuilder(addHeader());
-		// collect result from each model
-		for (Entry<String, Map<Integer, Map<String, Double>>> model : models.entrySet())
-			resultStringBuilder.append(toCsvString(model));
-
-		writer.write(resultStringBuilder.toString());
-		writer.close();
-	}
-
-	private static void writeAnalysisToFile(String analysisResult) throws IOException {
-		BufferedWriter writer = null;
-		writer = new BufferedWriter(new FileWriter(ANALYSIS_RESULT_FILE_PATH));
-		StringBuilder resultStringBuilder = new StringBuilder(addHeader()).append(analysisResult);
-		writer.write(resultStringBuilder.toString());
-		writer.close();
-	}
-
-	private static String analyzeResult(Collection<IUnitDataProcessMetrics<Object>> resultSet) {
-		StringBuilder resultStringBuilder = new StringBuilder();
-//		for (String metric : metricsCollection){
-//			double actualValue = ProcessMetricConstants.METRICS.valueOf(metric).getAttribute(resultItem);
-//			double oldValue = oldValues.get(modelPath).get(metric);
-//			double divisor = oldValue == 0 ? actualValue : oldValue;
-//			if (divisor == 0) divisor = 1;
-//			double difference = (actualValue - oldValue) * 100 / divisor;
-//			
-//			models.get(modelPath).put(metric, actualValue);
-//			resultStringBuilder
-//				.append(new String(ITEMSEPARATOR + difference).replace(".", ","));
-//		}
-		resultStringBuilder.append("\n");
-		return resultStringBuilder.toString();
-	}
-
-	private static String toCsvString(Entry<String, Map<Integer, Map<String, Double>>> model) {
-		StringBuilder builder = new StringBuilder();
-		String modelPath = model.getKey();
-		for (Entry<Integer, Map<String, Double>> revision : model.getValue().entrySet()) {
-			int revisionNumber = revision.getKey();
-			Map<String, Double> metricsValues = revision.getValue();
-			builder.append(modelPath);
-			builder.append(ITEMSEPARATOR + revisionNumber);
-			for (ProcessMetricConstants.METRICS metric : METRICS)
-				builder.append(ITEMSEPARATOR + (metricsValues.get(metric.name())).intValue());
-			builder.append("\n");
-		}
-		return builder.toString();
-	}
-
-	/**
-	 * @return a String representation of the process model metrics
-	 * separated by the {@link ProcessMetrics#ITEMSEPARATOR}.
-	 */
-	private static String addHeader() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Process Model Path" + ITEMSEPARATOR);
-		builder.append("Revision" + ITEMSEPARATOR);
-//		builder.append("DB ID" + ITEMSEPARATOR);
-//		builder.append("Number of Start Events" + ITEMSEPARATOR);
-//		builder.append("Number of Internal Events" + ITEMSEPARATOR);
-//		builder.append("Number of End Events" + ITEMSEPARATOR);
-		builder.append("Number of Events" + ITEMSEPARATOR);
-		builder.append("Number of Activities" + ITEMSEPARATOR);
-//		builder.append("Number of And-Splits" + ITEMSEPARATOR);
-//		builder.append("Number of And-Joins" + ITEMSEPARATOR);
-//		builder.append("Number of Xor-Splits" + ITEMSEPARATOR);
-//		builder.append("Number of Xor-Joins" + ITEMSEPARATOR);
-//		builder.append("Number of Or-Splits" + ITEMSEPARATOR);
-//		builder.append("Number of Or-Joins" + ITEMSEPARATOR);
-		builder.append("Number of Gateways" + ITEMSEPARATOR);
-		builder.append("Number of Nodes" + ITEMSEPARATOR);
-		builder.append("Number of Edges" + ITEMSEPARATOR);
-//		builder.append("Number of Data Nodes" + ITEMSEPARATOR);
-		builder.append("Number of Roles" + ITEMSEPARATOR);
-//		builder.append("Diameter" + ITEMSEPARATOR);
-//		builder.append("Density" + ITEMSEPARATOR);
-//		builder.append("Density related to number of Gateways" + ITEMSEPARATOR);
-//		builder.append("Coefficient of Connectivity" + ITEMSEPARATOR);
-//		builder.append("Coefficient of Network Complexity" + ITEMSEPARATOR);
-//		builder.append("Cyclomatic Number" + ITEMSEPARATOR);
-//		builder.append("Average Connector Degree" + ITEMSEPARATOR);
-//		builder.append("Maximum Connector Degree" + ITEMSEPARATOR);
-//		builder.append("Separability" + ITEMSEPARATOR);
-//		builder.append("Depth" + ITEMSEPARATOR);
-//		builder.append("Cycling" + ITEMSEPARATOR);
-//		builder.append("Controlflow Complexity" + ITEMSEPARATOR);
-//		builder.append("Cross Connectivity");
-		builder.append("\n");
-		return builder.toString();
-	}
-
 	/**
 	 * Create an new unit chain builder and builds up
 	 * a chain to get the metrics of the {@link ProcessModel}s from the given database.
@@ -238,7 +111,7 @@ public class IndividualProcessMetrics {
 	 */
 	private static IUnitChainBuilder buildUpUnitChain(boolean useFullDB) throws IOException, IllegalTypeException {
 		IFlexibleUnitChainBuilder chainBuilder = null;
-		defineProcessModelMetrics();
+
 		if (useFullDB){
 			chainBuilder = new UnitChainBuilder("configuration(full).properties", Constants.DATABASE_TYPES.ORIENT_DB, UnitDataProcessMetrics.class);
 		} else {
@@ -255,21 +128,116 @@ public class IndividualProcessMetrics {
 		chainBuilder.addDbFilterConfig(dbFilter);
 		//transform to jBPT and calculate metrics
 		chainBuilder.createBpmaiJsonToJbptUnit(false);
-		chainBuilder.createProcessModelMetricsCalulatorUnit(METRICS,true);
+		chainBuilder.createProcessModelMetricsCalulatorUnit(getProcessModelMetrics(),true);
 		
 		//collect results
 		chainBuilder.createSimpleCollectorUnit();
 		return chainBuilder;
 	}
 
-	private static void defineProcessModelMetrics() {
-		Collections.addAll(METRICS, 
-				ProcessMetricConstants.METRICS.NUM_EVENTS,
-				ProcessMetricConstants.METRICS.NUM_ACTIVITIES,
-				ProcessMetricConstants.METRICS.NUM_GATEWAYS,
-				ProcessMetricConstants.METRICS.NUM_NODES,
-				ProcessMetricConstants.METRICS.NUM_EDGES,
-				ProcessMetricConstants.METRICS.NUM_ROLES);
+	private static Collection<METRICS> getProcessModelMetrics() {
+		if (processModelMetrics == null) {
+			processModelMetrics = new ArrayList<>();
+			Collections.addAll(processModelMetrics, 
+				METRICS.NUM_EVENTS,
+				METRICS.NUM_ACTIVITIES,
+				METRICS.NUM_GATEWAYS,
+				METRICS.NUM_NODES,
+				METRICS.NUM_EDGES,
+				METRICS.NUM_ROLES);
+		}
+		return processModelMetrics;
+	}
+	
+	private static Map<String, Map<Integer, Map<String, Double>>> buildUpInternalDataStructure(
+			Collection<IUnitDataProcessMetrics<Object>> resultSet) {		
+		Collection<String> metricsCollection = new ArrayList<>();
+		Map<String,Map<Integer, Map<String, Double>>> models = new HashMap<>();
+		for (METRICS metric : getProcessModelMetrics())
+			metricsCollection.add(metric.name());
+		
+		for (IUnitDataProcessMetrics<Object> resultItem : resultSet){
+			String modelPathWithRevision = resultItem.getModelPath();
+			int revisionStringIndex = modelPathWithRevision.indexOf("_rev");
+			String processFolder = "2011-04-19_signavio_academic_processes";
+			String modelPath = modelPathWithRevision.substring(modelPathWithRevision.indexOf(processFolder) + processFolder.length(),revisionStringIndex);
+			int revisionNumber = Integer.valueOf(modelPathWithRevision.substring(revisionStringIndex + 4, modelPathWithRevision.indexOf(".json")));
+			
+			// new model to be analyzed, so add it to the map of models
+			if (!models.containsKey(modelPath)) {
+				Map<Integer, Map<String, Double>> revisions = new HashMap<>();
+				models.put(modelPath, revisions);
+			}
+			
+			Map<String, Double> revisionValues = new HashMap<>();
+			for (String metric : metricsCollection)
+				revisionValues.put(metric, METRICS.valueOf(metric).getAttribute(resultItem));
+			models.get(modelPath).put(revisionNumber, revisionValues);
+		}
+		
+		return models;
+	}
+	
+	/**
+	 * Write the result into a CSV file
+	 * @param resultSet the collected result of the chain execution
+	 * @throws IOException if file can't be read or written
+	 */
+	private static void writeToFile(Map<String,Map<Integer, Map<String, Double>>> models) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new FileWriter(RESULT_FILE_PATH));
+		StringBuilder resultStringBuilder = new StringBuilder(addHeader());
+		// collect result from each model
+		for (Entry<String, Map<Integer, Map<String, Double>>> model : models.entrySet())
+			resultStringBuilder.append(toCsvString(model));
+		writer.write(resultStringBuilder.toString());
+		writer.close();
 	}
 
+	/**
+	 * @return a String representation of the process model metrics
+	 * separated by the {@link ProcessMetrics#ITEMSEPARATOR}.
+	 */
+	private static String addHeader() {
+		return new StringBuilder()
+			.append("Process Model" + ITEMSEPARATOR)
+			.append("Revision" + ITEMSEPARATOR)
+			.append("Number of Events" + ITEMSEPARATOR)
+			.append("Number of Activities" + ITEMSEPARATOR)
+			.append("Number of Gateways" + ITEMSEPARATOR)
+			.append("Number of Nodes" + ITEMSEPARATOR)
+			.append("Number of Edges" + ITEMSEPARATOR)
+			.append("Number of Roles" + ITEMSEPARATOR)
+			.append("\n")
+			.toString();
+	}
+	
+	private static String toCsvString(Entry<String, Map<Integer, Map<String, Double>>> model) {
+		StringBuilder builder = new StringBuilder();
+		String modelPath = model.getKey();
+		for (Entry<Integer, Map<String, Double>> revision : model.getValue().entrySet()) {
+			int revisionNumber = revision.getKey();
+			Map<String, Double> metricsValues = revision.getValue();
+			builder.append(modelPath);
+			builder.append(ITEMSEPARATOR + revisionNumber);
+			for (METRICS metric : getProcessModelMetrics())
+				builder.append(ITEMSEPARATOR + (metricsValues.get(metric.name())).intValue());
+			builder.append("\n");
+		}
+		return builder.toString();
+	}
+
+	private static Map<String,Map<Integer, Map<String, Double>>> analyze(Map<String,Map<Integer, Map<String, Double>>> models) {
+//		for (String metric : metricsCollection){
+//			double actualValue = ProcessMetricConstants.METRICS.valueOf(metric).getAttribute(resultItem);
+//			double oldValue = oldValues.get(modelPath).get(metric);
+//			double divisor = oldValue == 0 ? actualValue : oldValue;
+//			if (divisor == 0) divisor = 1;
+//			double difference = (actualValue - oldValue) * 100 / divisor;
+//			
+//			models.get(modelPath).put(metric, actualValue);
+//			resultStringBuilder
+//				.append(new String(ITEMSEPARATOR + difference).replace(".", ","));
+//		}
+		return null;
+	}
 }
