@@ -47,6 +47,8 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataProcessMet
 
 /**
  * Analysis module to calculate metrics from all {@link ProcessModel}s of a given database.
+ * Furthermore the metrics analysis is analyzed in further steps to gain more high-level
+ * insights into the given model collection.
  * 
  * @author Tobias Metzke
  *
@@ -58,26 +60,54 @@ public class IndividualProcessMetrics {
 	 */
 	private static final String ITEMSEPARATOR = ";";	
 	
+	/**
+	 * path of the model metrics result file
+	 */
 	private static final String MODEL_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/model_results_new.csv";
 	
+	/**
+	 * path of the metrics analysis result file, that analyzes the model metrics results
+	 */
 	private static final String METRICS_ANALYSIS_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/model_results_analyzed_new.csv";
 	
+	/**
+	 * path of the metrics analysis analysis result file, that analyzes the metrics analysis
+	 */
 	private static final String ANALYSIS_ANALYSIS_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/analysis_results_analyzed_new.csv";
 	
 	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
+	
+	/**
+	 * flag to decide whether to use the full database or just a small test subset
+	 */
 	private static final boolean useFullDB = true;
 	
+	/**
+	 * the collection of metrics all model revisions will be analyzed by
+	 */
 	private static Collection<METRICS> processModelMetrics;
 	
+	/**
+	 * the key of the continuous growth indicator of a model
+	 */
 	private static final String GROWS_VALUE_KEY = "grows";
 
+	/**
+	 * the key for the number of models that are analyzed
+	 */
 	private static final String NUM_MODELS = "number of models";
 
-	private static final String NUM_GROWING = "continously growing";
+	/**
+	 * the key for the number of models that grow continuously
+	 */
+	private static final String NUM_GROWING = "continuously growing";
 
+	/**
+	 * the key for the number of models that do not grow continuously
+	 */
 	private static final String NUM_NOT_GROWING = "not always growing";
 	
 	/**
