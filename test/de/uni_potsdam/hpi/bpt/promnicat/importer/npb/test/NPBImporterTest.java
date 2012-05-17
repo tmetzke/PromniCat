@@ -70,9 +70,7 @@ public class NPBImporterTest {
 	public void importModels(){
 		NPBImporter modelImporter = new NPBImporter(persistenceApi);
 		String filePath = "resources/NPB";
-		ImporterTest.importModelsTwice(persistenceApi, modelImporter, filePath, 4, 4, 7);
-		persistenceApi.dropDb();
+		ImporterTest.importModelsTwice(persistenceApi, modelImporter, filePath, 2, 2, 1);
 	}
-	
 	
 }

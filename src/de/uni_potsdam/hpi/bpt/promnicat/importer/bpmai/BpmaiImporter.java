@@ -327,8 +327,14 @@ public class BpmaiImporter extends AbstractImporter {
 		this.createdRevisionsCount++;
 		
 		//create available representations
-		revision.connectRepresentation(parseRepresentation(bpmAiRev, Constants.FORMAT_BPMAI_JSON));
-		revision.connectRepresentation(parseRepresentation(bpmAiRev, Constants.FORMAT_SVG));
+		Representation JsonRep = parseRepresentation(bpmAiRev, Constants.FORMAT_BPMAI_JSON);
+		if (JsonRep != null) {
+			revision.connectRepresentation(JsonRep);
+		}
+		Representation SvgRep = parseRepresentation(bpmAiRev, Constants.FORMAT_SVG);
+		if (SvgRep != null) {
+			revision.connectRepresentation(SvgRep);
+		}
 		return revision;
 	}
 	
@@ -338,12 +344,16 @@ public class BpmaiImporter extends AbstractImporter {
 	 * @param bpmAiRev {@link de.uni_potsdam.hpi.bpt.ai.collection.Revision} containing the data to {@link Representation} is parsed from
 	 * @param format the format of the new {@link Representation}
 	 * @return the parsed {@link Representation}
-	 * @throws JSONException if JSON parsing is erroneous
-	 * @throws IOException if the given source path could not be found or read
 	 */
-	private Representation parseRepresentation(de.uni_potsdam.hpi.bpt.ai.collection.Revision bpmAiRev, String format) throws JSONException, IOException {	
+	private Representation parseRepresentation(de.uni_potsdam.hpi.bpt.ai.collection.Revision bpmAiRev, String format) {	
 		Representation representation = null;
-		Diagram diagram = bpmAiRev.getDiagram();
+		Diagram diagram = null;
+		try{
+			diagram = bpmAiRev.getDiagram();
+		} catch (Exception e) {
+			logger.info("This revision has no Json file: " + bpmAiRev.toString());
+			return null;
+		}
 		
 		// one revision can have two representations: JSON and SVG
 		if (format.equals(Constants.FORMAT_BPMAI_JSON) && bpmAiRev.getJson() != null) {

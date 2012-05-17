@@ -19,6 +19,7 @@ package de.uni_potsdam.hpi.bpt.promnicat.parser.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,7 +45,8 @@ import de.uni_potsdam.hpi.bpt.promnicat.parser.ModelParser;
 /**
  * Test class for {@link EpcParser}. Invokes BPM AI importer and forwards the resulting
  * diagram to the parser, which has to convert the process model into jBPT format.
- * @author Cindy Fähnrich
+ * 
+ * @author Cindy Fähnrich, Tobias Hoppe
  *
  */
 public class EpcParserTest {
@@ -60,20 +62,22 @@ public class EpcParserTest {
 	
 	private ModelParser transformer = new ModelParser();
 	
+	/**
+	 * start BPM AI importer
+	 */
 	@BeforeClass
 	public static void setUp(){
-		//start BPM AI importer here
 		try{
-			importModels(new File("resources/test/epc"));
+			importModels(new File("resources/BPMAI/model_epc0"));
 		} catch (Exception e){
-			e.printStackTrace();
+			fail("Unexpected exception during model import: " + e.getStackTrace().toString());
 		}
 		
 	}
 	
 	/**
-	 * Parses the given directory and reads in all process models in json format.
-	 * @param url
+	 * Parses the given directory and reads in all process models in JSON format.
+	 * @param url root folder of model files
 	 * @throws UnsupportedEncodingException
 	 * @throws FileNotFoundException
 	 * @throws JSONException
@@ -100,19 +104,13 @@ public class EpcParserTest {
 		}
 		
 		assertTrue(this.processes.get(0) instanceof Epc);
-		assertTrue(this.processes.size() != 0);
-		
-		//assertEquals(1, ((Epc) this.processes.get(0)).getEntries().size());
-		//assertEquals(4, ((Epc) this.processes.get(0)).getExits().size());
+		assertTrue(this.processes.size() == 2);
 		
 		GraphAlgorithms<ControlFlow<FlowNode>, FlowNode> ga = new GraphAlgorithms<ControlFlow<FlowNode>, FlowNode>();
 		assertTrue(ga.isConnected(((Epc) this.processes.get(0))));
-		assertEquals(16, this.processes.get(0).getDataNodes().size());
-		System.out.println(this.processes.get(0).getName());
-		//assertTrue(this.processes.get(0).getNodes().size() == 3);
-		//Iterator<FlowNode> it = this.processes.get(0).getNodes().iterator();
-		//FlowNode node = it.next();
-		//assertTrue((node instanceof Event) | (node instanceof XorConnector) | (node instanceof Function));
+		//ensure EPCs are bipartite
+		assertEquals(this.processes.get(0).getEvents().size(), this.processes.get(0).getActivities().size() + 1);
+		assertEquals(this.processes.get(1).getEvents().size(), this.processes.get(1).getActivities().size() + 1);
 	}
 
 }

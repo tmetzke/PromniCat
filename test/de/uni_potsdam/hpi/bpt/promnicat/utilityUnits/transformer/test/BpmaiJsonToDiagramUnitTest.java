@@ -18,9 +18,9 @@
 package de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.test;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.util.logging.Logger;
 
 import org.junit.Test;
 
@@ -38,8 +38,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataJbpt;
 public class BpmaiJsonToDiagramUnitTest {
 
 	private BpmaiJsonToDiagramUnit unit = new BpmaiJsonToDiagramUnit();
-	private final static Logger logger = Logger.getLogger(BpmaiJsonToDiagramUnitTest.class.getName());
-
+	
 	@Test
 	public void testGetName(){
 		assertTrue(unit.getName().equals("BpmaiJsonToDiagramUnit"));
@@ -49,7 +48,7 @@ public class BpmaiJsonToDiagramUnitTest {
 	public void testExecute() {
 		Representation representation = new Representation();
 		try{
-			File file = new File("resources/test/epc/001/EPC/2010-09-02_EPC iTunes Album/1670291794_rev5.json");
+			File file = new File("resources/BPMAI/model_epc1/model_2_.json");
 			representation.importFile(file);
 
 			IUnitData<Object> input = new UnitDataJbpt<Object>(representation);
@@ -58,7 +57,7 @@ public class BpmaiJsonToDiagramUnitTest {
 			result = unit.execute(input);
 			assertTrue(result.getValue() instanceof Diagram);
 		}catch (Exception e){
-			logger.severe("Unexpected exception occurred: " + e.getMessage());
+			fail("Unexpected exception occurred: " + e.getMessage());
 		}	
 	}
 

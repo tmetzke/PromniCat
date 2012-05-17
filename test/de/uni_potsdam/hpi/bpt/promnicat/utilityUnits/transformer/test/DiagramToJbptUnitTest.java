@@ -47,7 +47,7 @@ public class DiagramToJbptUnitTest {
 		BpmaiJsonToDiagramUnit parserUnit = new BpmaiJsonToDiagramUnit();
 		Representation representation = new Representation();
 		try{
-			File file = new File("resources/test/epc/001/EPC/2010-09-02_EPC iTunes Album/1670291794_rev5.json");
+			File file = new File("resources/BPMAI/model_epc1/model_2_.json");
 			representation.importFile(file);
 		}catch (Exception e){
 			System.err.println("Error: " + e.getMessage());

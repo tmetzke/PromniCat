@@ -18,9 +18,9 @@
 package de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.test;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Collection;
-import java.util.logging.Logger;
 
 import org.jbpt.pm.Activity;
 import org.jbpt.pm.DataNode;
@@ -38,14 +38,12 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitData;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitData;
 
 /**
- * @author Cindy Fähnrich
+ * @author Cindy Fähnrich, Tobias Hoppe
  *
  */
 public class ElementExtractorUnitTest {
 	private ElementExtractorUnit unit;
 	private static Epc process;
-	private final static Logger logger = Logger.getLogger(ElementExtractorUnitTest.class.getName());
-	
 	@BeforeClass
 	public static void setUp(){
 		//create process model
@@ -123,7 +121,7 @@ public class ElementExtractorUnitTest {
 			assertTrue(((Collection<IUnitData<Object>>)result.getValue()).size() == 1);
 			
 		} catch (Exception e){
-			logger.info(e.getMessage());
+			fail(e.getMessage());
 		}
 	}
 	

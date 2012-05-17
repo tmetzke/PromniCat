@@ -21,8 +21,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.logging.Logger;
-
 import org.jbpt.pm.Event;
 import org.jbpt.pm.epc.Document;
 import org.jbpt.pm.epc.Epc;
@@ -43,7 +41,6 @@ public class ConnectednessFilterUnitTest {
 	
 	private ConnectednessFilterUnit unit = new ConnectednessFilterUnit();;
 	private static Epc process;
-	private final static Logger logger = Logger.getLogger(ConnectednessFilterUnitTest.class.getName());
 	
 	@BeforeClass
 	public static void setUp(){
@@ -95,7 +92,6 @@ public class ConnectednessFilterUnitTest {
 			assertNull(result.getValue());
 			
 		} catch (Exception e){
-			logger.severe(e.getMessage());
 			fail("Unexpexted error: " + e.getMessage());
 		}
 	}

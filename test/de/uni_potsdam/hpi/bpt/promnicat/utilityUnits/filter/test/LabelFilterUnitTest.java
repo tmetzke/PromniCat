@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.junit.Before;
@@ -44,7 +43,6 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitData;
 public class LabelFilterUnitTest {
 
 	private IUnitData<Object> input;
-	private final static Logger logger = Logger.getLogger(LabelFilterUnitTest.class.getName());
 	
 	@Before
 	public void setUp(){
@@ -84,7 +82,6 @@ public class LabelFilterUnitTest {
 				assertTrue(((String) label).contains("customer"));
 			}
 		} catch (Exception e){
-			logger.info(e.getMessage());
 			fail("Unexpected error: " + e.getMessage());
 		}
 	}
@@ -95,7 +92,6 @@ public class LabelFilterUnitTest {
 			IUnitData<Object> result = new LabelFilterUnit("xyz").execute(input);
 			assertNull(result.getValue());
 		} catch (Exception e){
-			logger.info(e.getMessage());
 			fail("Unexpected error: " + e.getMessage());
 		}
 	}
@@ -116,7 +112,6 @@ public class LabelFilterUnitTest {
 				assertTrue(((String) label).contains("document"));
 			}
 		} catch (Exception e){
-			logger.info(e.getMessage());
 			fail("Unexpected error: " + e.getMessage());
 		}
 	}
@@ -127,7 +122,6 @@ public class LabelFilterUnitTest {
 			IUnitData<Object> result = new LabelFilterUnit(Pattern.compile("[0-9]")).execute(input);
 			assertNull(result.getValue());
 		} catch (Exception e){
-			logger.info(e.getMessage());
 			fail("Unexpected error: " + e.getMessage());
 		}
 	}
