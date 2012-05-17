@@ -64,19 +64,25 @@ public class IndividualProcessMetrics {
 	 * path of the model metrics result file
 	 */
 	private static final String MODEL_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/model_results_new.csv";
+			new File("").getAbsolutePath() + "/resources/analysis/new_model_results.csv";
 	
 	/**
 	 * path of the metrics analysis result file, that analyzes the model metrics results
 	 */
-	private static final String METRICS_ANALYSIS_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/model_results_analyzed_new.csv";
+	private static final String METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH = 
+			new File("").getAbsolutePath() + "/resources/analysis/new_model_results_absolute_analyzed.csv";
+	
+	/**
+	 * path of the metrics analysis result file, that analyzes the model metrics results
+	 */
+	private static final String METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH = 
+			new File("").getAbsolutePath() + "/resources/analysis/new_model_results_relative_analyzed.csv";
 	
 	/**
 	 * path of the metrics analysis analysis result file, that analyzes the metrics analysis
 	 */
 	private static final String ANALYSIS_ANALYSIS_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/analysis_results_analyzed_new.csv";
+			new File("").getAbsolutePath() + "/resources/analysis/new_analysis_results_analyzed.csv";
 	
 	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
 	
@@ -137,9 +143,13 @@ public class IndividualProcessMetrics {
 		writeToFile(MODEL_RESULT_FILE_PATH, models);
 		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
 		
-		Map<String,Map<Integer, Map<String, Double>>> analyzedModels = analyzeMetrics(models);
-		writeToFile(METRICS_ANALYSIS_RESULT_FILE_PATH, analyzedModels);
-		logger.info("Wrote metrics analysis results to " + METRICS_ANALYSIS_RESULT_FILE_PATH + "\n");
+		Map<String,Map<Integer, Map<String, Double>>> analyzedModels = analyzeMetrics(models, true);
+		writeToFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, analyzedModels);
+		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
+		
+		analyzedModels = analyzeMetrics(models, false);
+		writeToFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, analyzedModels);
+		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
 		
 		highLevelAnalysis(analyzedModels);
 		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH);
@@ -301,37 +311,70 @@ public class IndividualProcessMetrics {
 	/**
 	 * difference analysis of the metrics analysis.
 	 * per model revision the difference to the previous revision
-	 * is stored for all metrics in a relative manner
-	 * @param models the models that should be further analyzed
-	 * @return the analyzed models and their new values
+	 * is stored for all metrics
+	 * @param models the models to be analyzed further
+	 * @param relative flag to determine whether the values shall be relative
+	 * to the absolute old number (<code>true</code>) or absolute (<code>false</code>)
+	 * @return the analyzed models, their revisions and their values
 	 */
-	private static Map<String,Map<Integer, Map<String, Double>>> analyzeMetrics(Map<String,Map<Integer, Map<String, Double>>> models) {
-		for (Map<Integer, Map<String, Double>> modelRevisions : models.values()) {
+	private static Map<String,Map<Integer, Map<String, Double>>> analyzeMetrics(Map<String,Map<Integer, Map<String, Double>>> models, boolean relative) {
+		// a new data structure to store the results in
+		Map<String,Map<Integer, Map<String, Double>>> newModels = new HashMap<>();
+		
+		for (Entry<String,Map<Integer, Map<String, Double>>> model : models.entrySet()) {
 			Map<String, Double> oldValues = getInitialValues();
-			List<Integer> revisionNumbers = new ArrayList<>(modelRevisions.keySet());
+			List<Integer> revisionNumbers = new ArrayList<>(model.getValue().keySet());
 			Collections.sort(revisionNumbers);
 			boolean growsContinuously = true;
 			
 			// perform the analysis of differences for every revision and metric
 			for (Integer revisionNumber : revisionNumbers) {
-				Map<String, Double> revisionValues = modelRevisions.get(revisionNumber);
+				Map<String, Double> revisionValues = model.getValue().get(revisionNumber);
 				for (METRICS metric : getProcessModelMetrics()) {
 					double actualValue = revisionValues.get(metric.name());
 					double oldValue = oldValues.get(metric.name());
-					double divisor = oldValue == 0 ? actualValue : oldValue;
-					if (divisor == 0) divisor = 1;
-					double difference = (actualValue - oldValue) * 100 / divisor;
+					double divisor = 0;
+					int factor = 100;
+					if (relative) {
+						divisor = oldValue == 0 ? actualValue : oldValue;
+						if (divisor == 0) divisor = 1;
+					} else {
+						divisor = 1;
+						factor = 1;
+					}
+					double difference = (actualValue - oldValue) * factor / divisor;
 					oldValues.put(metric.name(),actualValue);
-					modelRevisions.get(revisionNumber).put(metric.name(), difference);
+					
+					updateResults(newModels, model, revisionNumber, metric,
+							difference);
 					// if the metric is lower than previously the model is not continuously growing
 					if (difference < 0) growsContinuously = false;
 				}
 			}
 			double growsAsDouble = new Double(growsContinuously ? 1 : 0);
 			// only put the information of continuous growth into the latest revision
-			modelRevisions.get(Collections.max(revisionNumbers)).put(GROWS_VALUE_KEY, growsAsDouble);
+			newModels.get(model.getKey()).get(Collections.max(revisionNumbers)).put(GROWS_VALUE_KEY, growsAsDouble);
 		}
-		return models;
+		return newModels;
+	}
+
+	/**
+	 * @param newModels
+	 * @param model
+	 * @param revisionNumber
+	 * @param metric
+	 * @param difference
+	 */
+	private static void updateResults(
+			Map<String, Map<Integer, Map<String, Double>>> newModels,
+			Entry<String, Map<Integer, Map<String, Double>>> model,
+			Integer revisionNumber, METRICS metric, double difference) {
+		
+		if(!newModels.containsKey(model.getKey()))
+			newModels.put(model.getKey(), new HashMap<Integer,Map<String,Double>>());
+		if(!newModels.get(model.getKey()).containsKey(revisionNumber))
+			newModels.get(model.getKey()).put(revisionNumber, new HashMap<String, Double>());
+		newModels.get(model.getKey()).get(revisionNumber).put(metric.name(), difference);
 	}
 	
 	/**
