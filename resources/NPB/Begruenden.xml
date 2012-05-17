@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xpr:austausch.modell.1001 revision="3-77c0886c4b5cfe0d755c91c668cccbbe" schluessel="2d14a7d7954d3406afac2d434f01fc86" xmlns:xpr="http://prozessbibliothek.de/XProzess/Schema/0.1">
+    <xpr:freigabe>
+        <xpr:freigabestufe>
+            <code>SP</code>
+        </xpr:freigabestufe>
+        <xpr:leserechte>
+            <xpr:organisation>Landeshauptstadt Potsdam</xpr:organisation>
+        </xpr:leserechte>
+        <xpr:schreibrechte>
+            <xpr:organisation>HU</xpr:organisation>
+        </xpr:schreibrechte>
+    </xpr:freigabe>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>tags</code>
+            <name>Schlagworte</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Schlagwörter, die zu dem Prozess passen und über welche das Prozess schnell wiedergefunden werden kann</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:liste>
+                <xpr:eintrag>begr&amp;uuml;ndetheit</xpr:eintrag>
+                <xpr:eintrag>antrag</xpr:eintrag>
+                <xpr:eintrag>pr&amp;uuml;fung</xpr:eintrag>
+            </xpr:liste>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>processName</code>
+            <name>Modellname</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Der Name des Modells</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>Begr&amp;uuml;nden</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>organisationLevel</code>
+            <name>Ebene der Verwaltungsorganisation</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Auf welcher Verwaltungsebene wird der Prozess hauptsächlich durchgeführt</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>Bund</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>modelingMethod</code>
+            <name>Modellierungsmethode</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Mit welcher Modellierungssprache wurde dieser Prozess erstellt? (z.B. BPMN, Picture etc.)</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>EPK / eEPK</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>processStatus</code>
+            <name>Status des Prozesses</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Wählen sie den Status aus, in dem sich der Prozess befindet!</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>Lokaler Ist-Prozess</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>taskType</code>
+            <name/>
+        </xpr:schluessel>
+        <xpr:beschreibung/>
+        <xpr:wert>
+            <xpr:text>Pflichtaufgabe</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>processName</code>
+            <name>Modellname</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Der Name des Modells</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>Begr&amp;uuml;ndetheit pr&amp;uuml;fen</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>contact</code>
+            <name/>
+        </xpr:schluessel>
+        <xpr:beschreibung/>
+        <xpr:wert>
+            <xpr:text>info@prozessbibliothek.de</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>sizeOfRegionalAdministrationBody</code>
+            <name>Größe der Gebietskörperschaft</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Die Größe in Einwohnern nach Gemeindeklassen</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>25.000 &amp;ndash; 50.000</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>processType</code>
+            <name>Prozessart</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Welche Art von Prozess ist es (z.B. Unterstützungsprozess)</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>Kern-/Gesch&amp;auml;ftsprozess</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>contactName</code>
+            <name>Name</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Name des Ansprechpartners</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>Prozessbibliothek</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>imageFile</code>
+            <name>Bilddatei</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Wählen Sie ein Bild des Prozessmodells aus</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:datei name="model.png" typ="image/png"></xpr:datei>
+		</xpr:wert>
+    </xpr:metaInformation>
+</xpr:austausch.modell.1001>
