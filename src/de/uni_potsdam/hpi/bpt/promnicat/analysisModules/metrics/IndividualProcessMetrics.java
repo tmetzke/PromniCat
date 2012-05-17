@@ -61,7 +61,7 @@ public class IndividualProcessMetrics {
 	private static final String RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/model_results_new.csv";
 	
-	private static final String ANALYSIS_RESULT_FILE_PATH = 
+	private static final String METRICS_ANALYSIS_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/model_results_analyzed_new.csv";
 	
 	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
@@ -98,9 +98,11 @@ public class IndividualProcessMetrics {
 		writeToFile(RESULT_FILE_PATH, models);
 		logger.info("Wrote results to " + RESULT_FILE_PATH + "\n");
 		
-		Map<String,Map<Integer, Map<String, Double>>> analyzedModels = analyze(models);
-		writeToFile(ANALYSIS_RESULT_FILE_PATH, analyzedModels);
-		logger.info("Wrote analysis results to " + ANALYSIS_RESULT_FILE_PATH);
+		Map<String,Map<Integer, Map<String, Double>>> analyzedModels = analyzeMetrics(models);
+		writeToFile(METRICS_ANALYSIS_RESULT_FILE_PATH, analyzedModels);
+		logger.info("Wrote metrics analysis results to " + METRICS_ANALYSIS_RESULT_FILE_PATH);
+		
+		
 	}
 	
 	/**
@@ -231,7 +233,7 @@ public class IndividualProcessMetrics {
 		return builder.toString();
 	}
 
-	private static Map<String,Map<Integer, Map<String, Double>>> analyze(Map<String,Map<Integer, Map<String, Double>>> models) {
+	private static Map<String,Map<Integer, Map<String, Double>>> analyzeMetrics(Map<String,Map<Integer, Map<String, Double>>> models) {
 		for (Map<Integer, Map<String, Double>> modelRevisions : models.values()) {
 			Map<String, Double> oldValues = getInitialValues();
 			List<Integer> revisionNumbers = new ArrayList<>(modelRevisions.keySet());
