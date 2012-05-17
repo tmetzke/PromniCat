@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
@@ -92,12 +93,12 @@ public class IndividualProcessMetrics {
 		
 		Map<String,Map<Integer, Map<String, Double>>> models = buildUpInternalDataStructure(result);
 
-		writeToFile(models);
-		logger.info("Wrote results to " + RESULT_FILE_PATH);
+		writeToFile(RESULT_FILE_PATH, models);
+		logger.info("Wrote results to " + RESULT_FILE_PATH + "\n");
 		
-//		Map<String,Map<Integer, Map<String, Double>>> analyzedModels = analyze(models);
-//		writeToFile(analyzedModels);
-//		logger.info("Wrote analysis results to " + ANALYSIS_RESULT_FILE_PATH);
+		Map<String,Map<Integer, Map<String, Double>>> analyzedModels = analyze(models);
+		writeToFile(ANALYSIS_RESULT_FILE_PATH, analyzedModels);
+		logger.info("Wrote analysis results to " + ANALYSIS_RESULT_FILE_PATH);
 	}
 	
 	/**
@@ -183,8 +184,8 @@ public class IndividualProcessMetrics {
 	 * @param resultSet the collected result of the chain execution
 	 * @throws IOException if file can't be read or written
 	 */
-	private static void writeToFile(Map<String,Map<Integer, Map<String, Double>>> models) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new FileWriter(RESULT_FILE_PATH));
+	private static void writeToFile(String filePath, Map<String,Map<Integer, Map<String, Double>>> models) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
 		StringBuilder resultStringBuilder = new StringBuilder(addHeader());
 		// collect result from each model
 		for (Entry<String, Map<Integer, Map<String, Double>>> model : models.entrySet())
@@ -203,36 +204,61 @@ public class IndividualProcessMetrics {
 			.append("Revision" + ITEMSEPARATOR);
 		for (METRICS metric : getProcessModelMetrics())
 			builder.append(metric.name() + ITEMSEPARATOR);
+		builder
+			.append("grows?")
+			.append("\n");
 		return builder.toString();
 	}
 	
 	private static String toCsvString(Entry<String, Map<Integer, Map<String, Double>>> model) {
 		StringBuilder builder = new StringBuilder();
 		String modelPath = model.getKey();
-		for (Entry<Integer, Map<String, Double>> revision : model.getValue().entrySet()) {
-			int revisionNumber = revision.getKey();
-			Map<String, Double> metricsValues = revision.getValue();
+		Map<Integer, Map<String, Double>> modelRevisions = model.getValue();
+		List<Integer> revisionNumbers = new ArrayList<>(modelRevisions.keySet());
+		Collections.sort(revisionNumbers);
+		for (Integer revisionNumber : revisionNumbers) {
+			Map<String, Double> revisionValues = modelRevisions.get(revisionNumber);
 			builder.append(modelPath);
 			builder.append(ITEMSEPARATOR + revisionNumber);
 			for (METRICS metric : getProcessModelMetrics())
-				builder.append(ITEMSEPARATOR + (metricsValues.get(metric.name())).intValue());
+				builder.append(ITEMSEPARATOR + (revisionValues.get(metric.name())).intValue());
+			if (revisionValues.containsKey("grows")) 
+				builder.append(ITEMSEPARATOR + revisionValues.get("grows").intValue());
 			builder.append("\n");
 		}
 		return builder.toString();
 	}
 
 	private static Map<String,Map<Integer, Map<String, Double>>> analyze(Map<String,Map<Integer, Map<String, Double>>> models) {
-//		for (String metric : metricsCollection){
-//			double actualValue = ProcessMetricConstants.METRICS.valueOf(metric).getAttribute(resultItem);
-//			double oldValue = oldValues.get(modelPath).get(metric);
-//			double divisor = oldValue == 0 ? actualValue : oldValue;
-//			if (divisor == 0) divisor = 1;
-//			double difference = (actualValue - oldValue) * 100 / divisor;
-//			
-//			models.get(modelPath).put(metric, actualValue);
-//			resultStringBuilder
-//				.append(new String(ITEMSEPARATOR + difference).replace(".", ","));
-//		}
-		return null;
+		for (Map<Integer, Map<String, Double>> modelRevisions : models.values()) {
+			Map<String, Double> oldValues = getInitialValues();
+			List<Integer> revisionNumbers = new ArrayList<>(modelRevisions.keySet());
+			Collections.sort(revisionNumbers);
+			boolean grows = true;
+			
+			for (Integer revisionNumber : revisionNumbers) {
+				Map<String, Double> revisionValues = modelRevisions.get(revisionNumber);
+				for (METRICS metric : getProcessModelMetrics()) {
+					double actualValue = revisionValues.get(metric.name());
+					double oldValue = oldValues.get(metric.name());
+					double divisor = oldValue == 0 ? actualValue : oldValue;
+					if (divisor == 0) divisor = 1;
+					double difference = (actualValue - oldValue) * 100 / divisor;
+					oldValues.put(metric.name(),actualValue);
+					modelRevisions.get(revisionNumber).put(metric.name(), difference);
+					if (difference < 0) grows = false;
+				}
+			}
+			double growsAsDouble = new Double(grows ? 1 : 0);
+			modelRevisions.get(Collections.max(revisionNumbers)).put("grows", growsAsDouble);
+		}
+		return models;
+	}
+	
+	private static Map<String, Double> getInitialValues() {
+		Map<String, Double> oldValues = new HashMap<>();
+		for (METRICS metric : getProcessModelMetrics())
+			oldValues.put(metric.name(), new Double(0));
+		return oldValues;
 	}
 }
