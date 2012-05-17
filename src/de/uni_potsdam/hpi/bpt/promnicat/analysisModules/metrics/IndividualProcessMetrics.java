@@ -73,6 +73,12 @@ public class IndividualProcessMetrics {
 	private static Collection<METRICS> processModelMetrics;
 	
 	private static final String GROWS_VALUE_KEY = "grows";
+
+	private static final String NUM_MODELS = "number of models";
+
+	private static final String NUM_GROWING = "continously growing";
+
+	private static final String NUM_NOT_GROWING = "not always growing";
 	
 	/**
 	 * @param args
@@ -105,7 +111,7 @@ public class IndividualProcessMetrics {
 		writeToFile(METRICS_ANALYSIS_RESULT_FILE_PATH, analyzedModels);
 		logger.info("Wrote metrics analysis results to " + METRICS_ANALYSIS_RESULT_FILE_PATH + "\n");
 		
-		analyzeAnalysis(analyzedModels);
+		highLevelAnalysis(analyzedModels);
 		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH);
 	}
 	
@@ -304,7 +310,8 @@ public class IndividualProcessMetrics {
 	 * @param analyzedModels
 	 * @throws IOException
 	 */
-	private static void analyzeAnalysis(Map<String, Map<Integer, Map<String, Double>>> analyzedModels) throws IOException {
+	private static void highLevelAnalysis(Map<String, Map<Integer, Map<String, Double>>> analyzedModels) throws IOException {
+		Map<String, Integer> features = new HashMap<>();
 		int numberOfModels = analyzedModels.size();
 		int growingModels = 0;
 		for (Map<Integer, Map<String, Double>> model : analyzedModels.values()) {
@@ -312,16 +319,28 @@ public class IndividualProcessMetrics {
 			Double grows = model.get(maxRevision).get(GROWS_VALUE_KEY);
 			if (grows.equals(new Double(1))) growingModels++;
 		}
-		int notGrowingModels = numberOfModels - growingModels;
+		features.put(NUM_MODELS, numberOfModels);
+		features.put(NUM_GROWING, growingModels);
+		features.put(NUM_NOT_GROWING, numberOfModels - growingModels);
 		
+		writeAnalysisWith(features);
+	}
+
+	/**
+	 * write the analysis into a new file
+	 * @param features
+	 * @throws IOException
+	 */
+	private static void writeAnalysisWith(Map<String, Integer> features)
+			throws IOException {
 		String resultString = new StringBuilder()
 		.append("number of models" + ITEMSEPARATOR)
 		.append("growing models" + ITEMSEPARATOR)
 		.append("not growing models")
 		.append("\n")
-		.append(numberOfModels + ITEMSEPARATOR)
-		.append(growingModels + ITEMSEPARATOR)
-		.append(notGrowingModels)
+		.append(features.get(NUM_MODELS) + ITEMSEPARATOR)
+		.append(features.get(NUM_GROWING) + ITEMSEPARATOR)
+		.append(features.get(NUM_NOT_GROWING))
 		.toString();
 	
 		BufferedWriter writer = new BufferedWriter(new FileWriter(ANALYSIS_ANALYSIS_RESULT_FILE_PATH));
