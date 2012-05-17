@@ -69,6 +69,8 @@ public class IndividualProcessMetrics {
 	
 	private static Collection<METRICS> processModelMetrics;
 	
+	private static final String GROWS_VALUE_KEY = "grows";
+	
 	/**
 	 * @param args
 	 * @throws IllegalTypeException 
@@ -222,8 +224,8 @@ public class IndividualProcessMetrics {
 			builder.append(ITEMSEPARATOR + revisionNumber);
 			for (METRICS metric : getProcessModelMetrics())
 				builder.append(ITEMSEPARATOR + (revisionValues.get(metric.name())).intValue());
-			if (revisionValues.containsKey("grows")) 
-				builder.append(ITEMSEPARATOR + revisionValues.get("grows").intValue());
+			if (revisionValues.containsKey(GROWS_VALUE_KEY)) 
+				builder.append(ITEMSEPARATOR + revisionValues.get(GROWS_VALUE_KEY).intValue());
 			builder.append("\n");
 		}
 		return builder.toString();
@@ -250,7 +252,7 @@ public class IndividualProcessMetrics {
 				}
 			}
 			double growsAsDouble = new Double(grows ? 1 : 0);
-			modelRevisions.get(Collections.max(revisionNumbers)).put("grows", growsAsDouble);
+			modelRevisions.get(Collections.max(revisionNumbers)).put(GROWS_VALUE_KEY, growsAsDouble);
 		}
 		return models;
 	}
@@ -261,4 +263,6 @@ public class IndividualProcessMetrics {
 			oldValues.put(metric.name(), new Double(0));
 		return oldValues;
 	}
+	
+	
 }
