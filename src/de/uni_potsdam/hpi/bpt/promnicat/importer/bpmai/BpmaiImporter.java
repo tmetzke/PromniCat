@@ -175,6 +175,7 @@ public class BpmaiImporter extends AbstractImporter {
 	 */
 	private void importAll(File rootDir) throws JSONException, IOException {
 		int modelCounter = 0;
+		this.persistenceApi.openDb();
 		
 		//temp folder being used for extraction of sgx archives
 		File container = new File(rootDir + File.separator + "dummy");
