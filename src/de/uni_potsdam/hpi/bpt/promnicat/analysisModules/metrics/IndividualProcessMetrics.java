@@ -56,6 +56,12 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataProcessMet
  */
 public class IndividualProcessMetrics {
 	
+	private static final String LOWER = "lower";
+
+	private static final String SAME = "same";
+
+	private static final String HIGHER = "higher";
+
 	/**
 	 * split element for CSV file values
 	 */
@@ -386,6 +392,7 @@ public class IndividualProcessMetrics {
 	 * @throws IOException
 	 */
 	private static void highLevelAnalysis(Map<String, AnalysisProcessModel> analyzedModels) throws IOException {
+		// continuously growing models
 		Map<String, Integer> features = new HashMap<>();
 		int numberOfModels = analyzedModels.size();
 		int growingModels = 0;
@@ -394,6 +401,26 @@ public class IndividualProcessMetrics {
 		features.put(NUM_MODELS, numberOfModels);
 		features.put(NUM_GROWING, growingModels);
 		features.put(NUM_NOT_GROWING, numberOfModels - growingModels);
+		
+		// number of revisions that higher, lower and do not change the numbers of a metric
+		for (METRICS metric : getProcessModelMetrics()) {
+			int higher = 0;
+			int lower =  0;
+			int same = 0;
+			for (AnalysisProcessModel model : analyzedModels.values())
+				for (AnalysisModelRevision revision : model.getRevisions().values()) {
+					double actualValue = revision.get(metric);
+					if (actualValue < 0) lower++;
+					else if (actualValue == new Double(0)) same++;
+					else higher++;
+				}
+			features.put(metric.name() + HIGHER, higher);
+			features.put(metric.name() + SAME, same);
+			features.put(metric.name() + LOWER, lower);
+		}
+		
+		// number of revisions that don't alter the number of any metric
+		
 		
 		writeAnalysisWith(features);
 	}
@@ -405,18 +432,30 @@ public class IndividualProcessMetrics {
 	 */
 	private static void writeAnalysisWith(Map<String, Integer> features)
 			throws IOException {
-		String resultString = new StringBuilder()
-		.append("number of models" + ITEMSEPARATOR)
-		.append("growing models" + ITEMSEPARATOR)
-		.append("not growing models")
-		.append("\n")
-		.append(features.get(NUM_MODELS) + ITEMSEPARATOR)
-		.append(features.get(NUM_GROWING) + ITEMSEPARATOR)
-		.append(features.get(NUM_NOT_GROWING))
-		.toString();
-	
+		StringBuilder resultBuilder = new StringBuilder()
+			.append(NUM_MODELS + ITEMSEPARATOR)
+			.append(NUM_GROWING + ITEMSEPARATOR)
+			.append(NUM_NOT_GROWING)
+			.append("\n")
+			.append(features.get(NUM_MODELS) + ITEMSEPARATOR)
+			.append(features.get(NUM_GROWING) + ITEMSEPARATOR)
+			.append(features.get(NUM_NOT_GROWING))
+			.append("\n\n");			
+		
+		for (METRICS metric : getProcessModelMetrics())
+			resultBuilder.append(ITEMSEPARATOR + metric);
+		String[] measures = {HIGHER,SAME,LOWER};
+		
+		for (String measure : measures) {
+			resultBuilder
+				.append("\n")
+				.append(measure);
+			for (METRICS metric : getProcessModelMetrics())
+				resultBuilder.append(ITEMSEPARATOR + features.get(metric.name() + measure));
+		}
+		
 		BufferedWriter writer = new BufferedWriter(new FileWriter(ANALYSIS_ANALYSIS_RESULT_FILE_PATH));
-		writer.write(resultString);
+		writer.write(resultBuilder.toString());
 		writer.close();
 	}
 	
