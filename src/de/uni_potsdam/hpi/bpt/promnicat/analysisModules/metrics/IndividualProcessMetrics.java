@@ -56,6 +56,12 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataProcessMet
  */
 public class IndividualProcessMetrics {
 	
+	private static final String UNALTERING_REVISIONS = "unaltering Revisions";
+
+	private static final String ALTERING_REVISIONS = "altering revisions";
+
+	private static final String NUM_REVISIONS = "number of revisions";
+
 	private static final String LOWER = "lower";
 
 	private static final String SAME = "same";
@@ -420,7 +426,21 @@ public class IndividualProcessMetrics {
 		}
 		
 		// number of revisions that don't alter the number of any metric
-		
+		int alteringRevisions = 0;
+		int numberOfRevisions = 0;
+		for (AnalysisProcessModel model : analyzedModels.values()) {
+			numberOfRevisions += model.getRevisions().size();
+			for (AnalysisModelRevision revision : model.getRevisions().values())
+				for (METRICS metric : getProcessModelMetrics()) 
+					if (!revision.get(metric).equals(new Double(0))) {
+						alteringRevisions++;
+						break;
+					}
+		}
+					
+		features.put(NUM_REVISIONS, numberOfRevisions);
+		features.put(ALTERING_REVISIONS, alteringRevisions);
+		features.put(UNALTERING_REVISIONS, numberOfRevisions - alteringRevisions);
 		
 		writeAnalysisWith(features);
 	}
@@ -454,6 +474,16 @@ public class IndividualProcessMetrics {
 				resultBuilder.append(ITEMSEPARATOR + features.get(metric.name() + measure));
 		}
 		
+		resultBuilder
+			.append("\n\n")
+			.append(NUM_REVISIONS + ITEMSEPARATOR)
+			.append(ALTERING_REVISIONS + ITEMSEPARATOR)
+			.append(UNALTERING_REVISIONS +ITEMSEPARATOR)
+			.append("\n")
+			.append(features.get(NUM_REVISIONS) +ITEMSEPARATOR)
+			.append(features.get(ALTERING_REVISIONS) +ITEMSEPARATOR)
+			.append(features.get(UNALTERING_REVISIONS) +ITEMSEPARATOR);
+			
 		BufferedWriter writer = new BufferedWriter(new FileWriter(ANALYSIS_ANALYSIS_RESULT_FILE_PATH));
 		writer.write(resultBuilder.toString());
 		writer.close();
