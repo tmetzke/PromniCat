@@ -297,9 +297,7 @@ public class IndividualProcessMetrics {
 	}
 
 	/**
-	 * difference analysis of the metrics analysis.
-	 * per model revision the difference to the previous revision
-	 * is stored for all metrics
+	 * analysis of the analyzed models.
 	 * @param models the models to be analyzed further
 	 * @param relative flag to determine whether the values shall be relative
 	 * to the absolute old number (<code>true</code>) or absolute (<code>false</code>)
@@ -310,21 +308,41 @@ public class IndividualProcessMetrics {
 		Map<String,AnalysisProcessModel> newModels = new HashMap<>();
 		
 		for (AnalysisProcessModel model : models.values()) {
-			AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
-			Map<METRICS, Double> oldValues = getInitialValues();
-			// perform the analysis of differences for every revision and metric
-			for (AnalysisModelRevision revision : model.getRevisions().values()) {
-				AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
-				for (METRICS metric : getProcessModelMetrics()) {
-					double difference = executeDifferenceAnalysis(metric, revision, oldValues, relative);
-					newRevision.add(metric, difference);
-					if (difference < 0) newModel.setGrowing(false);
-				}
-				newModel.add(newRevision);
-			}
+			AnalysisProcessModel newModel = performDifferenceAnalysisFor(model, relative);
 			newModels.put(model.getName(), newModel);
 		}
 		return newModels;
+	}
+
+	/**
+	 * per model revision the difference to the previous revision
+	 * is stored for all metrics
+	 * @param relative flag to determine whether the values shall be relative
+	 * @param model the model to be analyzed
+	 * @return the analyzed model
+	 */
+	private static AnalysisProcessModel performDifferenceAnalysisFor(
+			AnalysisProcessModel model, boolean relative) {
+		
+		AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
+		Map<METRICS, Double> oldValues = getInitialValues();
+		// perform the analysis of differences for every revision and metric
+		for (AnalysisModelRevision revision : model.getRevisions().values()) {
+			AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
+			for (METRICS metric : getProcessModelMetrics()) {
+				double actualValue = revision.get(metric);
+				double oldValue = oldValues.get(metric);
+				double difference = calculateDifference(metric, actualValue, oldValue, relative);
+				// save the new value as back-reference for the next revision
+				oldValues.put(metric,actualValue);
+				newRevision.add(metric, difference);
+				// if a metric is actually lower than in the previous revision,
+				// the model is not growing continuously
+				if (difference < 0) newModel.setGrowing(false);
+			}
+			newModel.add(newRevision);
+		}
+		return newModel;
 	}
 
 	/**
@@ -340,16 +358,14 @@ public class IndividualProcessMetrics {
 	}
 
 	/**
-	 * @param metric
-	 * @param revision
-	 * @param oldValues
+	 * execution of the difference analysis
+	 * @param metric the metric to be analyzed
+	 * @param revision the actual revision containing its metric values
+	 * @param oldValues the previous set of values
 	 * @param relative
 	 * @return
 	 */
-	private static double executeDifferenceAnalysis(METRICS metric,	AnalysisModelRevision revision, 
-			Map<METRICS, Double> oldValues,	boolean relative) {
-		double actualValue = revision.get(metric);
-		double oldValue = oldValues.get(metric);
+	private static double calculateDifference(METRICS metric,	double actualValue, double oldValue, boolean relative) {
 		double divisor = 0;
 		int factor = 100;
 		if (relative) {
@@ -360,7 +376,6 @@ public class IndividualProcessMetrics {
 			factor = 1;
 		}
 		double difference = (actualValue - oldValue) * factor / divisor;
-		oldValues.put(metric,actualValue);
 		return difference;
 	}
 	
