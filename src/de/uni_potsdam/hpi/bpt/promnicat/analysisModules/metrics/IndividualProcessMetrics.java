@@ -198,17 +198,12 @@ public class IndividualProcessMetrics {
 	 * separated by the {@link ProcessMetrics#ITEMSEPARATOR}.
 	 */
 	private static String addHeader() {
-		return new StringBuilder()
+		StringBuilder builder = new StringBuilder()
 			.append("Process Model" + ITEMSEPARATOR)
-			.append("Revision" + ITEMSEPARATOR)
-			.append("Number of Events" + ITEMSEPARATOR)
-			.append("Number of Activities" + ITEMSEPARATOR)
-			.append("Number of Gateways" + ITEMSEPARATOR)
-			.append("Number of Nodes" + ITEMSEPARATOR)
-			.append("Number of Edges" + ITEMSEPARATOR)
-			.append("Number of Roles" + ITEMSEPARATOR)
-			.append("\n")
-			.toString();
+			.append("Revision" + ITEMSEPARATOR);
+		for (METRICS metric : getProcessModelMetrics())
+			builder.append(metric.name() + ITEMSEPARATOR);
+		return builder.toString();
 	}
 	
 	private static String toCsvString(Entry<String, Map<Integer, Map<String, Double>>> model) {
