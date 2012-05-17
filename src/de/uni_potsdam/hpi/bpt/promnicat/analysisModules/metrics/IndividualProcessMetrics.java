@@ -58,11 +58,14 @@ public class IndividualProcessMetrics {
 	 */
 	private static final String ITEMSEPARATOR = ";";	
 	
-	private static final String RESULT_FILE_PATH = 
+	private static final String MODEL_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/model_results_new.csv";
 	
 	private static final String METRICS_ANALYSIS_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/model_results_analyzed_new.csv";
+	
+	private static final String ANALYSIS_ANALYSIS_RESULT_FILE_PATH = 
+			new File("").getAbsolutePath() + "/resources/analysis/analysis_results_analyzed_new.csv";
 	
 	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
 	private static final boolean useFullDB = false;
@@ -95,14 +98,15 @@ public class IndividualProcessMetrics {
 		
 		Map<String,Map<Integer, Map<String, Double>>> models = buildUpInternalDataStructure(result);
 
-		writeToFile(RESULT_FILE_PATH, models);
-		logger.info("Wrote results to " + RESULT_FILE_PATH + "\n");
+		writeToFile(MODEL_RESULT_FILE_PATH, models);
+		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
 		
 		Map<String,Map<Integer, Map<String, Double>>> analyzedModels = analyzeMetrics(models);
 		writeToFile(METRICS_ANALYSIS_RESULT_FILE_PATH, analyzedModels);
-		logger.info("Wrote metrics analysis results to " + METRICS_ANALYSIS_RESULT_FILE_PATH);
+		logger.info("Wrote metrics analysis results to " + METRICS_ANALYSIS_RESULT_FILE_PATH + "\n");
 		
-		
+		analyzeAnalysis(analyzedModels);
+		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH);
 	}
 	
 	/**
@@ -265,6 +269,30 @@ public class IndividualProcessMetrics {
 			oldValues.put(metric.name(), new Double(0));
 		return oldValues;
 	}
+
+	private static void analyzeAnalysis(Map<String, Map<Integer, Map<String, Double>>> analyzedModels) throws IOException {
+		int numberOfModels = analyzedModels.size();
+		int growingModels = 0;
+		for (Map<Integer, Map<String, Double>> model : analyzedModels.values()) {
+			int maxRevision = Collections.max(model.keySet());
+			Double grows = model.get(maxRevision).get(GROWS_VALUE_KEY);
+			if (grows.equals(new Double(1))) growingModels++;
+		}
+		int notGrowingModels = numberOfModels - growingModels;
+		
+		String resultString = new StringBuilder()
+		.append("number of models" + ITEMSEPARATOR)
+		.append("growing models" + ITEMSEPARATOR)
+		.append("not growing models")
+		.append("\n")
+		.append(numberOfModels + ITEMSEPARATOR)
+		.append(growingModels + ITEMSEPARATOR)
+		.append(notGrowingModels)
+		.toString();
 	
+		BufferedWriter writer = new BufferedWriter(new FileWriter(ANALYSIS_ANALYSIS_RESULT_FILE_PATH));
+		writer.write(resultString);
+		writer.close();
+	}
 	
 }
