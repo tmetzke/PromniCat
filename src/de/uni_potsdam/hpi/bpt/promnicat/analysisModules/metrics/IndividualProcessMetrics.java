@@ -25,9 +25,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.SortedMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,6 +38,8 @@ import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IFlexibleUnitChainBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnitChainBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.UnitChainBuilder;
@@ -89,18 +90,13 @@ public class IndividualProcessMetrics {
 	/**
 	 * flag to decide whether to use the full database or just a small test subset
 	 */
-	private static final boolean useFullDB = true;
+	private static final boolean useFullDB = false;
 	
 	/**
 	 * the collection of metrics all model revisions will be analyzed by
 	 */
 	private static Collection<METRICS> processModelMetrics;
 	
-	/**
-	 * the key of the continuous growth indicator of a model
-	 */
-	private static final String GROWS_VALUE_KEY = "grows";
-
 	/**
 	 * the key for the number of models that are analyzed
 	 */
@@ -138,12 +134,12 @@ public class IndividualProcessMetrics {
 		Collection<IUnitDataProcessMetrics<Object> > result = 
 			(Collection<IUnitDataProcessMetrics<Object>>) chainBuilder.getChain().execute();
 		
-		Map<String,Map<Integer, Map<String, Double>>> models = buildUpInternalDataStructure(result);
+		Map<String,AnalysisProcessModel> models = buildUpInternalDataStructure(result);
 
 		writeToFile(MODEL_RESULT_FILE_PATH, models);
 		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
 		
-		Map<String,Map<Integer, Map<String, Double>>> analyzedModels = analyzeMetrics(models, true);
+		Map<String, AnalysisProcessModel> analyzedModels = analyzeMetrics(models, true);
 		writeToFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, analyzedModels);
 		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
 		
@@ -217,30 +213,30 @@ public class IndividualProcessMetrics {
 	 * @param resultSet the collection of results of the metric analysis
 	 * @return the internal data structure representation
 	 */
-	private static Map<String, Map<Integer, Map<String, Double>>> buildUpInternalDataStructure(
-			Collection<IUnitDataProcessMetrics<Object>> resultSet) {		
-		Collection<String> metricsCollection = new ArrayList<>();
-		Map<String,Map<Integer, Map<String, Double>>> models = new HashMap<>();
-		for (METRICS metric : getProcessModelMetrics())
-			metricsCollection.add(metric.name());
+	private static Map<String, AnalysisProcessModel> buildUpInternalDataStructure(
+			Collection<IUnitDataProcessMetrics<Object>> resultSet) {
+		
+		Map<String, AnalysisProcessModel> models = new HashMap<>();
 		
 		for (IUnitDataProcessMetrics<Object> resultItem : resultSet){
 			String modelPathWithRevision = resultItem.getModelPath();
 			int revisionStringIndex = modelPathWithRevision.indexOf("_rev");
 			String processFolder = "2011-04-19_signavio_academic_processes";
-			String modelPath = modelPathWithRevision.substring(modelPathWithRevision.indexOf(processFolder) + processFolder.length(),revisionStringIndex);
-			int revisionNumber = Integer.valueOf(modelPathWithRevision.substring(revisionStringIndex + 4, modelPathWithRevision.indexOf(".json")));
+			String modelPath = modelPathWithRevision.substring(
+					modelPathWithRevision.indexOf(processFolder) + processFolder.length(),revisionStringIndex);
+			int revisionNumber = Integer.valueOf(
+					modelPathWithRevision.substring(revisionStringIndex + 4, modelPathWithRevision.indexOf(".json")));
 			
 			// new model to be analyzed, so add it to the map of models
 			if (!models.containsKey(modelPath)) {
-				Map<Integer, Map<String, Double>> revisions = new HashMap<>();
-				models.put(modelPath, revisions);
+				AnalysisProcessModel model = new AnalysisProcessModel(modelPath);
+				models.put(model.getName(), model);
 			}
 			
-			Map<String, Double> revisionValues = new HashMap<>();
-			for (String metric : metricsCollection)
-				revisionValues.put(metric, METRICS.valueOf(metric).getAttribute(resultItem));
-			models.get(modelPath).put(revisionNumber, revisionValues);
+			AnalysisModelRevision revision = new AnalysisModelRevision(revisionNumber);
+			for (METRICS metric : getProcessModelMetrics())
+				revision.add(metric, metric.getAttribute(resultItem));
+			models.get(modelPath).add(revision);
 		}
 		
 		return models;
@@ -251,11 +247,11 @@ public class IndividualProcessMetrics {
 	 * @param resultSet the collected result of the chain execution
 	 * @throws IOException if file can't be read or written
 	 */
-	private static void writeToFile(String filePath, Map<String,Map<Integer, Map<String, Double>>> models) throws IOException {
+	private static void writeToFile(String filePath, Map<String, AnalysisProcessModel> models) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
 		StringBuilder resultStringBuilder = new StringBuilder(addHeader());
 		// collect result from each model
-		for (Entry<String, Map<Integer, Map<String, Double>>> model : models.entrySet())
+		for (AnalysisProcessModel model : models.values())
 			resultStringBuilder.append(toCsvString(model));
 		writer.write(resultStringBuilder.toString());
 		writer.close();
@@ -273,9 +269,7 @@ public class IndividualProcessMetrics {
 			.append("Revision" + ITEMSEPARATOR);
 		for (METRICS metric : getProcessModelMetrics())
 			builder.append(metric.name() + ITEMSEPARATOR);
-		builder
-			.append("grows?")
-			.append("\n");
+		builder.append("grows continuously?");
 		return builder.toString();
 	}
 	
@@ -285,26 +279,20 @@ public class IndividualProcessMetrics {
 	 * @param model that should be displayed in CSV format
 	 * @return a String representation of the formatted model results
 	 */
-	private static String toCsvString(Entry<String, Map<Integer, Map<String, Double>>> model) {
-		String modelPath = model.getKey();
-		Map<Integer, Map<String, Double>> modelRevisions = model.getValue();
-		List<Integer> revisionNumbers = new ArrayList<>(modelRevisions.keySet());
-		Collections.sort(revisionNumbers);
-		
+	private static String toCsvString(AnalysisProcessModel model) {
+		SortedMap<Integer, AnalysisModelRevision> revisions = model.getRevisions();
 		// collect all information from the revisions
 		// display each revision in a separate line
 		StringBuilder builder = new StringBuilder();
-		for (Integer revisionNumber : revisionNumbers) {
-			Map<String, Double> revisionValues = modelRevisions.get(revisionNumber);
-			builder.append(modelPath);
-			builder.append(ITEMSEPARATOR + revisionNumber);
+		for (AnalysisModelRevision revision : revisions.values()) {
+			builder
+				.append("\n")
+				.append(model.getName())
+				.append(ITEMSEPARATOR + revision.getRevisionNumber());
 			for (METRICS metric : getProcessModelMetrics())
-				builder.append(ITEMSEPARATOR + (revisionValues.get(metric.name())).intValue());
-			// if the value of continuous growth is set in this revision, display it
-			if (revisionValues.containsKey(GROWS_VALUE_KEY)) 
-				builder.append(ITEMSEPARATOR + revisionValues.get(GROWS_VALUE_KEY).intValue());
-			builder.append("\n");
+				builder.append(ITEMSEPARATOR + revision.get(metric).intValue());
 		}
+		builder.append(ITEMSEPARATOR + model.isGrowing());
 		return builder.toString();
 	}
 
@@ -317,93 +305,77 @@ public class IndividualProcessMetrics {
 	 * to the absolute old number (<code>true</code>) or absolute (<code>false</code>)
 	 * @return the analyzed models, their revisions and their values
 	 */
-	private static Map<String,Map<Integer, Map<String, Double>>> analyzeMetrics(Map<String,Map<Integer, Map<String, Double>>> models, boolean relative) {
+	private static Map<String,AnalysisProcessModel> analyzeMetrics(Map<String, AnalysisProcessModel> models, boolean relative) {
 		// a new data structure to store the results in
-		Map<String,Map<Integer, Map<String, Double>>> newModels = new HashMap<>();
+		Map<String,AnalysisProcessModel> newModels = new HashMap<>();
 		
-		for (Entry<String,Map<Integer, Map<String, Double>>> model : models.entrySet()) {
-			Map<String, Double> oldValues = getInitialValues();
-			List<Integer> revisionNumbers = new ArrayList<>(model.getValue().keySet());
-			Collections.sort(revisionNumbers);
-			boolean growsContinuously = true;
-			
+		for (AnalysisProcessModel model : models.values()) {
+			AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
+			Map<METRICS, Double> oldValues = getInitialValues();
 			// perform the analysis of differences for every revision and metric
-			for (Integer revisionNumber : revisionNumbers) {
-				Map<String, Double> revisionValues = model.getValue().get(revisionNumber);
+			for (AnalysisModelRevision revision : model.getRevisions().values()) {
+				AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
 				for (METRICS metric : getProcessModelMetrics()) {
-					double actualValue = revisionValues.get(metric.name());
-					double oldValue = oldValues.get(metric.name());
-					double divisor = 0;
-					int factor = 100;
-					if (relative) {
-						divisor = oldValue == 0 ? actualValue : oldValue;
-						if (divisor == 0) divisor = 1;
-					} else {
-						divisor = 1;
-						factor = 1;
-					}
-					double difference = (actualValue - oldValue) * factor / divisor;
-					oldValues.put(metric.name(),actualValue);
-					
-					updateResults(newModels, model, revisionNumber, metric,
-							difference);
-					// if the metric is lower than previously the model is not continuously growing
-					if (difference < 0) growsContinuously = false;
+					double difference = executeDifferenceAnalysis(metric, revision, oldValues, relative);
+					newRevision.add(metric, difference);
+					if (difference < 0) newModel.setGrowing(false);
 				}
+				newModel.add(newRevision);
 			}
-			double growsAsDouble = new Double(growsContinuously ? 1 : 0);
-			// only put the information of continuous growth into the latest revision
-			newModels.get(model.getKey()).get(Collections.max(revisionNumbers)).put(GROWS_VALUE_KEY, growsAsDouble);
+			newModels.put(model.getName(), newModel);
 		}
 		return newModels;
 	}
 
 	/**
-	 * @param newModels
-	 * @param model
-	 * @param revisionNumber
-	 * @param metric
-	 * @param difference
-	 */
-	private static void updateResults(
-			Map<String, Map<Integer, Map<String, Double>>> newModels,
-			Entry<String, Map<Integer, Map<String, Double>>> model,
-			Integer revisionNumber, METRICS metric, double difference) {
-		
-		if(!newModels.containsKey(model.getKey()))
-			newModels.put(model.getKey(), new HashMap<Integer,Map<String,Double>>());
-		if(!newModels.get(model.getKey()).containsKey(revisionNumber))
-			newModels.get(model.getKey()).put(revisionNumber, new HashMap<String, Double>());
-		newModels.get(model.getKey()).get(revisionNumber).put(metric.name(), difference);
-	}
-	
-	/**
 	 * initialize a first collection of metrics zero-values to have a starting
 	 * point for the first revision of a model to be compared to
 	 * @return
 	 */
-	private static Map<String, Double> getInitialValues() {
-		Map<String, Double> oldValues = new HashMap<>();
+	private static Map<METRICS, Double> getInitialValues() {
+		Map<METRICS, Double> oldValues = new HashMap<>();
 		for (METRICS metric : getProcessModelMetrics())
-			oldValues.put(metric.name(), new Double(0));
+			oldValues.put(metric, new Double(0));
 		return oldValues;
 	}
 
+	/**
+	 * @param metric
+	 * @param revision
+	 * @param oldValues
+	 * @param relative
+	 * @return
+	 */
+	private static double executeDifferenceAnalysis(METRICS metric,	AnalysisModelRevision revision, 
+			Map<METRICS, Double> oldValues,	boolean relative) {
+		double actualValue = revision.get(metric);
+		double oldValue = oldValues.get(metric);
+		double divisor = 0;
+		int factor = 100;
+		if (relative) {
+			divisor = oldValue == 0 ? actualValue : oldValue;
+			if (divisor == 0) divisor = 1;
+		} else {
+			divisor = 1;
+			factor = 1;
+		}
+		double difference = (actualValue - oldValue) * factor / divisor;
+		oldValues.put(metric,actualValue);
+		return difference;
+	}
+	
 	/**
 	 * further analyze the already analyzed models and try to find high-level
 	 * results like the number of continuously growing models
 	 * @param analyzedModels
 	 * @throws IOException
 	 */
-	private static void highLevelAnalysis(Map<String, Map<Integer, Map<String, Double>>> analyzedModels) throws IOException {
+	private static void highLevelAnalysis(Map<String, AnalysisProcessModel> analyzedModels) throws IOException {
 		Map<String, Integer> features = new HashMap<>();
 		int numberOfModels = analyzedModels.size();
 		int growingModels = 0;
-		for (Map<Integer, Map<String, Double>> model : analyzedModels.values()) {
-			int maxRevision = Collections.max(model.keySet());
-			Double grows = model.get(maxRevision).get(GROWS_VALUE_KEY);
-			if (grows.equals(new Double(1))) growingModels++;
-		}
+		for (AnalysisProcessModel model : analyzedModels.values())
+			if (model.isGrowing()) growingModels++;
 		features.put(NUM_MODELS, numberOfModels);
 		features.put(NUM_GROWING, growingModels);
 		features.put(NUM_NOT_GROWING, numberOfModels - growingModels);
