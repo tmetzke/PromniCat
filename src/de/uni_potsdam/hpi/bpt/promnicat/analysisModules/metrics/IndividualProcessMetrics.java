@@ -241,17 +241,21 @@ public class IndividualProcessMetrics {
 	 * @return a String representation of the formatted model results
 	 */
 	private static String toCsvString(Entry<String, Map<Integer, Map<String, Double>>> model) {
-		StringBuilder builder = new StringBuilder();
 		String modelPath = model.getKey();
 		Map<Integer, Map<String, Double>> modelRevisions = model.getValue();
 		List<Integer> revisionNumbers = new ArrayList<>(modelRevisions.keySet());
 		Collections.sort(revisionNumbers);
+		
+		// collect all information from the revisions
+		// display each revision in a separate line
+		StringBuilder builder = new StringBuilder();
 		for (Integer revisionNumber : revisionNumbers) {
 			Map<String, Double> revisionValues = modelRevisions.get(revisionNumber);
 			builder.append(modelPath);
 			builder.append(ITEMSEPARATOR + revisionNumber);
 			for (METRICS metric : getProcessModelMetrics())
 				builder.append(ITEMSEPARATOR + (revisionValues.get(metric.name())).intValue());
+			// if the value of continuous growth is set in this revision, display it
 			if (revisionValues.containsKey(GROWS_VALUE_KEY)) 
 				builder.append(ITEMSEPARATOR + revisionValues.get(GROWS_VALUE_KEY).intValue());
 			builder.append("\n");
@@ -271,8 +275,9 @@ public class IndividualProcessMetrics {
 			Map<String, Double> oldValues = getInitialValues();
 			List<Integer> revisionNumbers = new ArrayList<>(modelRevisions.keySet());
 			Collections.sort(revisionNumbers);
-			boolean grows = true;
+			boolean growsContinuously = true;
 			
+			// perform the analysis of differences for every revision and metric
 			for (Integer revisionNumber : revisionNumbers) {
 				Map<String, Double> revisionValues = modelRevisions.get(revisionNumber);
 				for (METRICS metric : getProcessModelMetrics()) {
@@ -283,10 +288,12 @@ public class IndividualProcessMetrics {
 					double difference = (actualValue - oldValue) * 100 / divisor;
 					oldValues.put(metric.name(),actualValue);
 					modelRevisions.get(revisionNumber).put(metric.name(), difference);
-					if (difference < 0) grows = false;
+					// if the metric is lower than previously the model is not continuously growing
+					if (difference < 0) growsContinuously = false;
 				}
 			}
-			double growsAsDouble = new Double(grows ? 1 : 0);
+			double growsAsDouble = new Double(growsContinuously ? 1 : 0);
+			// only put the information of continuous growth into the latest revision
 			modelRevisions.get(Collections.max(revisionNumbers)).put(GROWS_VALUE_KEY, growsAsDouble);
 		}
 		return models;
