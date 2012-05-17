@@ -68,7 +68,7 @@ public class IndividualProcessMetrics {
 			new File("").getAbsolutePath() + "/resources/analysis/analysis_results_analyzed_new.csv";
 	
 	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
-	private static final boolean useFullDB = false;
+	private static final boolean useFullDB = true;
 	
 	private static Collection<METRICS> processModelMetrics;
 	
@@ -158,6 +158,14 @@ public class IndividualProcessMetrics {
 		return processModelMetrics;
 	}
 	
+	/**
+	 * puts in place the internal data structure where:
+	 * 1. each model holds all its revisions
+	 * 2. each revision holds the values of all metrics of this revision
+	 * 
+	 * @param resultSet the collection of results of the metric analysis
+	 * @return the internal data structure representation
+	 */
 	private static Map<String, Map<Integer, Map<String, Double>>> buildUpInternalDataStructure(
 			Collection<IUnitDataProcessMetrics<Object>> resultSet) {		
 		Collection<String> metricsCollection = new ArrayList<>();
@@ -203,6 +211,8 @@ public class IndividualProcessMetrics {
 	}
 
 	/**
+	 * add the specific header to the analysis files that includes
+	 * the model path, revision and the metrics of this revision
 	 * @return a String representation of the process model metrics
 	 * separated by the {@link ProcessMetrics#ITEMSEPARATOR}.
 	 */
@@ -218,6 +228,12 @@ public class IndividualProcessMetrics {
 		return builder.toString();
 	}
 	
+	/**
+	 * helper method that puts the real data of the metrics into format.
+	 * every model revision is put into a new line with the according metrics
+	 * @param model that should be displayed in CSV format
+	 * @return a String representation of the formatted model results
+	 */
 	private static String toCsvString(Entry<String, Map<Integer, Map<String, Double>>> model) {
 		StringBuilder builder = new StringBuilder();
 		String modelPath = model.getKey();
@@ -237,6 +253,13 @@ public class IndividualProcessMetrics {
 		return builder.toString();
 	}
 
+	/**
+	 * difference analysis of the metrics analysis.
+	 * per model revision the difference to the previous revision
+	 * is stored for all metrics in a relative manner
+	 * @param models the models that should be further analyzed
+	 * @return the analyzed models and their new values
+	 */
 	private static Map<String,Map<Integer, Map<String, Double>>> analyzeMetrics(Map<String,Map<Integer, Map<String, Double>>> models) {
 		for (Map<Integer, Map<String, Double>> modelRevisions : models.values()) {
 			Map<String, Double> oldValues = getInitialValues();
@@ -263,6 +286,11 @@ public class IndividualProcessMetrics {
 		return models;
 	}
 	
+	/**
+	 * initialize a first collection of metrics zero-values to have a starting
+	 * point for the first revision of a model to be compared to
+	 * @return
+	 */
 	private static Map<String, Double> getInitialValues() {
 		Map<String, Double> oldValues = new HashMap<>();
 		for (METRICS metric : getProcessModelMetrics())
@@ -270,6 +298,12 @@ public class IndividualProcessMetrics {
 		return oldValues;
 	}
 
+	/**
+	 * further analyze the already analyzed models and try to find high-level
+	 * results like the number of continuously growing models
+	 * @param analyzedModels
+	 * @throws IOException
+	 */
 	private static void analyzeAnalysis(Map<String, Map<Integer, Map<String, Double>>> analyzedModels) throws IOException {
 		int numberOfModels = analyzedModels.size();
 		int growingModels = 0;
