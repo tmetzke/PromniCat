@@ -21,17 +21,16 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 
 
 /**
- * A {@link Revision} represents one version of a {@link Model}, with one {@link Revision} beeing the latest/newest.
+ * A {@link Revision} represents one version of a {@link Model}, with one {@link Revision} being the latest/newest.
  * Each {@link Revision} can hold several {@link Representation}s. 
  * Each {@link Revision} has a unique number, author, language and metadata with any key/values pairs.
  * For performance reasons, sometimes not all revisions are loaded from the database. For this case 
  * the nrOfRevisionsInDb tell the total number of revisions found in the database.
  * 
- * @author Andrina Mascher
+ * @author Andrina Mascher, Tobias Hoppe
  *
  */
 public class Revision extends AbstractPojo{
@@ -50,11 +49,6 @@ public class Revision extends AbstractPojo{
 	private boolean latestRevision = false;
 	//name of the authors
 	private String author = "";
-	//name of the language the model, e.g. English
-	private String language = "";
-	
-	@SuppressWarnings("unused")
-	private final static Logger logger = Logger.getLogger(Revision.class.getName());
 
 	public Revision() {
 	}
@@ -68,7 +62,7 @@ public class Revision extends AbstractPojo{
 		return "Revision [dbId=" + dbId + ", revisionNumber=" + revisionNumber + ", latestRevison=" + isLatestRevision()
 				+ ", modelTitle=" + getTitle()
 				+ ", #representations=" + getNrOfRepresentations()
-				+ ", language=" + language + ", author=" + author
+				+ ", author=" + author
 				+ ", #metadata=" + internalMetadata.size() + "]"
 				;
 	}
@@ -119,20 +113,6 @@ public class Revision extends AbstractPojo{
 	 */
 	public int getNrOfRepresentations() {
 		return representations.size();
-	}
-
-	/**
-	 * @return the language used to model, e.g. English
-	 */
-	public String getLanguage() {
-		return language;
-	}
-
-	/**
-	 * @param language set the language used to model, e.g. English
-	 */
-	public void setLanguage(String language) {
-		this.language = language;
 	}
 
 	/**

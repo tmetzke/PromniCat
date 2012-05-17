@@ -69,8 +69,11 @@ public class BpmaiImporterTest {
 	@Test
 	public void importModels(){
 		BpmaiImporter modelImporter = new BpmaiImporter(persistenceApi);
-		String filePath = "resources/BPMAI";
-		ImporterTest.importModelsTwice(persistenceApi, modelImporter, filePath, 6, 29, 58);
+		String filePath = "resources/test/bpmn";
+		ImporterTest.importModelsTwice(persistenceApi, modelImporter, filePath, 1, 2, 3);
+		filePath = "resources/BPMAI";
+		ImporterTest.importModelsTwice(persistenceApi, modelImporter, filePath, 6, 29, 58);	
+		
 		persistenceApi.dropDb();
 	}
 

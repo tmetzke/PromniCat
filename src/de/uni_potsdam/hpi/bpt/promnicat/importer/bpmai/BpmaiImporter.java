@@ -198,15 +198,43 @@ public class BpmaiImporter extends AbstractImporter {
 					found = false;
 					for (Revision revision : model.getRevisions()){
 						if (revision.getRevisionNumber().equals(bpmAiRev.getNumber())){
+							//search for new representations
+							boolean containsJsonRepresentation = false;
+							boolean containsSvgRepresentation = false;
+							for(Representation representation : revision.getRepresentations()){
+								if (representation.getFormat().equals(Constants.FORMAT_BPMAI_JSON)) {
+									containsJsonRepresentation = true;
+									continue;
+								}
+								if (representation.getFormat().equals(Constants.FORMAT_SVG)) {
+									containsSvgRepresentation = true;
+									continue;
+								}
+							}
+							//if the representations for Json or Svg do not exist, they are parsed
+							if (!containsJsonRepresentation) {
+								Representation representation = parseRepresentation(bpmAiRev, Constants.FORMAT_BPMAI_JSON);
+								if (representation != null) {
+									revision.connectRepresentation(representation);								
+								}
+							}
+							if (!containsSvgRepresentation) {
+								Representation representation = parseRepresentation(bpmAiRev, Constants.FORMAT_SVG);
+								if (representation != null) {
+									revision.connectRepresentation(representation);								
+								}
+							}
+							if (!containsJsonRepresentation || !containsSvgRepresentation) {
+								this.persistenceApi.savePojo(model);
+							}
 							found = true;
 							break;
 						}
 					}
 					if (!found){
 						//create new revision
-						Integer currentRevisionNumber = bpmAiRev.getNumber();
-						Revision revision = parseRevision(bpmAiRev.getDiagram(), currentRevisionNumber);
-						if (model.getLatestRevision().getRevisionNumber() < currentRevisionNumber) {
+						Revision revision = parseRevision(bpmAiRev);
+						if (model.getLatestRevision().getRevisionNumber() < bpmAiRev.getNumber()) {
 							model.connectLatestRevision(revision);
 						}
 						revision.connectModel(model);
@@ -252,7 +280,7 @@ public class BpmaiImporter extends AbstractImporter {
 	 * @return the parsed {@link Model} referencing it's {@link Revision}s and {@link Representation}s.
 	 * 
 	 * @throws JSONException if JSON parsing is erroneous 
-	 * @throws IOException if the given path could not be found or read
+	 * @throws IOException if the given source path could not be found or read
 	 */
 	private Model parseModel(de.uni_potsdam.hpi.bpt.ai.collection.Model bpmAiModel)	throws JSONException, IOException {
 
@@ -261,14 +289,8 @@ public class BpmaiImporter extends AbstractImporter {
 
 		// one model has several revisions
 		for (de.uni_potsdam.hpi.bpt.ai.collection.Revision oldRev : bpmAiModel.getRevisions()) {
-			Diagram diagram = oldRev.getDiagram();
-			revision = parseRevision(diagram, oldRev.getNumber());
+			revision = parseRevision(oldRev);
 			revision.connectModel(model);
-
-			// one revision has two representations: JSON and SVG
-			revision.connectRepresentation(new Representation(Constants.FORMAT_BPMAI_JSON, getNotation(diagram), oldRev.getJson()));			
-			revision.connectRepresentation(new Representation(Constants.FORMAT_SVG, getNotation(diagram), oldRev.getSvg()));	
-			this.createdRepresentationsCount += 2;
 		}
 		model.connectLatestRevision(revision); 
 		return model;
@@ -289,18 +311,50 @@ public class BpmaiImporter extends AbstractImporter {
 	}
 
 	/**
-	 * Creates a new {@link Revision} with the meta data parsed from given {@link Diagram}.
+	 * Creates a new {@link Revision} with the meta data parsed from given {@link de.uni_potsdam.hpi.bpt.ai.collection.Revision}
+	 * and creates all available {@link Representation}s.
 	 * 
-	 * @param diagram to parse the meta data from
-	 * @param number the index to use for this {@link Revision}
+	 * @param bpmAiRev revision to parse the meta data from
 	 * @return a new {@link Revision} with the given index and the meta data parsed from the given {@link Diagram}.
+	 * @throws IOException if JSON parsing is erroneous
+	 * @throws JSONException if the given source path could not be found or read
 	 */
-	private Revision parseRevision(Diagram diagram, Integer number) {
-		Revision revision = new Revision(number);
-		revision.setMetadata(parseMetadata(diagram.getProperties())); 
-		revision.setLanguage(parseProperty(diagram, PROPERTY_LANGUAGE));
+	private Revision parseRevision(de.uni_potsdam.hpi.bpt.ai.collection.Revision bpmAiRev) throws JSONException, IOException {
+		Revision revision = new Revision(bpmAiRev.getNumber());
+		Diagram diagram = bpmAiRev.getDiagram();
+		revision.setMetadata(parseMetadata(diagram.getProperties()));
 		revision.setAuthor(parseProperty(diagram, PROPERTY_AUTHOR));
 		this.createdRevisionsCount++;
+		
+		//create available representations
+		revision.connectRepresentation(parseRepresentation(bpmAiRev, Constants.FORMAT_BPMAI_JSON));
+		revision.connectRepresentation(parseRepresentation(bpmAiRev, Constants.FORMAT_SVG));
 		return revision;
+	}
+	
+	/**
+	 * Parses a {@link Representation} with the given format from the data given by the {@link de.uni_potsdam.hpi.bpt.ai.collection.Revision}.
+	 * 
+	 * @param bpmAiRev {@link de.uni_potsdam.hpi.bpt.ai.collection.Revision} containing the data to {@link Representation} is parsed from
+	 * @param format the format of the new {@link Representation}
+	 * @return the parsed {@link Representation}
+	 * @throws JSONException if JSON parsing is erroneous
+	 * @throws IOException if the given source path could not be found or read
+	 */
+	private Representation parseRepresentation(de.uni_potsdam.hpi.bpt.ai.collection.Revision bpmAiRev, String format) throws JSONException, IOException {	
+		Representation representation = null;
+		Diagram diagram = bpmAiRev.getDiagram();
+		
+		// one revision can have two representations: JSON and SVG
+		if (format.equals(Constants.FORMAT_BPMAI_JSON) && bpmAiRev.getJson() != null) {
+			representation = new Representation(Constants.FORMAT_BPMAI_JSON, getNotation(diagram), bpmAiRev.getJson());
+			representation.setLanguage(parseProperty(diagram, PROPERTY_LANGUAGE));
+			this.createdRepresentationsCount++;
+		} else if (format.equals(Constants.FORMAT_SVG) && bpmAiRev.getSvg() != null) {
+			representation = new Representation(Constants.FORMAT_SVG, getNotation(diagram), bpmAiRev.getSvg());
+			representation.setLanguage(parseProperty(diagram, PROPERTY_LANGUAGE));
+			this.createdRepresentationsCount++;
+		}
+		return representation;
 	}
 }
