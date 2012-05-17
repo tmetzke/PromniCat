@@ -150,6 +150,11 @@ public class IndividualProcessMetrics {
 		return chainBuilder;
 	}
 
+	/**
+	 * access to the herein defined metrics that are analyzed per model revision
+	 * and displayed in analysis results
+	 * @return the metrics all model revisions are analyzed by
+	 */
 	private static Collection<METRICS> getProcessModelMetrics() {
 		if (processModelMetrics == null) {
 			processModelMetrics = new ArrayList<>();
