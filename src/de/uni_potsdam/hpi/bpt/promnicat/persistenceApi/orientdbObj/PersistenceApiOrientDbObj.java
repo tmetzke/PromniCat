@@ -85,19 +85,20 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
  * available memory space. Therefore in asynchronous loading, a {@link Observer} is handed one result at 
  * a time which can then be processed and stored or removed before the next result is handled.
  *  
- * @author Andrina Mascher
+ * @author Andrina Mascher, Tobias Hoppe
  *
  */
 public class PersistenceApiOrientDbObj implements IPersistenceApi {
 	
-	String dbPath = "";
-	String user = "";
-	String password = "";
+	private String dbPath = "";
+	private String user = "";
+	private String password = "";
 
-	ODatabaseObjectTx db;				// used by OrientDB to access object level
+	private ODatabaseObjectTx db;				// used by OrientDB to access object level
 	private NoSqlBuilder noSqlBuilder;	// creates NoSQL commands
-	String fetchplan = "";				// can be used to limit loading depth
-	IndexManager indexMngr = null;		// will remember index names and is stored as singleton in the database
+	private String fetchplan = "";				// can be used to limit loading depth
+	private IndexManager indexMngr = null;		// will remember index names and is stored as singleton in the database
+	private final static int memorySize = (int) (Runtime.getRuntime().totalMemory() * 0.8);
 
 	private final static Logger logger = Logger.getLogger(PersistenceApiOrientDbObj.class.getName());
 	
@@ -150,6 +151,7 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 			loadIndexMngr();
 			logger.info("Opened database at " + dbPath);
 		}
+		OGlobalConfiguration.FILE_MMAP_MAX_MEMORY.setValue(memorySize);
 		OGlobalConfiguration.MEMORY_OPTIMIZE_THRESHOLD.setValue(0.5f); // start garbage collector at 50% heap space
 		db.declareIntent(new OIntentMassiveRead());
 	}
@@ -341,7 +343,7 @@ public class PersistenceApiOrientDbObj implements IPersistenceApi {
 	 * Not all field types are supported by OrientDb, see {@link AbstractPojo} or
 	 * http://code.google.com/p/orient/wiki/Types
 	 * <br>
-	 * Arbitrary Pojos with referenced to other Pojos need to be registered before saving.
+	 * Arbitrary Pojos with references to other Pojos need to be registered before saving.
 	 * 
 	 */
 	@Override

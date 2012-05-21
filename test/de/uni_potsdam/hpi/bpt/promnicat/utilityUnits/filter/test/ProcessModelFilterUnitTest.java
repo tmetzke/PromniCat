@@ -22,7 +22,6 @@ import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.logging.Logger;
 
 import org.jbpt.pm.Activity;
 import org.jbpt.pm.DataNode;
@@ -44,14 +43,13 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitData;
 
 /**
  * Test class for {@link ProcessModelFilterUnit}.
- * @author Cindy Fähnrich
+ * @author Cindy Fähnrich, Tobias Hoppe
  *
  */
 public class ProcessModelFilterUnitTest {
 
 	private ProcessModelFilterUnit unit;
 	private static Epc process;
-	private final static Logger logger = Logger.getLogger(ProcessModelFilterUnitTest.class.getName());
 	private static Function act1;
 	private static Function act2;
 	private static Event evt1;
@@ -241,7 +239,6 @@ public class ProcessModelFilterUnitTest {
 			assertTrue(((Epc)result.getValue()) == null);
 			
 		} catch (Exception e){
-			logger.severe(e.getMessage());
 			fail("An unexpexcted error occurred:\n" + e.getMessage());
 		}
 	}

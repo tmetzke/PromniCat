@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.logging.Logger;
 
 
 /**
@@ -30,7 +29,7 @@ import java.util.logging.Logger;
  * or notations (EPC, BPMN). Each {@link Representation} also has dataContent and teh path to the original file.
  * 
  * 
- * @author Andrina Mascher
+ * @author Andrina Mascher, Tobias Hoppe
  *
  */
 public class Representation extends AbstractPojo{
@@ -45,10 +44,8 @@ public class Representation extends AbstractPojo{
 	private byte[] dataContent = new byte[0];
 	// the connected revision
 	Revision revision = null;
-	
-	@SuppressWarnings("unused")
-	private final static Logger logger = Logger.getLogger(Representation.class.getName());
-
+	//name of the used language in the model, e.g. English or German
+	private String language = "";
 
 	public Representation() {
 	}
@@ -80,9 +77,24 @@ public class Representation extends AbstractPojo{
 								+ ", format=" + format
 								+ ", notation=" + notation
 								+ ", dataLength="+ dataContent.length
+								+ ", language=" + language
 								+ ", model=" + getTitle() + "(Revision " + getRevisionNumber() + ")"
 								+ ", belongsToLatestRevision=" + belongsToLatestRevision()
 								+ "]";
+	}
+	
+	/**
+	 * @return the language used to model, e.g. English
+	 */
+	public String getLanguage() {
+		return language;
+	}
+
+	/**
+	 * @param language set the language used to model, e.g. English
+	 */
+	public void setLanguage(String language) {
+		this.language = language;
 	}
 	
 	/**

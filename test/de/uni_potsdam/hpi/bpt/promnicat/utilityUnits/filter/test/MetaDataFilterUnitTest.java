@@ -22,7 +22,6 @@ import static org.junit.Assert.fail;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.junit.AfterClass;
@@ -45,15 +44,13 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataMetaData;
  */
 public class MetaDataFilterUnitTest {
 	
-	private final static Logger logger = Logger.getLogger(MetaDataFilterUnitTest.class.getName());
-	
 	private static PersistenceApiOrientDbObj persistenceApi;
 	
 	@BeforeClass
 	public static void setUp(){
 		try{
 			persistenceApi = PersistenceApiOrientDbObj.getInstance(Constants.TEST_DB_CONFIG_PATH);
-			new NPBImporter(persistenceApi).importModelsFrom("resources/NPB/Begruendetheit pruefen.xml");
+			new NPBImporter(persistenceApi).importModelsFrom("resources/NPB/Begruenden.xml");
 			persistenceApi.openDb();
 		} catch (Exception e){
 			fail("An unexpected exception occurred:" + e.getMessage());
@@ -87,7 +84,7 @@ public class MetaDataFilterUnitTest {
 			assertTrue(metaData.keySet().size() == 1);
 			assertTrue(metaData.containsKey("tags"));
 		}catch (Exception e){
-			logger.severe("Unexpected exception occurred: " + e.getMessage());
+			fail("Unexpected exception occurred: " + e.getMessage());
 		}	
 	}
 	
@@ -105,7 +102,7 @@ public class MetaDataFilterUnitTest {
 			assertTrue(metaData.keySet().size() == 1);
 			assertTrue(metaData.containsKey("tags"));
 		}catch (Exception e){
-			logger.severe("Unexpected exception occurred: " + e.getMessage());
+			fail("Unexpected exception occurred: " + e.getMessage());
 		}	
 	}
 	
@@ -123,7 +120,7 @@ public class MetaDataFilterUnitTest {
 			assertTrue(metaData.keySet().size() == 1);
 			assertTrue(metaData.containsKey("tags"));
 		}catch (Exception e){
-			logger.severe("Unexpected exception occurred: " + e.getMessage());
+			fail("Unexpected exception occurred: " + e.getMessage());
 		}	
 	}
 	
@@ -141,7 +138,7 @@ public class MetaDataFilterUnitTest {
 			assertTrue(metaData.keySet().size() == 1);
 			assertTrue(metaData.containsKey("tags"));
 		}catch (Exception e){
-			logger.severe("Unexpected exception occurred: " + e.getMessage());
+			fail("Unexpected exception occurred: " + e.getMessage());
 		}	
 	}
 }

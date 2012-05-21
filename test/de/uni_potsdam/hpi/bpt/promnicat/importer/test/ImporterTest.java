@@ -33,7 +33,6 @@ import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.IPersistenceApi;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Model;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Revision;
-import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.orientdbObj.PersistenceApiOrientDbObj;
 
 /**
  * Base class for {@link IImporter} tests.
@@ -117,7 +116,7 @@ public class ImporterTest {
 	private static void importModelsAndCheckCount(IPersistenceApi persistenceApi, IImporter modelImporter, String filePath,
 			int numberOfModels, int numberOfRevisions, int numberOfRepresentations) throws IOException, JSONException, JDOMException {
 		modelImporter.importModelsFrom(filePath);
-		((PersistenceApiOrientDbObj) persistenceApi).openDb();
+		persistenceApi.openDb();
 		assertEquals(numberOfModels, persistenceApi.countClass(Model.class));
 		assertEquals(numberOfRevisions, persistenceApi.countClass(Revision.class));
 		assertEquals(numberOfRepresentations, persistenceApi.countClass(Representation.class));

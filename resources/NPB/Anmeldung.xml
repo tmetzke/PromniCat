@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xpr:austausch.modell.1001 revision="5-2ce030d6d606849668a64bae33517161" schluessel="2d14a7d7954d3406afac2d434f01c048" xmlns:xpr="http://prozessbibliothek.de/XProzess/Schema/0.1">
+    <xpr:freigabe>
+        <xpr:freigabestufe>
+            <code>OE</code>
+        </xpr:freigabestufe>
+    </xpr:freigabe>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>organisationLevel</code>
+            <name>Ebene der Verwaltungsorganisation</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Auf welcher Verwaltungsebene wird der Prozess hauptsächlich durchgeführt</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>Land</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>modelingMethod</code>
+            <name>Modellierungsmethode</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Mit welcher Modellierungssprache wurde dieser Prozess erstellt? (z.B. BPMN, Picture etc.)</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>BPMN</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+	<xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>processName</code>
+            <name>Modellname</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Der Name des Modells</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>Anmeldung</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>processStatus</code>
+            <name>Status des Prozesses</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Wählen sie den Status aus, in dem sich der Prozess befindet!</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>Interorganisational abgestimmter Soll-Prozess</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>taskType</code>
+            <name/>
+        </xpr:schluessel>
+        <xpr:beschreibung/>
+        <xpr:wert>
+            <xpr:text>Pflichtaufgabe</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>reach</code>
+            <name/>
+        </xpr:schluessel>
+        <xpr:beschreibung/>
+        <xpr:wert>
+            <xpr:text>Beh&amp;ouml;rden&amp;uuml;bergreifend</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>processType</code>
+            <name>Prozessart</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Welche Art von Prozess ist es (z.B. Unterstützungsprozess)</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:text>Kern-/Gesch&amp;auml;ftsprozess</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>93ace9df13184df1a3b45d9730f7b0f9</code>
+            <name/>
+        </xpr:schluessel>
+        <xpr:beschreibung/>
+        <xpr:wert>
+            <xpr:text>noch in Bearbeitung</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>topics</code>
+            <name>Themenbereiche</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Welche Themen betreffen den ausgeführten Vorgang?</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:liste>
+                <xpr:eintrag>Wirtschaft und Tourismus</xpr:eintrag>
+                <xpr:eintrag>Bauen und Wohnen</xpr:eintrag>
+                <xpr:eintrag>Arbeit</xpr:eintrag>
+            </xpr:liste>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>resultReceiver</code>
+            <name>Ergebnisempfänger</name>
+        </xpr:schluessel>
+        <xpr:beschreibung>Wer empfängt das Ergebnis des Prozesses? (z.B. Verwaltung (G2G))</xpr:beschreibung>
+        <xpr:wert>
+            <xpr:liste>
+                <xpr:eintrag>Bürger(G2C)</xpr:eintrag>
+                <xpr:eintrag>Verwaltung (G2G)</xpr:eintrag>
+                <xpr:eintrag>Unternehmen (G2B)</xpr:eintrag>
+            </xpr:liste>
+        </xpr:wert>
+    </xpr:metaInformation>
+    <xpr:metaInformation>
+        <xpr:schluessel listVersionID="0.1">
+            <code>isTargetModel</code>
+            <name/>
+        </xpr:schluessel>
+        <xpr:beschreibung/>
+        <xpr:wert>
+            <xpr:text>false</xpr:text>
+        </xpr:wert>
+    </xpr:metaInformation>
+</xpr:austausch.modell.1001>

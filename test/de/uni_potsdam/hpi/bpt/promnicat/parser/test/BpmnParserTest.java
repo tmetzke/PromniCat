@@ -37,11 +37,10 @@ import de.uni_potsdam.hpi.bpt.ai.diagram.Diagram;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.ModelParser;
 
 /**
- * @author Cindy Fähnrich
+ * @author Cindy Fähnrich, Tobias Hoppe
  *
  */
 public class BpmnParserTest {
-
 	
 	/**
 	 * all read-in diagrams that have to be transformed into jBPT format.
@@ -58,7 +57,7 @@ public class BpmnParserTest {
 	public static void setUp(){
 		//start BPM AI importer here
 		try{
-			importModels(new File("resources/test/bpmn2"));
+			importModels(new File("resources/BPMAI/model_bpmn0"));
 		} catch (Exception e){
 			e.printStackTrace();
 		}
@@ -87,14 +86,11 @@ public class BpmnParserTest {
 	 */
 	@Test
 	public void testTransformProcess(){
-	
 		assertTrue(BpmnParserTest.diagrams.size() != 0);
 		for (Diagram d : BpmnParserTest.diagrams){
 			this.processes.add(this.transformer.transformProcess(d));
 		}
-		//assertTrue(this.processes.size() == 4);
-		//assertTrue(this.processes.get(0).getVertices().size() == 5);;
+		assertTrue(this.processes.size() == 2);
 		assertTrue(this.processes.get(0) instanceof Bpmn);
-		
 	}
 }
