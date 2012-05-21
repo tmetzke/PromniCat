@@ -19,6 +19,8 @@ package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
 
 import java.util.HashMap;
 
+import org.jbpt.pm.ProcessModel;
+
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 
 
@@ -30,6 +32,7 @@ public class AnalysisModelRevision {
 
 	private HashMap<METRICS, Double> metrics = new HashMap<>();
 	private int revisionNumber;
+	private ProcessModel processModel;
 	
 	public AnalysisModelRevision(int revisionNumber) {
 		setRevisionNumber(revisionNumber);
@@ -55,6 +58,14 @@ public class AnalysisModelRevision {
 
 	public Double get(METRICS metric) {
 		return metrics.get(metric);
+	}
+
+	public void addProcessModel(ProcessModel model) {
+		this.processModel = model;
+	}
+	
+	public ProcessModel getProcessModel() {
+		return processModel;
 	}
 
 }
