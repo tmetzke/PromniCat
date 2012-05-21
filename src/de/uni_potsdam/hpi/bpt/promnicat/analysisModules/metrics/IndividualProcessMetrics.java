@@ -245,9 +245,11 @@ public class IndividualProcessMetrics {
 				models.put(model.getName(), model);
 			}
 			
+			// add the revision to its model
 			AnalysisModelRevision revision = new AnalysisModelRevision(revisionNumber);
 			for (METRICS metric : getProcessModelMetrics())
 				revision.add(metric, metric.getAttribute(resultItem));
+			revision.addProcessModel((ProcessModel)resultItem.getValue());
 			models.get(modelPath).add(revision);
 		}
 		
@@ -321,6 +323,7 @@ public class IndividualProcessMetrics {
 		
 		for (AnalysisProcessModel model : models.values()) {
 			AnalysisProcessModel newModel = performDifferenceAnalysisFor(model, relative);
+			
 			newModels.put(model.getName(), newModel);
 		}
 		return newModels;
@@ -377,15 +380,13 @@ public class IndividualProcessMetrics {
 	 * @param relative
 	 * @return
 	 */
-	private static double calculateDifference(METRICS metric,	double actualValue, double oldValue, boolean relative) {
-		double divisor = 0;
-		int factor = 100;
+	private static double calculateDifference(METRICS metric, double actualValue, double oldValue, boolean relative) {
+		double divisor = 1;
+		int factor = 1;
 		if (relative) {
 			divisor = oldValue == 0 ? actualValue : oldValue;
 			if (divisor == 0) divisor = 1;
-		} else {
-			divisor = 1;
-			factor = 1;
+			factor = 100;
 		}
 		double difference = (actualValue - oldValue) * factor / divisor;
 		return difference;
