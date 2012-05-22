@@ -29,6 +29,7 @@
 		<echo message="Type 'ant build' to only build the framework."/>
 		<echo message="Type 'ant clean' to delete all generated resources"/>
 		<echo message="Type 'ant doc' to create a Java-Doc for ${project.shortName}"/>
+		<echo message="If org.eclipse.jdt.core.JDTCompilerAdapter class is not found, use: 'ant -lib ../lib/ecj-3.7.jar &lt;target name&gt;'"/>
 	</target>
 	
 	<!-- ================================= 
@@ -47,7 +48,7 @@
           target: prepare                      
          - - - - - - - - - - - - - - - - - -->
 	<target name="prepare">
-	<!--Create directories for generated files and copy test models to target directory.-->
+	<!--Create directories for generated files.-->
 		<mkdir dir="${dir.build}"/>
 		<mkdir dir="${dir.build}/bin"/>
 		<mkdir dir="${dir.testReports}"/>
@@ -107,7 +108,7 @@
           target: promnicatTests                      
          - - - - - - - - - - - - - - - - - -->
     <target name="promnicatTests" if="runPromnicatTests">
-		<junit printsummary="yes" dir="${basedir}" tempdir="${dir.testReports}/tmp">
+		<junit printsummary="yes" dir="${basedir}/.." tempdir="${dir.testReports}/tmp">
 			<classpath>
 				<fileset dir="${dir.build}" includes="**/*.jar"/>
 				<fileset dir="${dir.lib}" includes="**/*.jar"/>
