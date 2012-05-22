@@ -22,7 +22,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.collections.ListUtils;
+import org.jbpt.hypergraph.abs.Vertex;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 
@@ -39,18 +43,84 @@ public class AnalysisHelper {
 	 * to the absolute old number (<code>true</code>) or absolute (<code>false</code>)
 	 * @return the analyzed models, their revisions and their values
 	 */
-	public static Map<String,AnalysisProcessModel> analyzeMetrics(Map<String, AnalysisProcessModel> models, boolean relative) {
+	public static Map<String,AnalysisProcessModel> analyzeMetrics(Map<String, AnalysisProcessModel> models, boolean relative, String... method) {
 		// a new data structure to store the results in
 		Map<String,AnalysisProcessModel> newModels = new HashMap<>();
+		boolean add_delete_method = method.length != 0 && method[0] == AnalysisConstant.ADD_DELETE.getDescription();
 		
 		for (AnalysisProcessModel model : models.values()) {
-			AnalysisProcessModel newModel = performDifferenceAnalysisFor(model, relative);
+			
+			AnalysisProcessModel newModel = 
+					add_delete_method ? performAdditionsDeletionsAnalysisFor(model) : performDifferenceAnalysisFor(model, relative);
 			
 			newModels.put(model.getName(), newModel);
 		}
 		return newModels;
 	}
 	
+	private static AnalysisProcessModel performAdditionsDeletionsAnalysisFor(AnalysisProcessModel model) {
+		AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
+		Map<String, List<String>> oldElements = new HashMap<>();
+		AnalysisConstant[] classesToAnalyze = {
+				AnalysisConstant.ACTIVITIES, AnalysisConstant.EDGES, 
+				AnalysisConstant.GATEWAYS, AnalysisConstant.ROLES};
+		for (AnalysisModelRevision revision : model.getRevisions().values()) {
+			AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
+			// check adds and deletes for every class like Activities, Gateways, Edges etc.
+			for (AnalysisConstant classToAnalyze : classesToAnalyze) {
+				Map<AnalysisConstant, Integer> addsAndDeletes = analyzeAddsAndDeletesFor(classToAnalyze, oldElements, revision);
+				newRevision.add(classToAnalyze.getDescription() + AnalysisConstant.ADDITIONS.getDescription(), addsAndDeletes.get(AnalysisConstant.ADDITIONS));
+				newRevision.add(classToAnalyze.getDescription() + AnalysisConstant.DELETIONS.getDescription(), addsAndDeletes.get(AnalysisConstant.DELETIONS));
+			}
+			newModel.add(newRevision);
+		}
+		return newModel;
+	}
+
+	/**
+	 * @param oldElements
+	 * @param revision
+	 */
+	@SuppressWarnings("unchecked")
+	private static Map<AnalysisConstant, Integer> analyzeAddsAndDeletesFor(AnalysisConstant classToAnalyze, Map<String, List<String>> oldElements, AnalysisModelRevision revision) {
+		List<String> newIDs = new ArrayList<>();
+		List<String> deletions;
+		List<String> additions;
+		List<? extends Vertex> elements;
+		switch (classToAnalyze) {
+		case ACTIVITIES:
+			elements = (List<? extends Vertex>) revision.getProcessModel().getActivities();
+			break;
+		
+//		case EDGES:
+//			elements = (List<? extends Vertex>) revision.getProcessModel().getEdges();
+//			break;
+//		
+//		case ROLES:
+//			elements = (List<? extends Vertex>) revision.getProcessModel().getGateways();
+//			break;
+			
+		case GATEWAYS:
+			elements = (List<? extends Vertex>) revision.getProcessModel().getGateways();
+			break;
+
+		default:
+			elements = new ArrayList<>();
+			break;
+		}
+		for (Vertex element : elements)
+			newIDs.add(element.getId());
+		List<String> oldIDs = oldElements.get(classToAnalyze.getDescription());
+		oldIDs = oldIDs == null ? new ArrayList<String>() : oldIDs;
+		deletions = ListUtils.subtract(oldIDs, newIDs);
+		additions = ListUtils.subtract(newIDs, oldIDs);
+		Map<AnalysisConstant, Integer> results = new HashMap<>();
+		oldElements.put(classToAnalyze.getDescription(), newIDs);
+		results.put(AnalysisConstant.ADDITIONS, additions.size());
+		results.put(AnalysisConstant.DELETIONS, deletions.size());
+		return results;
+	}
+
 	/**
 	 * per model revision the difference to the previous revision
 	 * is stored for all metrics
@@ -58,11 +128,10 @@ public class AnalysisHelper {
 	 * @param model the model to be analyzed
 	 * @return the analyzed model
 	 */
-	private static AnalysisProcessModel performDifferenceAnalysisFor(
-			AnalysisProcessModel model, boolean relative) {
+	private static AnalysisProcessModel performDifferenceAnalysisFor(AnalysisProcessModel model, boolean relative) {
 		
 		AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
-		Map<METRICS, Double> oldValues = getInitialValues();
+		Map<METRICS, Double> oldValues = getInitialMetricsValues();
 		// perform the analysis of differences for every revision and metric
 		for (AnalysisModelRevision revision : model.getRevisions().values()) {
 			AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
@@ -87,7 +156,7 @@ public class AnalysisHelper {
 	 * point for the first revision of a model to be compared to
 	 * @return
 	 */
-	private static Map<METRICS, Double> getInitialValues() {
+	private static Map<METRICS, Double> getInitialMetricsValues() {
 		Map<METRICS, Double> oldValues = new HashMap<>();
 		for (METRICS metric : getProcessModelMetrics())
 			oldValues.put(metric, new Double(0));
@@ -141,9 +210,9 @@ public class AnalysisHelper {
 		int growingModels = 0;
 		for (AnalysisProcessModel model : analyzedModels.values())
 			if (model.isGrowing()) growingModels++;
-		features.put(AnalysisConstant.NUM_MODELS.getString(), numberOfModels);
-		features.put(AnalysisConstant.NUM_GROWING.getString(), growingModels);
-		features.put(AnalysisConstant.NUM_NOT_GROWING.getString(), numberOfModels - growingModels);
+		features.put(AnalysisConstant.NUM_MODELS.getDescription(), numberOfModels);
+		features.put(AnalysisConstant.NUM_GROWING.getDescription(), growingModels);
+		features.put(AnalysisConstant.NUM_NOT_GROWING.getDescription(), numberOfModels - growingModels);
 		
 		// number of revisions that higher, lower and do not change the numbers of a metric
 		for (METRICS metric : getProcessModelMetrics()) {
@@ -157,9 +226,9 @@ public class AnalysisHelper {
 					else if (actualValue == new Double(0)) same++;
 					else higher++;
 				}
-			features.put(metric.name() + AnalysisConstant.HIGHER.getString(), higher);
-			features.put(metric.name() + AnalysisConstant.SAME.getString(), same);
-			features.put(metric.name() + AnalysisConstant.LOWER.getString(), lower);
+			features.put(metric.name() + AnalysisConstant.HIGHER.getDescription(), higher);
+			features.put(metric.name() + AnalysisConstant.SAME.getDescription(), same);
+			features.put(metric.name() + AnalysisConstant.LOWER.getDescription(), lower);
 		}
 		
 		// number of revisions that don't alter the number of any metric
@@ -175,9 +244,9 @@ public class AnalysisHelper {
 					}
 		}
 					
-		features.put(AnalysisConstant.NUM_REVISIONS.getString(), numberOfRevisions);
-		features.put(AnalysisConstant.ALTERING_REVISIONS.getString(), alteringRevisions);
-		features.put(AnalysisConstant.UNALTERING_REVISIONS.getString(), numberOfRevisions - alteringRevisions);
+		features.put(AnalysisConstant.NUM_REVISIONS.getDescription(), numberOfRevisions);
+		features.put(AnalysisConstant.ALTERING_REVISIONS.getDescription(), alteringRevisions);
+		features.put(AnalysisConstant.UNALTERING_REVISIONS.getDescription(), numberOfRevisions - alteringRevisions);
 		
 		return features;
 	}

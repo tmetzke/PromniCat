@@ -30,7 +30,8 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
  */
 public class AnalysisModelRevision {
 
-	private HashMap<METRICS, Double> metrics = new HashMap<>();
+	private HashMap<String, Double> metrics = new HashMap<>();
+	
 	private int revisionNumber;
 	private ProcessModel processModel;
 	
@@ -39,7 +40,11 @@ public class AnalysisModelRevision {
 	}
 
 	public void add(METRICS metric, double metricValue) {
-		metrics.put(metric, metricValue);
+		metrics.put(metric.name(), metricValue);
+	}
+	
+	public void add(String metricKey, double metricValue) {
+		metrics.put(metricKey, metricValue);
 	}
 
 	/**
@@ -57,7 +62,7 @@ public class AnalysisModelRevision {
 	}
 
 	public Double get(METRICS metric) {
-		return metrics.get(metric);
+		return metrics.get(metric.name());
 	}
 
 	public void addProcessModel(ProcessModel model) {

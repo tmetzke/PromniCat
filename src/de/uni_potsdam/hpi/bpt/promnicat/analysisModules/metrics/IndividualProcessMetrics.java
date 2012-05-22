@@ -79,13 +79,16 @@ public class IndividualProcessMetrics {
 	private static final String ANALYSIS_ANALYSIS_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/new_analysis_results_analyzed.csv";
 	
+	private static final String ADD_DELETE_RESULT_FILE_PATH = 
+			new File("").getAbsolutePath() + "/resources/analysis/new_add_delete_results.csv";
+	
 	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
 	
 	/**
 	 * flag to decide whether to use the full database or just a small test subset
 	 */
 	private static final boolean useFullDB = false;
-	
+
 	/**
 	 * the collection of metrics all model revisions will be analyzed by
 	 */
@@ -122,9 +125,13 @@ public class IndividualProcessMetrics {
 		WriterHelper.writeToFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, analyzedModels);
 		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
 		
+		analyzedModels = AnalysisHelper.analyzeMetrics(models, false, "add_delete");
+//		WriterHelper.writeToFile(ADD_DELETE_RESULT_FILE_PATH, analyzedModels);
+//		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
+		
 		analyzedModels = AnalysisHelper.analyzeMetrics(models, false);
 		WriterHelper.writeToFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, analyzedModels);
-		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
+		logger.info("Wrote addition/deletion analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
 		
 		Map<String, Integer> features = AnalysisHelper.highLevelAnalysis(analyzedModels);
 		WriterHelper.writeAnalysisWith(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, features);

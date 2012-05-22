@@ -48,7 +48,21 @@ public enum AnalysisConstant {
 
 	SAME ("same"),
 
-	HIGHER ("higher");
+	HIGHER ("higher"), 
+	
+	ADD_DELETE ("add_delete"), 
+	
+	ACTIVITIES ("activities"),
+	
+	EDGES ("edges"),
+	
+	GATEWAYS ("gateways"),
+	
+	ROLES ("roles"), 
+	
+	ADDITIONS ("additions"),
+	
+	DELETIONS ("deletions");
 	
 	
 	private String stringRepresentation;
@@ -56,7 +70,7 @@ public enum AnalysisConstant {
 		this.stringRepresentation = name;
 	}
 	
-	public String getString() {
+	public String getDescription() {
 		return this.stringRepresentation;
 	}
 }

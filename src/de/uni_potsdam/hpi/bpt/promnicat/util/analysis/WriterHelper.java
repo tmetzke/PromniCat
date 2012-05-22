@@ -103,19 +103,19 @@ public class WriterHelper {
 	public static void writeAnalysisWith(String filePath, Map<String, Integer> features)
 			throws IOException {
 		StringBuilder resultBuilder = new StringBuilder()
-			.append(AnalysisConstant.NUM_MODELS.getString() + ITEMSEPARATOR)
-			.append(AnalysisConstant.NUM_GROWING.getString() + ITEMSEPARATOR)
-			.append(AnalysisConstant.NUM_NOT_GROWING.getString())
+			.append(AnalysisConstant.NUM_MODELS.getDescription() + ITEMSEPARATOR)
+			.append(AnalysisConstant.NUM_GROWING.getDescription() + ITEMSEPARATOR)
+			.append(AnalysisConstant.NUM_NOT_GROWING.getDescription())
 			.append("\n")
-			.append(features.get(AnalysisConstant.NUM_MODELS.getString()) + ITEMSEPARATOR)
-			.append(features.get(AnalysisConstant.NUM_GROWING.getString()) + ITEMSEPARATOR)
-			.append(features.get(AnalysisConstant.NUM_NOT_GROWING.getString()))
+			.append(features.get(AnalysisConstant.NUM_MODELS.getDescription()) + ITEMSEPARATOR)
+			.append(features.get(AnalysisConstant.NUM_GROWING.getDescription()) + ITEMSEPARATOR)
+			.append(features.get(AnalysisConstant.NUM_NOT_GROWING.getDescription()))
 			.append("\n\n");			
 		
 		Collection<METRICS> processModelMetrics = AnalysisHelper.getProcessModelMetrics();
 		for (METRICS metric : processModelMetrics)
 			resultBuilder.append(ITEMSEPARATOR + metric);
-		String[] measures = {AnalysisConstant.HIGHER.getString(),AnalysisConstant.SAME.getString(),AnalysisConstant.LOWER.getString()};
+		String[] measures = {AnalysisConstant.HIGHER.getDescription(),AnalysisConstant.SAME.getDescription(),AnalysisConstant.LOWER.getDescription()};
 		
 		for (String measure : measures) {
 			resultBuilder
@@ -127,13 +127,13 @@ public class WriterHelper {
 		
 		resultBuilder
 			.append("\n\n")
-			.append(AnalysisConstant.NUM_REVISIONS.getString() + ITEMSEPARATOR)
-			.append(AnalysisConstant.ALTERING_REVISIONS.getString() + ITEMSEPARATOR)
-			.append(AnalysisConstant.UNALTERING_REVISIONS.getString() +ITEMSEPARATOR)
+			.append(AnalysisConstant.NUM_REVISIONS.getDescription() + ITEMSEPARATOR)
+			.append(AnalysisConstant.ALTERING_REVISIONS.getDescription() + ITEMSEPARATOR)
+			.append(AnalysisConstant.UNALTERING_REVISIONS.getDescription() +ITEMSEPARATOR)
 			.append("\n")
-			.append(features.get(AnalysisConstant.NUM_REVISIONS.getString()) +ITEMSEPARATOR)
-			.append(features.get(AnalysisConstant.ALTERING_REVISIONS.getString()) +ITEMSEPARATOR)
-			.append(features.get(AnalysisConstant.UNALTERING_REVISIONS.getString()) +ITEMSEPARATOR);
+			.append(features.get(AnalysisConstant.NUM_REVISIONS.getDescription()) +ITEMSEPARATOR)
+			.append(features.get(AnalysisConstant.ALTERING_REVISIONS.getDescription()) +ITEMSEPARATOR)
+			.append(features.get(AnalysisConstant.UNALTERING_REVISIONS.getDescription()) +ITEMSEPARATOR);
 			
 		BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
 		writer.write(resultBuilder.toString());
