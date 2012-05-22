@@ -218,45 +218,45 @@ public class BpmnParser implements IParser {
 	 */
 	public Vertex parseIds(Shape s){
 		String id = s.getStencilId();
-		
+		Vertex v = null;
 		if (id.contains(constants.ENTITY_TASK)){
-			return createTask(s);
+			v = createTask(s);
 			}
 		if (id.contains(constants.ENTITY_SUBPROCESS)){
-			return createSubprocess(s);
+			v = createSubprocess(s);
 		}
 		if (id.contains(constants.ENTITY_GATEWAY_XOR)){
-			return createXorGateway(s);
+			v = createXorGateway(s);
 		}
 		if (id.contains(constants.ENTITY_GATEWAY_AND)){
-			return createAndGateway(s);
+			v = createAndGateway(s);
 		}
 		if (id.contains(constants.ENTITY_GATEWAY_OR)){
-			return createOrGateway(s);
+			v = createOrGateway(s);
 		}
 		if (id.contains(constants.ENTITY_GATEWAY_ALTERNATIVE)){
-			return createAlternativeGateway(s);
+			v = createAlternativeGateway(s);
 		}
 		if (id.contains(constants.ENTITY_GATEWAY_EVENTBASED)){
-			return createEventbasedGateway(s);
+			v = createEventbasedGateway(s);
 		}
 		if (id.contains(constants.ENTITY_LANE) || id.contains(constants.ENTITY_POOL)){
-			return createResource(s);
+			v = createResource(s);
 		}
 		if (id.contains(constants.ENTITY_DATA)){
-			return createDocument(s);
+			v = createDocument(s);
 		}
 		if (id.contains(constants.ENTITY_EVENT_START)){
-			return createStartEvent(s);
+			v = createStartEvent(s);
 		}
 		if (id.contains(constants.EVENT_END)){
-			return createEndEvent(s);
+			v = createEndEvent(s);
 		}
 		if (id.contains(constants.ENTITY_EVENT_THROWING)){
-			return createIntermediateThrowingEvent(s);
+			v = createIntermediateThrowingEvent(s);
 		}
 		if (id.contains(constants.ENTITY_EVENT_CATCHING) || id.contains(constants.ENTITY_EVENT_INTERMEDIATE)){
-			return createIntermediateCatchingEvent(s);
+			v = createIntermediateCatchingEvent(s);
 		}
 		if (id.contains(constants.ENTITY_SEQUENCEFLOW) || id.contains(constants.ENTITY_MESSAGEFLOW)){
 			flows.add(s);
@@ -264,7 +264,11 @@ public class BpmnParser implements IParser {
 		}
 		if (id.contains(constants.ENTITY_ASSOCIATION)){
 			assocs.add(s);
-		}	
+		}
+		if (v != null) {
+			v.setId(s.getResourceId());
+			return v;
+		}
 		return null;
 	}
 	

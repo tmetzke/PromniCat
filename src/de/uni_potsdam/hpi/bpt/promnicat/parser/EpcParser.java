@@ -111,34 +111,29 @@ public class EpcParser implements IParser {
 	 */
 	private void parseIds(Shape s){
 		String id = s.getStencil().getId();
+		Vertex v = null;
 		
 		if (id.equals(constants.ENTITY_FUNCTION)){
-			createFunction(s);
-			return;
+			v = createFunction(s);
 		}
 		if (id.equals(constants.ENTITY_EVENT)){
-			createEvent(s);
-			return;
+			v = createEvent(s);
 		}
 		if (id.equals(constants.ENTITY_XORCONNECTOR)){
-			createXorConnector(s);
-			return;
+			v = createXorConnector(s);
 		}
 		if (id.equals(constants.ENTITY_ORCONNECTOR)){
-			createOrConnector(s);
-			return;
+			v = createOrConnector(s);
 		}
 		if (id.equals(constants.ENTITY_ANDCONNECTOR)){
-			createAndConnector(s);
-			return;
+			v = createAndConnector(s);
 		}
 		if (id.equals(constants.ENTITY_CONTROLFLOW) || id.equals(constants.ENTITY_RELATION)){
 			edges.add(s);
 			return;
 		}
 		if (id.equals(constants.ENTITY_PROCESSINTERFACE)){
-			createProcessInterface(s);
-			return;
+			v = createProcessInterface(s);
 		}
 		if (id.equals(constants.ENTITY_POSITION) || id.equals(constants.ENTITY_ORGANIZATION) || id.equals(constants.ENTITY_ORGANIZATIONUNIT)){
 			createResource(s);
@@ -146,6 +141,11 @@ public class EpcParser implements IParser {
 		}
 		if (id.equals(constants.ENTITY_DATA)){
 			createDataObject(s);
+			return;
+		}
+		if (v != null) {
+			v.setId(s.getResourceId());
+			this.process.addFlowNode((FlowNode) v);
 			return;
 		}
 	}
@@ -215,7 +215,7 @@ public class EpcParser implements IParser {
 	
 	/**
 	 * Checks whether the NonFlowNode is a DataNode, and if so, set the access properties regarding the
-	 * informationflow attribute.
+	 * information flow attribute.
 	 * @param s the relation
 	 * @param node
 	 */
@@ -267,6 +267,7 @@ public class EpcParser implements IParser {
 		
 		prepareNode(s, doc);
 		this.process.addNonFlowNode(doc);
+		doc.setId(s.getResourceId());
 	}
 	
 	/**
@@ -285,13 +286,14 @@ public class EpcParser implements IParser {
 	/**
 	 * Creates a process interface and adds it to the process model.
 	 * @param s
+	 * @return the created {@link ProcessInterface}
 	 */
-	private void createProcessInterface(Shape s) {
+	private Vertex createProcessInterface(Shape s) {
 		ProcessInterface procInt = new ProcessInterface();
 		procInt.setEntry(s.getProperty(constants.PROPERTY_ENTRY));
 		
 		prepareNode(s, procInt);
-		this.process.addFlowNode(procInt);
+		return procInt;
 	}
 	
 	/**
@@ -342,58 +344,61 @@ public class EpcParser implements IParser {
 	/**
 	 * Creates an AND connector and adds it to the process model.
 	 * @param s
+	 * @return  the created {@link AndConnector}
 	 */
-	private void createAndConnector(Shape s) {
+	private Vertex createAndConnector(Shape s) {
 		AndConnector and = new AndConnector();
 		//add id to map
 		this.nodeIds.put(s.getResourceId(), and);
-		
-		this.process.addFlowNode(and);
+		return and;
 	}
 	
 	/**
 	 * Creates an OR connector and adds it to the process model.
 	 * @param s
+	 * @return the created {@link OrConnector}
 	 */
-	private void createOrConnector(Shape s) {
+	private Vertex createOrConnector(Shape s) {
 		OrConnector or = new OrConnector();
 		//add id to map
 		this.nodeIds.put(s.getResourceId(), or);
-		
-		this.process.addFlowNode(or);
+		return or;
 	}
 	
 	/**
 	 * Creates an XOR connector and adds it to the process model.
 	 * @param s
+	 * @return the created {@link XorConnector}
 	 */
-	private void createXorConnector(Shape s) {
+	private Vertex createXorConnector(Shape s) {
 		XorConnector xor = new XorConnector();
 		//add id to map
 		this.nodeIds.put(s.getResourceId(), xor);
-		this.process.addFlowNode(xor);
+		return xor;
 	}
 	
 	/**
 	 * Creates a function and adds it to the process model.
 	 * @param s
+	 * @return the created {@link Function}
 	 */
-	private void createFunction(Shape s) {
+	private Vertex createFunction(Shape s) {
 		Function f = new Function();
 		
 		prepareNode(s, f);
-		this.process.addFlowNode(f);
+		return f;
 	}
 	
 	/**
 	 * Creates an event and adds it to the process model.
 	 * @param s
+	 * @return the created {@link Event}
 	 */
-	private void createEvent(Shape s) {
+	private Vertex createEvent(Shape s) {
 		Event ev = new Event();
 		
 		prepareNode(s, ev);
-		this.process.addFlowNode(ev);
+		return ev;
 	}
 	
 	/**
