@@ -31,6 +31,9 @@ import org.jbpt.pm.bpmn.Bpmn;
 import org.jbpt.pm.bpmn.BpmnControlFlow;
 import org.jbpt.pm.bpmn.EndEvent;
 import org.jbpt.pm.bpmn.StartEvent;
+import org.jbpt.pm.bpmn.Subprocess;
+import org.jbpt.pm.bpmn.Task;
+import org.jbpt.pm.bpmn.BpmnEventTypes.BPMN_EVENT_TYPES;
 
 
 /**
@@ -76,8 +79,9 @@ public class TestModelBuilder {
 	 * 							|->t4-->|
 	 * 
 	 */
-	public static ProcessModel getConnectedBpmnModel() {		
-		return createConnectedModel(new Bpmn<BpmnControlFlow<FlowNode>, FlowNode>());
+	@SuppressWarnings("unchecked")
+	public static Bpmn<BpmnControlFlow<FlowNode>, FlowNode> getConnectedBpmnModel() {		
+		return (Bpmn<BpmnControlFlow<FlowNode>, FlowNode>) createConnectedModel(new Bpmn<BpmnControlFlow<FlowNode>, FlowNode>());
 	}
 
 	/**
@@ -174,6 +178,31 @@ public class TestModelBuilder {
 		
 		return model;
 		
+	}
+	
+	/**
+	 * @return simple {@link Bpmn} conform to BPMN Descriptive Modeling Level
+	 */
+	public static Bpmn<BpmnControlFlow<FlowNode>, FlowNode> createDescriptiveConformBpmnModel() {
+		Bpmn<BpmnControlFlow<FlowNode>, FlowNode> result = new Bpmn<BpmnControlFlow<FlowNode>, FlowNode>();
+		result.addVertex(new Task());
+		StartEvent startEvent = new StartEvent();
+		startEvent.setEventType(BPMN_EVENT_TYPES.BLANK);
+		result.addVertex(startEvent);
+		return result;
+	}
+	
+	/**
+	 * @return simple {@link Bpmn} conform only to BPMN Executable Modeling Level
+	 */
+	public static Bpmn<BpmnControlFlow<FlowNode>, FlowNode> createOnlyExecutableConformBpmnModel() {
+		Bpmn<BpmnControlFlow<FlowNode>, FlowNode> result = new Bpmn<BpmnControlFlow<FlowNode>, FlowNode>();
+		result.addVertex(new Task());
+		Subprocess subprocess = new Subprocess();
+		subprocess.setCollapsed(false);
+		subprocess.setStandardLoop(true);
+		result.addVertex(subprocess);
+		return result;
 	}
 
 	/**

@@ -114,7 +114,8 @@ public class BpmnConformanceLevelChecker {
 		@SuppressWarnings("unchecked")
 		Collection<Subprocess> subProcesses = (Collection<Subprocess>) this.model.filter(Subprocess.class);
 		for(Subprocess subProcess : subProcesses) {
-			if ((!subProcess.isCollapsed()) && subProcess.isStandardLoop()) {
+			if ((!subProcess.isCollapsed()) &&
+					(subProcess.isStandardLoop() || subProcess.isParallelMultiple() || subProcess.isSequentialMultiple())) {
 				this.isAnalyticConform = false;
 				return false;
 			}
