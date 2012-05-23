@@ -88,7 +88,7 @@ public class IndividualProcessMetrics {
 	/**
 	 * flag to decide whether to use the full database or just a small test subset
 	 */
-	private static final boolean useFullDB = true;
+	private static final boolean useFullDB = false;
 
 	/**
 	 * the collection of metrics all model revisions will be analyzed by
@@ -119,26 +119,9 @@ public class IndividualProcessMetrics {
 		
 		Map<String,AnalysisProcessModel> models = buildUpInternalDataStructure(result);
 
-		WriterHelper.writeToFile(MODEL_RESULT_FILE_PATH, models);
-		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
-		
-		Map<String, AnalysisProcessModel> analyzedModels = AnalysisHelper.analyzeMetrics(models, true);
-		WriterHelper.writeToFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, analyzedModels);
-		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
-		
-		analyzedModels = AnalysisHelper.analyzeMetrics(models, false, AnalysisConstant.ADD_DELETE.getDescription(), String.valueOf(HANDLE_SUB_PROCESSES));
-		WriterHelper.writeToFile(ADD_DELETE_RESULT_FILE_PATH, analyzedModels, AnalysisConstant.ADD_DELETE.getDescription());
-		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
-		
-		analyzedModels = AnalysisHelper.analyzeMetrics(models, false);
-		WriterHelper.writeToFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, analyzedModels);
-		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
-		
-		Map<String, Integer> features = AnalysisHelper.highLevelAnalysis(analyzedModels);
-		WriterHelper.writeAnalysisWith(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, features);
-		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH);
+		performAnalyses(models);
 	}
-	
+
 	/**
 	 * Create an new unit chain builder and builds up
 	 * a chain to get the metrics of the {@link ProcessModel}s from the given database.
@@ -213,9 +196,40 @@ public class IndividualProcessMetrics {
 		return models;
 	}
 	
-	public static Collection<METRICS> getProcessModelMetrics() {
+	private static Collection<METRICS> getProcessModelMetrics() {
 		if (processModelMetrics == null)
 			processModelMetrics = AnalysisHelper.getProcessModelMetrics();
 		return processModelMetrics;
+	}
+
+	/**
+	 * @param models
+	 * @throws IOException
+	 */
+	private static void performAnalyses(Map<String, AnalysisProcessModel> models)
+			throws IOException {
+		// metrics results
+		WriterHelper.writeToFile(MODEL_RESULT_FILE_PATH, models);
+		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
+		
+		// difference analysis with relative differences
+		Map<String, AnalysisProcessModel> analyzedModels = AnalysisHelper.analyzeMetrics(models, true);
+		WriterHelper.writeToFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, analyzedModels);
+		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
+		
+		// additions/deletions analysis with absolute numbers
+		analyzedModels = AnalysisHelper.analyzeMetrics(models, false, AnalysisConstant.ADD_DELETE.getDescription(), String.valueOf(HANDLE_SUB_PROCESSES));
+		WriterHelper.writeToFile(ADD_DELETE_RESULT_FILE_PATH, analyzedModels, AnalysisConstant.ADD_DELETE.getDescription());
+		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
+		
+		// difference analysis with absolute differences
+		analyzedModels = AnalysisHelper.analyzeMetrics(models, false);
+		WriterHelper.writeToFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, analyzedModels);
+		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
+		
+		// high level analysis based on difference analysis
+		Map<String, Integer> features = AnalysisHelper.highLevelAnalysis(analyzedModels);
+		WriterHelper.writeAnalysisWith(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, features);
+		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH);
 	}
 }
