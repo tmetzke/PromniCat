@@ -22,10 +22,13 @@ import org.jbpt.pm.AlternativGateway;
 import org.jbpt.pm.AndGateway;
 import org.jbpt.pm.DataNode;
 import org.jbpt.pm.Event;
+import org.jbpt.pm.FlowNode;
 import org.jbpt.pm.Gateway;
 import org.jbpt.pm.OrGateway;
 import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.XorGateway;
+import org.jbpt.pm.bpmn.Bpmn;
+import org.jbpt.pm.bpmn.BpmnControlFlow;
 import org.jbpt.pm.bpmn.EndEvent;
 import org.jbpt.pm.bpmn.StartEvent;
 
@@ -53,50 +56,30 @@ public class TestModelBuilder {
 	 * 							|->t4-->|
 	 * 
 	 */
-	public static ProcessModel getConnectedProcessModel() {
-		ProcessModel model = new ProcessModel();
-		
-		StartEvent e1 = new StartEvent("e1");
-		Event e3 = new Event("e3");
-		Event e4 = new Event("e4");
-		EndEvent e2 = new EndEvent("e2");
-		EndEvent e5 = new EndEvent("e5");
-		Activity t1 = new Activity("t1");
-		Activity t2 = new Activity("t2");
-		Activity t3 = new Activity("t3");
-		Activity t4 = new Activity("t4");
-		Activity t5 = new Activity("t5");
-		OrGateway or1 = new OrGateway("or1");
-		XorGateway xor1 = new XorGateway("xor1");
-		AlternativGateway alt1 = new AlternativGateway("alt1");
-		XorGateway xor3 = new XorGateway("xor3");
-		AndGateway and1 = new AndGateway("and1");
-		AndGateway and2 = new AndGateway("and2");
-		AndGateway and3 = new AndGateway("and3");
-		
-		model.addControlFlow(e1, t1);
-		model.addControlFlow(t1, or1);
-		model.addControlFlow(or1, t2);
-		model.addControlFlow(t2, e4);
-		model.addControlFlow(e4, and3);
-		model.addControlFlow(and3, e5);
-		model.addControlFlow(and3, alt1);
-		model.addControlFlow(alt1, e2);
-		model.addControlFlow(or1, t3);
-		model.addControlFlow(t3, and1);
-		model.addControlFlow(and1, e3);
-		model.addControlFlow(e3, and2);
-		model.addControlFlow(and2, alt1);
-		model.addControlFlow(and1, xor1);
-		model.addControlFlow(xor1, t5);
-		model.addControlFlow(xor1, t4);
-		model.addControlFlow(t5, xor3);
-		model.addControlFlow(t4, xor3);
-		model.addControlFlow(xor3, and2);
-		
-		return model;
+	public static ProcessModel getConnectedProcessModel() {		
+		return createConnectedModel(new ProcessModel());
 	}
 	
+	/**
+	 * @return the following connected {@link Bpmn}:
+	 *
+	 * 						 |->e5
+	 * 						 |
+	 * 			|->t2->e4->and3------------------->alt1->e2
+	 * 			|									|
+	 * e1->t1->or1									|
+	 * 			|		|->e3--------------->and2-->|	
+	 * 			|		|					  |
+	 * 			|->t3->and1					  |
+	 * 					|		|->t5-->|	  |
+	 * 					|---->xor1		xor3->|
+	 * 							|->t4-->|
+	 * 
+	 */
+	public static ProcessModel getConnectedBpmnModel() {		
+		return createConnectedModel(new Bpmn<BpmnControlFlow<FlowNode>, FlowNode>());
+	}
+
 	/**
 	 * @return a {@link ProcessModel} without edges,
 	 * 5 {@link Activity}s, 3 {@link Gateway}s, 4 {@link Event}s, 6 {@link DataNode}s
@@ -191,5 +174,63 @@ public class TestModelBuilder {
 		
 		return model;
 		
+	}
+
+	/**
+	 * @return the following connected {@link ProcessModel} added to the given one:
+	 *
+	 * 						 |->e5
+	 * 						 |
+	 * 			|->t2->e4->and3------------------->alt1->e2
+	 * 			|									|
+	 * e1->t1->or1									|
+	 * 			|		|->e3--------------->and2-->|	
+	 * 			|		|					  |
+	 * 			|->t3->and1					  |
+	 * 					|		|->t5-->|	  |
+	 * 					|---->xor1		xor3->|
+	 * 							|->t4-->|
+	 * 
+	 */
+	private static ProcessModel createConnectedModel(ProcessModel model) {
+		StartEvent e1 = new StartEvent("e1");
+		Event e3 = new Event("e3");
+		Event e4 = new Event("e4");
+		EndEvent e2 = new EndEvent("e2");
+		EndEvent e5 = new EndEvent("e5");
+		Activity t1 = new Activity("t1");
+		Activity t2 = new Activity("t2");
+		Activity t3 = new Activity("t3");
+		Activity t4 = new Activity("t4");
+		Activity t5 = new Activity("t5");
+		OrGateway or1 = new OrGateway("or1");
+		XorGateway xor1 = new XorGateway("xor1");
+		AlternativGateway alt1 = new AlternativGateway("alt1");
+		XorGateway xor3 = new XorGateway("xor3");
+		AndGateway and1 = new AndGateway("and1");
+		AndGateway and2 = new AndGateway("and2");
+		AndGateway and3 = new AndGateway("and3");
+		
+		model.addControlFlow(e1, t1);
+		model.addControlFlow(t1, or1);
+		model.addControlFlow(or1, t2);
+		model.addControlFlow(t2, e4);
+		model.addControlFlow(e4, and3);
+		model.addControlFlow(and3, e5);
+		model.addControlFlow(and3, alt1);
+		model.addControlFlow(alt1, e2);
+		model.addControlFlow(or1, t3);
+		model.addControlFlow(t3, and1);
+		model.addControlFlow(and1, e3);
+		model.addControlFlow(e3, and2);
+		model.addControlFlow(and2, alt1);
+		model.addControlFlow(and1, xor1);
+		model.addControlFlow(xor1, t5);
+		model.addControlFlow(xor1, t4);
+		model.addControlFlow(t5, xor3);
+		model.addControlFlow(t4, xor3);
+		model.addControlFlow(xor3, and2);
+		
+		return model;
 	}
 }
