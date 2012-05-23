@@ -17,43 +17,196 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.analysisModules.classification;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.jbpt.pm.Activity;
+import org.jbpt.pm.ControlFlow;
+import org.jbpt.pm.Event;
 import org.jbpt.pm.FlowNode;
+import org.jbpt.pm.OrGateway;
 import org.jbpt.pm.bpmn.Bpmn;
+import org.jbpt.pm.bpmn.BpmnActivity;
 import org.jbpt.pm.bpmn.BpmnControlFlow;
+import org.jbpt.pm.bpmn.BpmnEvent;
+import org.jbpt.pm.bpmn.BpmnEventTypes.BPMN_EVENT_TYPES;
+import org.jbpt.pm.bpmn.BpmnMessageFlow;
+import org.jbpt.pm.bpmn.EventBasedXorGateway;
+import org.jbpt.pm.bpmn.Subprocess;
 
 /**
- * THis class checks a given {@link Bpmn} process model for conformance according to
+ * This class checks a given {@link Bpmn} process model for conformance according to
  * the BPMN Conformance Levels defined in the BPMN specification.
+ * 
  * @author Tobias Hoppe
- *
  */
 public class BpmnConformanceLevelChecker {
 	
 	private Bpmn<BpmnControlFlow<FlowNode>, FlowNode> model = null;
+	private Boolean isDescriptiveConform = null;
+	private Boolean isAnalyticConform = null;
+	private Boolean isExecutableConform = null;
 	
 	public BpmnConformanceLevelChecker(Bpmn<BpmnControlFlow<FlowNode>, FlowNode> model) {
+		if(null == model) {
+			throw new IllegalArgumentException("The provided model must be a valid BPMN Model and not null!");
+		}
 		this.model = model;
 	}
 
 	/**
-	 * @return the model
+	 * @return the model used by this analyzer instance
 	 */
 	public Bpmn<BpmnControlFlow<FlowNode>, FlowNode> getModel() {
 		return model;
 	}
 	
+	/**
+	 * @return <code>true</code> if the model only uses model elements conform to the
+	 * descriptive modeling standard as defined in the BPMN specification version 2.0,
+	 * <code>false</code> otherwise.
+	 */
 	public boolean isDescriptiveModelingConform() {
-		//TODO implement me
-		return false;
+		//check for already calculated results
+		if (this.isDescriptiveConform != null) {
+			return this.isDescriptiveConform;
+		}
+		
+		//or as well as event based xor gateways are not allowed
+		if (!this.model.filter(OrGateway.class).isEmpty() ||
+				(!this.model.filter(EventBasedXorGateway.class).isEmpty())) {
+			this.isDescriptiveConform = false;
+			return this.isDescriptiveConform;
+		}
+		
+		if (!filterByEvents() || !filterByTasks()) {
+			this.isDescriptiveConform = false;
+			return this.isDescriptiveConform;
+		}
+
+		//default or conditional edges as well as attached events are not allowed
+		for (ControlFlow<FlowNode> edge : this.model.getControlFlow()) {
+			if(edge instanceof BpmnControlFlow<?>) {
+				if (((BpmnControlFlow<FlowNode>)edge).isDefault() ||
+						//see empty string condition as edge without condition
+						(((BpmnControlFlow<FlowNode>) edge).getCondition() != null && !((BpmnControlFlow<FlowNode>) edge).getCondition().equals("")) ||
+						((BpmnControlFlow<FlowNode>) edge).hasAttachedEvent()) {
+					this.isDescriptiveConform = false;
+					return this.isDescriptiveConform;
+				}
+			}
+		}
+		
+		this.isDescriptiveConform = true;
+		return this.isDescriptiveConform;
 	}
-	
+
+	/**
+	 * @return <code>true</code> if the model only uses model elements conform to the
+	 * analytic modeling standard as defined in the BPMN specification version 2.0,
+	 * <br/><code>false</code> otherwise.
+	 */
 	public boolean isAnalyticModelingConform() {
-		//TODO implement me
-		return false;
+		//check for already calculated results
+		if (this.isAnalyticConform != null) {
+			return this.isAnalyticConform;
+		}
+		@SuppressWarnings("unchecked")
+		Collection<Subprocess> subProcesses = (Collection<Subprocess>) this.model.filter(Subprocess.class);
+		for(Subprocess subProcess : subProcesses) {
+			if ((!subProcess.isCollapsed()) && subProcess.isStandardLoop()) {
+				this.isAnalyticConform = false;
+				return false;
+			}
+		}
+		
+		//TODO check for further attributes
+		this.isAnalyticConform = true;
+		return this.isAnalyticConform;
 	}
 	
+	/**
+	 * @return <code>true</code> if the model only uses model elements conform to the
+	 * common executable modeling standard as defined in the BPMN specification version 2.0,
+	 * <br/><code>false</code> otherwise.
+	 */
 	public boolean isCommonExecutableModelingConform() {
-		//TODO implement me
-		return false;
+		//check for already calculated results
+		if (this.isExecutableConform != null) {
+			return this.isExecutableConform;
+		}
+		
+		//TODO check for possible models not being conform
+		this.isExecutableConform = true;
+		return this.isExecutableConform;
+	}
+
+	/**
+	 * @return <code>false</code> if the model contains any loop, multiple instance, send, or receive tasks.
+	 * <br/><code>true</code> otherwise.
+	 */
+	private boolean filterByTasks() {
+		//loop and multiple instance tasks are not allowed
+		for(Activity activity : this.model.getActivities()) {
+			if(activity instanceof BpmnActivity) {
+				if (((BpmnActivity) activity).isSequentialMultiple() ||
+						((BpmnActivity) activity).isParallelMultiple() ||
+						((BpmnActivity) activity).isStandardLoop()) {
+					return false;
+				}
+			}
+			
+		}
+		
+		//send and receive tasks are not allowed
+		for(BpmnMessageFlow msgFlowEdge : this.model.getMessageflows()) {
+			if(msgFlowEdge.getSource() instanceof Activity ||
+					msgFlowEdge.getTarget() instanceof Activity) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * @return <code>false</code> if the model contains any intermediate events as well as
+	 * start or end events not from the following types:
+	 * blank(none), message, timer(only start  allowed), and terminate (only end allowed).
+	 * <br/><code>true</code> otherwise.
+	 */
+	private boolean filterByEvents() {
+		//intermediate events are not allowed
+		Collection<Event> startEvents = new ArrayList<Event>();
+		Collection<Event> endEvents = new ArrayList<Event>();
+		for( FlowNode entry : this.model.getEntries()) {
+			if (entry instanceof Event) {
+				startEvents.add((Event) entry);
+			}
+		}
+		for( FlowNode exit : this.model.getExits()) {
+			if (exit instanceof Event) {
+				endEvents.add((Event) exit);
+			}
+		}
+		//if an event is neither entry nor exit it is intermediate
+		Collection<Event> startOrEndEvents = new ArrayList<Event>(startEvents);
+		startOrEndEvents.addAll(endEvents);
+		if (!startOrEndEvents.containsAll(this.model.getEvents())) {
+			return false;
+		}
+		//only blank(none) events, message start/end events as well as timer start events and terminate end events are allowed
+		for (Event event : startOrEndEvents) {
+			if (event instanceof BpmnEvent) {
+				if (((BpmnEvent) event).getEventType() != BPMN_EVENT_TYPES.BLANK &&
+						((BpmnEvent) event).getEventType() != BPMN_EVENT_TYPES.MESSAGE) {
+					if ((((BpmnEvent) event).getEventType() == BPMN_EVENT_TYPES.TIMER && startEvents.contains(event)) ||
+							(((BpmnEvent) event).getEventType() == BPMN_EVENT_TYPES.TERMINATE && endEvents.contains(event))) {
+						continue;
+					}
+					return false;					 
+				}
+			}
+		}
+		return true;
 	}
 }

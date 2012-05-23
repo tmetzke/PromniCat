@@ -113,13 +113,15 @@ public class ProcessClassification {
 		DbFilterConfig dbFilter = new DbFilterConfig();
 		dbFilter.addOrigin(Constants.ORIGINS.BPMAI);		
 		dbFilter.addFormat(Constants.FORMATS.BPMAI_JSON);
-//		dbFilter.addNotation(Constants.NOTATIONS.BPMN1_1);
+		dbFilter.addNotation(Constants.NOTATIONS.BPMN1_1);
 		dbFilter.addNotation(Constants.NOTATIONS.BPMN2_0);
-//		dbFilter.addNotation(Constants.NOTATIONS.EPC);
+		dbFilter.addNotation(Constants.NOTATIONS.EPC);
 //		dbFilter.setLatestRevisionsOnly(true);
 		chainBuilder.addDbFilterConfig(dbFilter);
-		//transform to jBPT and calculate metrics
+		//transform to jBPT
 		chainBuilder.createBpmaiJsonToJbptUnit(false);
+		//check conformance level
+		chainBuilder.createBpmnConformanceLevelCheckerUnit();
 		
 		//collect results
 		chainBuilder.createSimpleCollectorUnit();
