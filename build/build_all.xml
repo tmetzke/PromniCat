@@ -1,0 +1,132 @@
+<!--
+# PromniCAT - Collection and Analysis of Business Process Models
+# Copyright (C) 2012 Cindy Fähnrich, Tobias Hoppe, Andrina Mascher
+# 
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<project name="PromniCAT_all" default="help">
+	<description>Builds the PromniCAT project and all sub projects.</description>
+	
+	<property file="build.properties"/>
+	<import file="build.xml" as="build"/>
+	
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: prepare                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="prepare" depends="build.prepare">
+		<!--Create directories for generated test files.-->		
+		<mkdir dir="${dir.testReports}/jbpt"/>
+		<mkdir dir="${dir.testReports}/bpmaiImporter"/>
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: buildJbpt                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="buildJbpt" depends="prepare">
+	<!--Build the jBPT framework. The final jar file is ${dir.build}/bin/jBpt.jar -->
+		<javac srcdir="${dir.jbpt}/src" destdir="${dir.build}/bin" includeantruntime="false" source="1.6" target="1.6" debug="on" nowarn="on">
+			<classpath>
+				<fileset dir="${dir.jbpt}/lib" includes="**/*.jar"/>
+				<fileset dir="${dir.lib}" includes="**/*.jar"/>
+			</classpath>
+		</javac>
+		<jar destfile="${dir.build}/jbpt.jar" basedir="${dir.build}/bin"></jar>
+		<delete>
+			<fileset dir="${dir.build}/bin" includes="*.class"/>
+		</delete>
+	</target>
+	
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: buildBpmaiImporter                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="buildBpmaiImporter" depends="prepare">
+	<!--Build the Bpmai Importer. The final jar file is ${dir.build}/bin/bpmaiImporter.jar -->
+		<javac srcdir="${dir.bpmaiImporter}/src" destdir="${dir.build}/bin" includeantruntime="false" source="1.6" target="1.6" debug="on" nowarn="on">
+			<classpath>
+				<fileset dir="${dir.bpmaiImporter}/lib" includes="**/*.jar"/>
+			</classpath>
+		</javac>
+		<jar destfile="${dir.build}/bpmai.jar" basedir="${dir.build}/bin"></jar>
+		<delete>
+			<fileset dir="${dir.build}/bin" includes="*.class"/>
+		</delete>
+	</target>
+	
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: compile                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="compile" depends="buildJbpt,buildBpmaiImporter,build.compile">
+	<!--Compile all promnicat source code files.-->
+	</target>
+	
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: junit                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="junit" depends="build, build.junit">
+	<!--execute all tests-->
+		<mkdir dir="${dir.testReports}/tmp"/>
+		<!-- run jBPT test cases -->
+		<condition property="runJbptTests">
+			<istrue value="${run.jbpt.tests}"/>
+		</condition>
+		<antcall target="jbptTests"/>
+		<!-- run BPM AI test cases -->
+		<condition property="runBpmaiImporterTests">
+			<istrue value="${run.bpmaiImporter.tests}"/>
+		</condition>
+		<antcall target="bpmaiTests"/>
+		<delete dir="${dir.testReports}/tmp"/>
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: jbptTests                      
+         - - - - - - - - - - - - - - - - - -->
+    <target name="jbptTests" if="runJbptTests">
+    	<junit printsummary="yes" dir="${dir.jbpt}" tempdir="${dir.testReports}/tmp">
+			<classpath>
+				<fileset dir="${dir.jbpt}/lib" includes="*.jar"/>
+				<fileset dir="${dir.build}" includes="**.*jar"/>
+				<fileset dir="${dir.lib}" includes="**/*.jar"/>
+			</classpath>
+			<formatter type="xml" usefile="true"/>
+			<batchtest fork="yes" todir="${dir.testReports}/jbpt">
+				<fileset dir="${dir.jbpt}/src" includes="**/*Test.java" excludesfile="${jBptTestExclusions}"/>
+			</batchtest>
+		</junit>
+    	<property name="createJunitReport" value="true"/>
+    	<!-- delete jBPT generated tmp files -->
+    	<delete>
+			<fileset dir="${dir.jbpt}" includes="*.dot,convert.bat"/>
+		</delete>
+    </target>
+	
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: bpmaiTests                      
+         - - - - - - - - - - - - - - - - - -->
+    <target name="bpmaiTests" if="runBpmaiImporterTests">
+		<junit printsummary="yes" dir="${dir.bpmaiImporter}" tempdir="${dir.testReports}/tmp">
+			<classpath>
+				<fileset dir="${dir.bpmaiImporter}/lib" includes="**/*.jar"/>
+				<fileset dir="${dir.build}" includes="**/*.jar"/>
+				<fileset dir="${dir.lib}" includes="**/*.jar"/>
+			</classpath>
+			<batchtest fork="yes" todir="${dir.testReports}/bpmaiImporter">
+				<fileset dir="${dir.bpmaiImporter}/src" includes="**/*Test.java"/>
+				<formatter type="xml" usefile="true"/>
+			</batchtest>
+		</junit>
+    	<property name="createJunitReport" value="true"/>
+    </target>
+	
+</project>
