@@ -88,7 +88,7 @@ public class IndividualProcessMetrics {
 	/**
 	 * flag to decide whether to use the full database or just a small test subset
 	 */
-	private static final boolean useFullDB = false;
+	private static final boolean useFullDB = true;
 
 	/**
 	 * the collection of metrics all model revisions will be analyzed by
@@ -103,6 +103,8 @@ public class IndividualProcessMetrics {
 	 */
 	public static void main(String[] args) throws IllegalArgumentException, IllegalTypeException, IOException {
 
+		long startTime = System.currentTimeMillis();
+		
 		IUnitChainBuilder chainBuilder = buildUpUnitChain(useFullDB);		
 		logger.info(chainBuilder.getChain().toString() + "\n");		
 		
@@ -120,6 +122,8 @@ public class IndividualProcessMetrics {
 		Map<String,AnalysisProcessModel> models = buildUpInternalDataStructure(result);
 
 		performAnalyses(models);
+		long time = System.currentTimeMillis() - startTime;
+		logger.info("Finished Analysis in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
 	}
 
 	/**
@@ -230,6 +234,6 @@ public class IndividualProcessMetrics {
 		// high level analysis based on difference analysis
 		Map<String, Integer> features = AnalysisHelper.highLevelAnalysis(analyzedModels);
 		WriterHelper.writeAnalysisWith(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, features);
-		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH);
+		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH + "\n");
 	}
 }
