@@ -393,13 +393,13 @@ public class BpmnParser implements IParser {
 		for (Shape subs : s.getChildShapes()){
 			String id = subs.getResourceId();
 			Entry<Object, Subprocess> node = nodeIds.get(id);
-			if (node.getKey() instanceof FlowNode){
-				((FlowNode) node.getKey()).addResource(f);
-			} else {
-				if (node.getKey() instanceof Resource){
-					((Resource) node.getKey()).setResource(f);
-				}
+			if (node != null) {
+				if (node.getKey() instanceof FlowNode)
+					((FlowNode) node.getKey()).addResource(f);
+				else if (node.getKey() instanceof Resource)
+						((Resource) node.getKey()).setResource(f);
 			}
+		
 		}
 		return null;
 	}
