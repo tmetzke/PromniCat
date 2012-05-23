@@ -64,6 +64,10 @@ public class AnalysisModelRevision {
 	public Double get(METRICS metric) {
 		return metrics.get(metric.name());
 	}
+	
+	public Double get(String metricKey) {
+		return metrics.get(metricKey);
+	}
 
 	public void addProcessModel(ProcessModel model) {
 		this.processModel = model;

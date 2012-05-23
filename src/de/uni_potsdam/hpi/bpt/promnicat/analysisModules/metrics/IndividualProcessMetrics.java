@@ -33,6 +33,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisHelper;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
@@ -53,8 +54,8 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataProcessMet
  */
 public class IndividualProcessMetrics {
 	
-	
-	
+	private static final boolean HANDLE_SUB_PROCESSES = true;
+
 	/**
 	 * path of the model metrics result file
 	 */
@@ -87,7 +88,7 @@ public class IndividualProcessMetrics {
 	/**
 	 * flag to decide whether to use the full database or just a small test subset
 	 */
-	private static final boolean useFullDB = false;
+	private static final boolean useFullDB = true;
 
 	/**
 	 * the collection of metrics all model revisions will be analyzed by
@@ -125,13 +126,13 @@ public class IndividualProcessMetrics {
 		WriterHelper.writeToFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, analyzedModels);
 		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
 		
-		analyzedModels = AnalysisHelper.analyzeMetrics(models, false, "add_delete");
-//		WriterHelper.writeToFile(ADD_DELETE_RESULT_FILE_PATH, analyzedModels);
-//		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
+		analyzedModels = AnalysisHelper.analyzeMetrics(models, false, AnalysisConstant.ADD_DELETE.getDescription(), String.valueOf(HANDLE_SUB_PROCESSES));
+		WriterHelper.writeToFile(ADD_DELETE_RESULT_FILE_PATH, analyzedModels, AnalysisConstant.ADD_DELETE.getDescription());
+		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
 		
 		analyzedModels = AnalysisHelper.analyzeMetrics(models, false);
 		WriterHelper.writeToFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, analyzedModels);
-		logger.info("Wrote addition/deletion analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
+		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
 		
 		Map<String, Integer> features = AnalysisHelper.highLevelAnalysis(analyzedModels);
 		WriterHelper.writeAnalysisWith(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, features);
@@ -166,7 +167,7 @@ public class IndividualProcessMetrics {
 		chainBuilder.addDbFilterConfig(dbFilter);
 		//transform to jBPT and calculate metrics
 		chainBuilder.createBpmaiJsonToJbptUnit(false);
-		chainBuilder.createProcessModelMetricsCalulatorUnit(getProcessModelMetrics(),true);
+		chainBuilder.createProcessModelMetricsCalulatorUnit(getProcessModelMetrics(), HANDLE_SUB_PROCESSES);
 		
 		//collect results
 		chainBuilder.createSimpleCollectorUnit();

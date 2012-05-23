@@ -27,6 +27,12 @@ import java.util.Map;
 
 import org.apache.commons.collections.ListUtils;
 import org.jbpt.hypergraph.abs.Vertex;
+import org.jbpt.pm.Activity;
+import org.jbpt.pm.Event;
+import org.jbpt.pm.FlowNode;
+import org.jbpt.pm.Gateway;
+import org.jbpt.pm.ProcessModel;
+import org.jbpt.pm.bpmn.Subprocess;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 
@@ -47,28 +53,25 @@ public class AnalysisHelper {
 		// a new data structure to store the results in
 		Map<String,AnalysisProcessModel> newModels = new HashMap<>();
 		boolean add_delete_method = method.length != 0 && method[0] == AnalysisConstant.ADD_DELETE.getDescription();
-		
+		boolean includeSubprocesses = method.length != 0 && method[1] == "true";
 		for (AnalysisProcessModel model : models.values()) {
 			
 			AnalysisProcessModel newModel = 
-					add_delete_method ? performAdditionsDeletionsAnalysisFor(model) : performDifferenceAnalysisFor(model, relative);
+					add_delete_method ? performAdditionsDeletionsAnalysisFor(model, includeSubprocesses) : performDifferenceAnalysisFor(model, relative);
 			
 			newModels.put(model.getName(), newModel);
 		}
 		return newModels;
 	}
 	
-	private static AnalysisProcessModel performAdditionsDeletionsAnalysisFor(AnalysisProcessModel model) {
+	private static AnalysisProcessModel performAdditionsDeletionsAnalysisFor(AnalysisProcessModel model, boolean includeSubprocesses) {
 		AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
 		Map<String, List<String>> oldElements = new HashMap<>();
-		AnalysisConstant[] classesToAnalyze = {
-				AnalysisConstant.ACTIVITIES, AnalysisConstant.EDGES, 
-				AnalysisConstant.GATEWAYS, AnalysisConstant.ROLES};
 		for (AnalysisModelRevision revision : model.getRevisions().values()) {
 			AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
 			// check adds and deletes for every class like Activities, Gateways, Edges etc.
-			for (AnalysisConstant classToAnalyze : classesToAnalyze) {
-				Map<AnalysisConstant, Integer> addsAndDeletes = analyzeAddsAndDeletesFor(classToAnalyze, oldElements, revision);
+			for (AnalysisConstant classToAnalyze : getIndividualMetrics()) {
+				Map<AnalysisConstant, Integer> addsAndDeletes = analyzeAddsAndDeletesFor(classToAnalyze, oldElements, revision, includeSubprocesses);
 				newRevision.add(classToAnalyze.getDescription() + AnalysisConstant.ADDITIONS.getDescription(), addsAndDeletes.get(AnalysisConstant.ADDITIONS));
 				newRevision.add(classToAnalyze.getDescription() + AnalysisConstant.DELETIONS.getDescription(), addsAndDeletes.get(AnalysisConstant.DELETIONS));
 			}
@@ -82,34 +85,39 @@ public class AnalysisHelper {
 	 * @param revision
 	 */
 	@SuppressWarnings("unchecked")
-	private static Map<AnalysisConstant, Integer> analyzeAddsAndDeletesFor(AnalysisConstant classToAnalyze, Map<String, List<String>> oldElements, AnalysisModelRevision revision) {
+	private static Map<AnalysisConstant, Integer> analyzeAddsAndDeletesFor(
+			AnalysisConstant classToAnalyze, Map<String, List<String>> oldElements, 
+			AnalysisModelRevision revision, boolean includeSubprocesses) {
 		List<String> newIDs = new ArrayList<>();
 		List<String> deletions;
 		List<String> additions;
-		List<? extends Vertex> elements;
+		ProcessModel actualModel = revision.getProcessModel();
 		switch (classToAnalyze) {
-		case ACTIVITIES:
-			elements = (List<? extends Vertex>) revision.getProcessModel().getActivities();
+		case EVENTS:
+			newIDs = getIDsFor(Event.class, actualModel, includeSubprocesses);
 			break;
 		
-//		case EDGES:
-//			elements = (List<? extends Vertex>) revision.getProcessModel().getEdges();
-//			break;
-//		
-//		case ROLES:
-//			elements = (List<? extends Vertex>) revision.getProcessModel().getGateways();
-//			break;
+		case ACTIVITIES:
+			newIDs = getIDsFor(Activity.class, actualModel, includeSubprocesses);
+			break;
+		
+		case EDGES:
+			// TODO add IDs from ProcessModel to BPMNControlFlow
+//			newIDs = getEdgesIDs(actualModel, includeSubprocesses);
+			break;
+		
+		case ROLES:
+			// TODO add IDs to IResource in jbpt-library
+//			newIDs = getResourceIDs(actualModel, includeSubprocesses);
+			break;
 			
 		case GATEWAYS:
-			elements = (List<? extends Vertex>) revision.getProcessModel().getGateways();
+			newIDs = getIDsFor(Gateway.class, actualModel, includeSubprocesses);
 			break;
 
 		default:
-			elements = new ArrayList<>();
 			break;
 		}
-		for (Vertex element : elements)
-			newIDs.add(element.getId());
 		List<String> oldIDs = oldElements.get(classToAnalyze.getDescription());
 		oldIDs = oldIDs == null ? new ArrayList<String>() : oldIDs;
 		deletions = ListUtils.subtract(oldIDs, newIDs);
@@ -119,6 +127,23 @@ public class AnalysisHelper {
 		results.put(AnalysisConstant.ADDITIONS, additions.size());
 		results.put(AnalysisConstant.DELETIONS, deletions.size());
 		return results;
+	}
+
+	/**
+	 * @param actualModel
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	private static List<String> getIDsFor(Class<?> classToAnalyze, ProcessModel actualModel, boolean includeSubprocesses) {
+		Collection<? extends Vertex> elements = (Collection<? extends Vertex>)actualModel.filter(classToAnalyze);
+		List<String> ids = new ArrayList<>();
+		for (Vertex element : elements)
+			ids.add(element.getId());
+		if (includeSubprocesses)
+			for (FlowNode node : actualModel.getVertices())
+				if (node instanceof Subprocess) 
+					ids.addAll(getIDsFor(classToAnalyze, ((Subprocess)node).getSubProcess(), includeSubprocesses));
+		return ids;
 	}
 
 	/**
@@ -189,12 +214,20 @@ public class AnalysisHelper {
 	 * @return the metrics all model revisions are analyzed by
 	 */
 	public static Collection<METRICS> getProcessModelMetrics() {
-		ArrayList<METRICS> processModelMetrics = new ArrayList<>();
+		Collection<METRICS> processModelMetrics = new ArrayList<>();
 		Collections.addAll(processModelMetrics, 
 				METRICS.NUM_EVENTS,	METRICS.NUM_ACTIVITIES, 
 				METRICS.NUM_GATEWAYS,METRICS.NUM_NODES, 
 				METRICS.NUM_EDGES, METRICS.NUM_ROLES);
 		return processModelMetrics;
+	}
+	
+	public static Collection<AnalysisConstant> getIndividualMetrics() {
+		Collection<AnalysisConstant> individualMetrics = new ArrayList<>();
+		Collections.addAll(individualMetrics,
+				AnalysisConstant.EVENTS, AnalysisConstant.ACTIVITIES, 
+				AnalysisConstant.GATEWAYS/*, AnalysisConstant.EDGES, AnalysisConstant.ROLES*/);
+		return individualMetrics;
 	}
 	
 	/**

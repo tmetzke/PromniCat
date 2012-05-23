@@ -62,10 +62,12 @@ public enum AnalysisConstant {
 	
 	ADDITIONS ("additions"),
 	
-	DELETIONS ("deletions");
+	DELETIONS ("deletions"), 
 	
+	EVENTS ("events");
 	
 	private String stringRepresentation;
+	
 	private AnalysisConstant(String name) {
 		this.stringRepresentation = name;
 	}

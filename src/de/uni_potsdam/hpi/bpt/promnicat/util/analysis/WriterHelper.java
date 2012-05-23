@@ -43,9 +43,14 @@ public class WriterHelper {
 	 * @param resultSet the collected result of the chain execution
 	 * @throws IOException if file can't be read or written
 	 */
-	public static void writeToFile(String filePath, Map<String, AnalysisProcessModel> models) throws IOException {
+	public static void writeToFile(String filePath, Map<String, AnalysisProcessModel> models, String... method) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-		Collection<METRICS> processModelMetrics = AnalysisHelper.getProcessModelMetrics();
+		boolean add_delete_method = method.length != 0 && method[0] == AnalysisConstant.ADD_DELETE.getDescription();
+		Collection<? extends Enum> processModelMetrics;
+		if (add_delete_method)
+			processModelMetrics = AnalysisHelper.getIndividualMetrics();
+		else	
+			processModelMetrics = AnalysisHelper.getProcessModelMetrics();
 		StringBuilder resultStringBuilder = new StringBuilder(addHeader(processModelMetrics));
 		// collect result from each model
 		for (AnalysisProcessModel model : models.values())
@@ -60,12 +65,18 @@ public class WriterHelper {
 	 * @return a String representation of the process model metrics
 	 * separated by the {@link ProcessMetrics#ITEMSEPARATOR}.
 	 */
-	private static String addHeader(Collection<METRICS> metrics) {
+	private static String addHeader(Collection<? extends Enum> metrics) {
 		StringBuilder builder = new StringBuilder()
 			.append("Process Model" + ITEMSEPARATOR)
 			.append("Revision" + ITEMSEPARATOR);
-		for (METRICS metric : metrics)
-			builder.append(metric.name() + ITEMSEPARATOR);
+		for (Enum metric : metrics)
+			if (metric instanceof METRICS)
+				builder.append(metric.name() + ITEMSEPARATOR);
+			else if (metric instanceof AnalysisConstant) {
+				builder
+					.append(((AnalysisConstant) metric).getDescription() + AnalysisConstant.ADDITIONS.getDescription() + ITEMSEPARATOR)
+					.append(((AnalysisConstant) metric).getDescription() + AnalysisConstant.DELETIONS.getDescription() + ITEMSEPARATOR);
+			}
 		builder.append("grows continuously?");
 		return builder.toString();
 	}
@@ -76,7 +87,7 @@ public class WriterHelper {
 	 * @param model that should be displayed in CSV format
 	 * @return a String representation of the formatted model results
 	 */
-	private static String toCsvString(AnalysisProcessModel model, Collection<METRICS> metrics) {
+	private static String toCsvString(AnalysisProcessModel model, Collection<? extends Enum> metrics) {
 		SortedMap<Integer, AnalysisModelRevision> revisions = model.getRevisions();
 		// collect all information from the revisions
 		// display each revision in a separate line
@@ -86,8 +97,17 @@ public class WriterHelper {
 				.append("\n")
 				.append(model.getName())
 				.append(ITEMSEPARATOR + revision.getRevisionNumber());
-			for (METRICS metric : metrics)
-				builder.append(ITEMSEPARATOR + revision.get(metric).intValue());
+			for (Enum metric : metrics) {
+				if (metric instanceof METRICS) 
+					builder.append(ITEMSEPARATOR + revision.get((METRICS)metric).intValue());
+				else if (metric instanceof AnalysisConstant) {
+					String metricName = ((AnalysisConstant) metric).getDescription();
+					builder
+						.append(ITEMSEPARATOR + revision.get(metricName + AnalysisConstant.ADDITIONS.getDescription()).intValue())
+						.append(ITEMSEPARATOR + revision.get(metricName + AnalysisConstant.DELETIONS.getDescription()).intValue());
+				}
+					
+			}
 		}
 		builder.append(ITEMSEPARATOR + model.isGrowing());
 		return builder.toString();
