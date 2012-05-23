@@ -1058,11 +1058,11 @@ public class ProcessMetricsCalculator {
 	 * @return a sub set of the given {@link ProcessModel} containing only the {@link FlowNode}s of the given fragment
 	 */
 	private ProcessModel getExtractedModelPart(ProcessModel model, AbstractMultiGraphFragment<ControlFlow<FlowNode>, FlowNode> fragment) {
-		ProcessModel modelPart = model.clone();
-		Collection<FlowNode> fragmentVerticies = fragment.getVertices();
-		for (FlowNode node : modelPart.getVertices()) {
-			if (!fragmentVerticies.contains(node)) {
-				modelPart.removeVertex(node);
+		ProcessModel modelPart = new ProcessModel();
+		modelPart.addVertices(fragment.getVertices());
+		for (ControlFlow<FlowNode> edge : model.getEdges()) {
+			if (modelPart.getVertices().contains(edge.getSource()) && modelPart.getVertices().contains(edge.getTarget())) {
+				modelPart.addEdge(edge.getSource(), edge.getTarget());
 			}
 		}
 		return modelPart;
