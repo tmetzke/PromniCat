@@ -18,6 +18,7 @@
 package de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData;
 
 import org.jbpt.petri.PetriNet;
+import org.jbpt.pm.ProcessModel;
 
 /**
  * @author Tobias Hoppe
@@ -25,22 +26,71 @@ import org.jbpt.petri.PetriNet;
  */
 public interface IUnitDataClassification<V extends Object> extends IUnitDataJbpt<V> {
 
+	/**
+	 * @return the {@link PetriNet} generated from the {@link ProcessModel}
+	 * of this {@link UnitDataClassification}.
+	 */
 	public PetriNet getPetriNet();
 	
+	/**
+	 * @return <code>true</code> if the {@link ProcessModel} is
+	 * conform to the descriptive modeling specification as defined
+	 * in the BPMN version 2.0 specification.
+	 * <code>false</code> otherwise.
+	 */
 	public boolean getDescriptiveModelingConformance();
 	
+	/**
+	 * @return <code>true</code> if the {@link ProcessModel} is
+	 * conform to the analytic modeling specification as defined
+	 * in the BPMN version 2.0 specification.
+	 * <code>false</code> otherwise.
+	 */
 	public boolean getAnalyticModelingConformance();
 	
+	/**
+	 * @return <code>true</code> if the {@link ProcessModel} is
+	 * conform to the common executable modeling specification as defined
+	 * in the BPMN version 2.0 specification.
+	 * <code>false</code> otherwise.
+	 */
 	public boolean getCommonExecutableModelingConformance();
 	
+	/**
+	 * Set the {@link PetriNet} generated from the {@link ProcessModel}
+	 * of this {@link UnitDataClassification}.
+	 * @param net
+	 */
 	public void setPetriNet(PetriNet net);
 	
+	/**
+	 * Set to <code>true</code>, if the analyzed {@link ProcessModel} is
+	 * conform to the descriptive modeling specification as defined
+	 * in the BPMN version 2.0 specification.
+	 * @param isConform
+	 */
 	public void setDescriptiveModelingConformance(boolean isConform);
 	
+	/**
+	 * Set to <code>true</code>, if the analyzed {@link ProcessModel} is
+	 * conform to the analytic modeling specification as defined
+	 * in the BPMN version 2.0 specification.
+	 * @param isConform
+	 */
 	public void setAnalyticModelingConformance(boolean isConform);
 	
+	/**
+	 * Set to <code>true</code>, if the analyzed {@link ProcessModel} is
+	 * conform to the common executable modeling specification as defined
+	 * in the BPMN version 2.0 specification.
+	 * @param isConform
+	 */
 	public void setCommonExecutableModelingConformance(boolean isConform);
 
+	/**
+	 * @param itemseparator char(s) to use for separation of result items
+	 * @return a CSV-Representation of this {@link UnitDataClassification}.
+	 */
 	public String toCsv(String itemseparator);
 	
 	/**

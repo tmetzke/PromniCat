@@ -44,8 +44,6 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitDataProcessMe
 public class BpmaiJsonToDiagramUnit implements IUnit<IUnitData<Object>, IUnitData<Object> > {
 	
 	private Logger logger = Logger.getLogger(BpmaiJsonToDiagramUnit.class.getName());
-	String json = "";
-	Diagram diagram = null;
 	
 	@Override
 	public IUnitData<Object> execute(IUnitData<Object> input) throws IllegalTypeException {
@@ -62,8 +60,8 @@ public class BpmaiJsonToDiagramUnit implements IUnit<IUnitData<Object>, IUnitDat
 		}
 
 		try {
-			json = ((Representation) input.getValue()).convertDataContentToString();
-			diagram = DiagramBuilder.parseJson(json);
+			String json = ((Representation) input.getValue()).convertDataContentToString();
+			Diagram diagram = DiagramBuilder.parseJson(json);
 			input.setValue(diagram);
 			return input;
 		} catch (JSONException e) {
