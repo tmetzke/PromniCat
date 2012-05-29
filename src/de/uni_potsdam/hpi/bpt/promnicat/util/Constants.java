@@ -102,6 +102,7 @@ public interface Constants {
 	 * Name used for XML format.
 	 */
 	public static final String FORMAT_XML = "XML";
+	/*
 	 * Name used for PNML format.
 	 */
 	public static final String FORMAT_PNML = "Pnml";

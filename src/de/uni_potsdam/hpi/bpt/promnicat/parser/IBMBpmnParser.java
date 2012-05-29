@@ -789,8 +789,8 @@ public class IBMBpmnParser implements IParser {
 	private void prepareEvent(Shape s, BpmnEvent event){
 		//set type
 		String id = s.getStencilId();
-		Set<BpmnEventTypes.TYPES> typeSet = EnumSet.allOf(BpmnEventTypes.TYPES.class);  
-		for (BpmnEventTypes.TYPES type : typeSet){
+		Set<BpmnEventTypes.BPMN_EVENT_TYPES> typeSet = EnumSet.allOf(BpmnEventTypes.BPMN_EVENT_TYPES.class);  
+		for (BpmnEventTypes.BPMN_EVENT_TYPES type : typeSet){
 			if (id.contains(type.toString())){
 				event.setEventType(type);
 			}
