@@ -166,6 +166,10 @@ public class ProcessModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUni
 		}
 		//TODO handle failing serialization
 		File petriNetFile = PetriNetSerializer.serialize(petriNet);
+		if(petriNetFile == null) {
+			logger.warning("Petri Net could not be saved, due to failing serialization!");
+			return;
+		}
 		Representation representation = new Representation(Constants.FORMATS.PNML.toString(), Constants.NOTATIONS.PETRINET.toString(), petriNetFile);
 		pmRepresentation.getRevision().connectRepresentation(representation);
 		this.persistenceApi.savePojo(pmRepresentation.getModel());
