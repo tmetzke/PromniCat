@@ -1,6 +1,6 @@
 /**
  * PromniCAT - Collection and Analysis of Business Process Models
- * Copyright (C) 2012 Cindy Fähnrich, Tobias Hoppe, Andrina Mascher
+ * Copyright (C) 2012 Cindy FÃ¤hnrich, Tobias Hoppe, Andrina Mascher
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,7 +49,6 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitDataJbpt;
 public class ProcessModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUnitData<Object> > {
 
 	private Logger logger = Logger.getLogger(ProcessModelToPetriNetUnit.class.getName());
-	private boolean lookUpPetriNetInDb = false;
 	private IPersistenceApi persistenceApi = null;
 	
 	/**
@@ -58,7 +57,6 @@ public class ProcessModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUni
 	 * using any database lookups for already existing transformation results.
 	 */
 	public ProcessModelToPetriNetUnit() {
-		this.lookUpPetriNetInDb = false;
 	}
 	
 	/**
@@ -68,7 +66,6 @@ public class ProcessModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUni
 	 * @param persistenceApi the database instance to use for {@link PetriNet} lookup.
 	 */
 	public ProcessModelToPetriNetUnit(IPersistenceApi persistenceApi) {
-		this.lookUpPetriNetInDb = true;
 		this.persistenceApi = persistenceApi;
 	}
 	
@@ -81,18 +78,22 @@ public class ProcessModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUni
 		if (input == null) {
 			throw new IllegalArgumentException("Got an invalid null pointer input!");
 		}
-		//look up already parsed PetriNet if wanted
-		if (this.lookUpPetriNetInDb && this.persistenceApi != null && input.getDbId() != null) {
+		//look up already parsed PetriNet if possible
+		if (this.persistenceApi != null && input.getDbId() != null) {
 			Representation pmRepresentation = this.persistenceApi.loadRepresentation(input.getDbId());
-			for (Representation representation : pmRepresentation.getRevision().getRepresentations()) {
-				if(representation.getNotation().equals(Constants.NOTATIONS.PETRINET)) {
-					pn = PetriNetSerializer.parsePetriNet(representation.getOriginalFilePath());
-					if(pn != null) {
-						input.setValue(pn);
-						return input;
-					} else {
-						logger.info("Petri Net could not be loaded. Try to transform current process model.");
-						break;
+			if(pmRepresentation != null) {
+				if (pmRepresentation.getRevision() != null) {
+					for (Representation representation : pmRepresentation.getRevision().getRepresentations()) {
+						if(representation.getNotation().equals(Constants.NOTATIONS.PETRINET)) {
+							pn = PetriNetSerializer.parsePetriNet(representation.getOriginalFilePath());
+							if(pn != null) {
+								input.setValue(pn);
+								return input;
+							} else {
+								logger.info("Petri Net could not be loaded. Try to transform current process model.");
+								break;
+							}
+						}
 					}
 				}
 			}
@@ -151,6 +152,19 @@ public class ProcessModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUni
 	 */
 	private void savePetriNetInDb(String dbId, PetriNet petriNet) {
 		Representation pmRepresentation = this.persistenceApi.loadRepresentation(dbId);
+		if(pmRepresentation == null ) {
+			logger.warning("Petri Net could not be saved, due to missing representation of current process model!");
+			return;
+		}
+		if(pmRepresentation.getRevision() == null ) {
+			logger.warning("Petri Net could not be saved, due to missing revision of current process model!");
+			return;
+		}
+		if(pmRepresentation.getModel() == null ) {
+			logger.warning("Petri Net could not be saved, due to missing database model of current process model!");
+			return;
+		}
+		//TODO handle failing serialization
 		File petriNetFile = PetriNetSerializer.serialize(petriNet);
 		Representation representation = new Representation(Constants.FORMATS.PNML.toString(), Constants.NOTATIONS.PETRINET.toString(), petriNetFile);
 		pmRepresentation.getRevision().connectRepresentation(representation);
