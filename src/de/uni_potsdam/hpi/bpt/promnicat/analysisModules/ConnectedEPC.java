@@ -74,7 +74,7 @@ public class ConnectedEPC {
 	 * @param chainBuilder
 	 * @throws IllegalTypeException 
 	 */
-	private static void buildUpUnitChain(IUnitChainBuilder chainBuilder) throws IllegalTypeException {
+	public static void buildUpUnitChain(IUnitChainBuilder chainBuilder) throws IllegalTypeException {
 		//build db query
 		DbFilterConfig dbFilter = new DbFilterConfig();
 		dbFilter.addOrigin(Constants.ORIGINS.BPMAI);
@@ -94,7 +94,7 @@ public class ConnectedEPC {
 	 * of entries and exists. 
 	 * @param results from the execution of the {@link UnitChain}
 	 */
-	private static void printResult(Collection<IUnitDataJbpt<Object> > results){
+	public static void printResult(Collection<IUnitDataJbpt<Object> > results){
 		
 		for (IUnitDataJbpt<Object> item : results){
 			ProcessModel result = (ProcessModel) item.getValue();
