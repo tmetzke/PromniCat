@@ -218,45 +218,44 @@ public class BpmnParser implements IParser {
 	 */
 	public Vertex parseIds(Shape s){
 		String id = s.getStencilId();
-		Vertex v = null;
 		if (id.contains(constants.ENTITY_TASK)){
-			v = createTask(s);
+			return createTask(s);
 			}
 		if (id.contains(constants.ENTITY_SUBPROCESS)){
-			v = createSubprocess(s);
+			return createSubprocess(s);
 		}
 		if (id.contains(constants.ENTITY_GATEWAY_XOR)){
-			v = createXorGateway(s);
+			return createXorGateway(s);
 		}
 		if (id.contains(constants.ENTITY_GATEWAY_AND)){
-			v = createAndGateway(s);
+			return createAndGateway(s);
 		}
 		if (id.contains(constants.ENTITY_GATEWAY_OR)){
-			v = createOrGateway(s);
+			return createOrGateway(s);
 		}
 		if (id.contains(constants.ENTITY_GATEWAY_ALTERNATIVE)){
-			v = createAlternativeGateway(s);
+			return createAlternativeGateway(s);
 		}
 		if (id.contains(constants.ENTITY_GATEWAY_EVENTBASED)){
-			v = createEventbasedGateway(s);
+			return createEventbasedGateway(s);
 		}
 		if (id.contains(constants.ENTITY_LANE) || id.contains(constants.ENTITY_POOL)){
-			v = createResource(s);
+			return createResource(s);
 		}
 		if (id.contains(constants.ENTITY_DATA)){
-			v = createDocument(s);
+			return createDocument(s);
 		}
 		if (id.contains(constants.ENTITY_EVENT_START)){
-			v = createStartEvent(s);
+			return createStartEvent(s);
 		}
 		if (id.contains(constants.EVENT_END)){
-			v = createEndEvent(s);
+			return createEndEvent(s);
 		}
 		if (id.contains(constants.ENTITY_EVENT_THROWING)){
-			v = createIntermediateThrowingEvent(s);
+			return createIntermediateThrowingEvent(s);
 		}
 		if (id.contains(constants.ENTITY_EVENT_CATCHING) || id.contains(constants.ENTITY_EVENT_INTERMEDIATE)){
-			v = createIntermediateCatchingEvent(s);
+			return createIntermediateCatchingEvent(s);
 		}
 		if (id.contains(constants.ENTITY_SEQUENCEFLOW) || id.contains(constants.ENTITY_MESSAGEFLOW)){
 			flows.add(s);
@@ -264,10 +263,6 @@ public class BpmnParser implements IParser {
 		}
 		if (id.contains(constants.ENTITY_ASSOCIATION)){
 			assocs.add(s);
-		}
-		if (v != null) {
-			v.setId(s.getResourceId());
-			return v;
 		}
 		return null;
 	}
@@ -823,6 +818,7 @@ public class BpmnParser implements IParser {
 	private void prepareNode(Shape s, Vertex node){
 		node.setName(s.getProperty(constants.PROPERTY_NAME));
 		node.setDescription(s.getProperty(constants.PROPERTY_DESCRIPTION));
+		node.setId(s.getResourceId());
 		//add id to map		
 		this.nodeIds.put(s.getResourceId(), new AbstractMap.SimpleEntry<Object, Subprocess>(node, null));
 		
