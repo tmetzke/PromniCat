@@ -47,6 +47,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.filter.ProcessModelFilterUn
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.BpmaiJsonToDiagramUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.DiagramToJbptUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.ModelToFeatureVectorUnit;
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.ProcessModelToPetriNetUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitData;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitData;
 
@@ -241,9 +242,20 @@ public class UnitChainBuilder implements IFlexibleUnitChainBuilder {
 	}
 	
 	@Override
-	public void createProcessModelMetricsCalulatorUnit(Collection<METRICS> metricsToCalculate, boolean handleSubProcesses) throws IllegalTypeException {
-		ProcessModelMetricsCalculatorUnit metricsUnit = new ProcessModelMetricsCalculatorUnit(metricsToCalculate, handleSubProcesses);
+	public void createProcessModelMetricsCalulatorUnit(Collection<METRICS> metricsToCalculate, boolean handleSubProcesses) throws IllegalTypeException {		ProcessModelMetricsCalculatorUnit metricsUnit = new ProcessModelMetricsCalculatorUnit(metricsToCalculate, handleSubProcesses);
 		checkForCompatibility(metricsUnit);	
+	}
+
+	@Override
+	public void createProcessModelToPetriNetUnit() throws IllegalTypeException {
+		ProcessModelToPetriNetUnit pmToPnUnit = new ProcessModelToPetriNetUnit();
+		checkForCompatibility(pmToPnUnit);		
+	}
+
+	@Override
+	public void createProcessModelToPetriNetUnit(IPersistenceApi persistenceAPI) throws IllegalTypeException {
+		ProcessModelToPetriNetUnit pmToPnUnit = new ProcessModelToPetriNetUnit(persistenceAPI);
+		checkForCompatibility(pmToPnUnit);
 	}
 
 	@Override

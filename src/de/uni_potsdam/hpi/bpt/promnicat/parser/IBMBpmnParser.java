@@ -61,9 +61,9 @@ import de.uni_potsdam.hpi.bpt.ai.diagram.Shape;
  * @author Cindy Fähnrich
  *
  */
-public class BpmnParser implements IParser {
+public class IBMBpmnParser implements IParser {
 
-	private final static Logger logger = Logger.getLogger(BpmnParser.class.getName());
+	private final static Logger logger = Logger.getLogger(IBMBpmnParser.class.getName());
 	public Bpmn1_1Constants constants;
 	public Diagram diagram = null;
 	public Bpmn<BpmnControlFlow<FlowNode>, FlowNode> process = null;
@@ -103,7 +103,7 @@ public class BpmnParser implements IParser {
 	 * Set the constants set in the constructor
 	 * @param constants
 	 */
-	public BpmnParser(Bpmn1_1Constants constants, boolean strictness) {
+	public IBMBpmnParser(Bpmn1_1Constants constants, boolean strictness) {
 		this.strictness = strictness;
 		this.constants = constants;
 	}
@@ -392,14 +392,14 @@ public class BpmnParser implements IParser {
 		
 		for (Shape subs : s.getChildShapes()){
 			String id = subs.getResourceId();
-			Entry<Object, Subprocess> node = nodeIds.get(id);
-			if (node != null) {
-				if (node.getKey() instanceof FlowNode)
-					((FlowNode) node.getKey()).addResource(f);
-				else if (node.getKey() instanceof Resource)
-						((Resource) node.getKey()).setResource(f);
+			Object node = nodeIds.get(id);
+			if (node instanceof Vertex){
+				((FlowNode) node).addResource(f);
+			} else {
+				if (node instanceof Resource){
+					((Resource) node).setResource(f);
+				}
 			}
-		
 		}
 		return null;
 	}

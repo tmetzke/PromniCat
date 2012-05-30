@@ -84,6 +84,11 @@ public interface Constants {
 	public static final String ORIGIN_AOK = "AOK";
 	
 	/**
+	 * Name used for IBM model collection.
+	 */
+	public static final String ORIGIN_IBM = "IBM";
+	
+	/**
 	 * Name used for SVG format.
 	 */
 	public static final String FORMAT_SVG = "Svg";
@@ -93,6 +98,14 @@ public interface Constants {
 	 */
 	public static final String FORMAT_BPMAI_JSON = "BpmaiJson";
 	
+	/**
+	 * Name used for XML format.
+	 */
+	public static final String FORMAT_XML = "XML";
+	/*
+	 * Name used for PNML format.
+	 */
+	public static final String FORMAT_PNML = "Pnml";
 	/**
 	 * Name used for EPC notation.
 	 */
@@ -212,7 +225,8 @@ public interface Constants {
 	 */
 	public enum FORMATS{
 		SVG(Constants.FORMAT_SVG),
-		BPMAI_JSON(Constants.FORMAT_BPMAI_JSON);
+		BPMAI_JSON(Constants.FORMAT_BPMAI_JSON),
+		PNML(Constants.FORMAT_PNML);
 		
 		private String description;
 	     
