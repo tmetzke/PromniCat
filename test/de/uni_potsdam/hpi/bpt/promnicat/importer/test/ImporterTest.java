@@ -22,7 +22,6 @@ import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.channels.IllegalSelectorException;
 import java.util.ArrayList;
 
 import org.jdom.JDOMException;

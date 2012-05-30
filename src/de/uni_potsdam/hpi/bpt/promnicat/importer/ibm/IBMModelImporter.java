@@ -18,24 +18,17 @@
 package de.uni_potsdam.hpi.bpt.promnicat.importer.ibm;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.logging.Logger;
 
 import org.json.JSONException;
-import org.springframework.util.FileCopyUtils;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import de.uni_potsdam.hpi.bpt.promnicat.importer.AbstractImporter;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.IPersistenceApi;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Model;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Revision;
-import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.orientdbObj.PersistenceApiOrientDbObj;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 
 /**

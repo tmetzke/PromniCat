@@ -21,7 +21,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -33,27 +32,22 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.TransformerFactoryConfigurationError;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.json.JSONException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import org.json.JSONException;
 
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import de.uni_potsdam.hpi.bpt.ai.diagram.Diagram;
 import de.uni_potsdam.hpi.bpt.ai.diagram.DiagramBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.importer.AbstractImporter;
-import de.uni_potsdam.hpi.bpt.promnicat.importer.bpmai.BpmaiImporter;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.IPersistenceApi;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Model;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
@@ -67,7 +61,6 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
  * 
  */
 public class SapReferenceModelImporter extends AbstractImporter {
-    @SuppressWarnings("unused")
     private IPersistenceApi persistenceApi = null;
 
     /**
@@ -163,30 +156,6 @@ public class SapReferenceModelImporter extends AbstractImporter {
 
     }
 
-}
-/**
- * Helper method which writes a XML document to the given filename
- * @param outProfileXMLdocument
- * @param xmlFileName
- * @throws FileNotFoundException
- */
-private static void writeXMLToFile(Document outProfileXMLdocument,
-	String xmlFileName) throws FileNotFoundException {
-    // ---- Use a XSLT transformer for writing the new XML file ----
-    try {
-	Transformer transformer = TransformerFactory.newInstance()
-		.newTransformer();
-	DOMSource source = new DOMSource(outProfileXMLdocument);
-	FileOutputStream os = new FileOutputStream(new File(xmlFileName));
-	StreamResult result = new StreamResult(os);
-	transformer.transform(source, result);
-    } catch (TransformerConfigurationException e) {
-	e.printStackTrace();
-    } catch (TransformerFactoryConfigurationError e) {
-	e.printStackTrace();
-    } catch (TransformerException e) {
-	e.printStackTrace();
-    }
 }
 protected String erdfToRdf(String erdf) throws TransformerException, FileNotFoundException{
     erdf = erdf.replace("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "");
