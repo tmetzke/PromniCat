@@ -176,17 +176,17 @@ public class ProcessMetricConstants {
 				data.setNumberOfXorJoins(new ProcessMetricsCalculator().getNumberOfXorJoins((ProcessModel) data.getValue(), includeSubProcesses));
 			}
 		},
-//		NUM_DATA_NODES(ProcessMetricConstants.NUM_DATA_NODES){
-//			public double getAttribute(IUnitDataProcessMetrics<?> data){
-//				return data.getNumberOfDataNodes();
-//			}
-//
-//			@Override
-//			public void calculateAttribute(IUnitDataProcessMetrics<Object> data, boolean includeSubProcesses) {
-//				super.calculateAttribute(data, includeSubProcesses);
-//				data.setNumberOfDataNodes(new ProcessMetricsCalculator().getNumberOfDataNodes((ProcessModel) data.getValue(), includeSubProcesses));
-//			}
-//		},
+		NUM_DATA_NODES(ProcessMetricConstants.NUM_DATA_NODES){
+			public double getAttribute(IUnitDataProcessMetrics<?> data){
+				return data.getNumberOfDataNodes();
+			}
+
+			@Override
+			public void calculateAttribute(IUnitDataProcessMetrics<Object> data, boolean includeSubProcesses) {
+				super.calculateAttribute(data, includeSubProcesses);
+				data.setNumberOfDataNodes(new ProcessMetricsCalculator().getNumberOfDataNodes((ProcessModel) data.getValue(), includeSubProcesses));
+			}
+		},
 		NUM_EVENTS(ProcessMetricConstants.NUM_EVENTS){
 			public double getAttribute(IUnitDataProcessMetrics<?> data){
 				return data.getNumberOfEvents();

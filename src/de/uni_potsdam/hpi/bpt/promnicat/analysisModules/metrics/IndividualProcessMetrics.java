@@ -60,28 +60,28 @@ public class IndividualProcessMetrics {
 	 * path of the model metrics result file
 	 */
 	private static final String MODEL_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new_model_results.csv";
+			new File("").getAbsolutePath() + "/resources/analysis/new.model_results.csv";
 	
 	/**
 	 * path of the metrics analysis result file, that analyzes the model metrics results
 	 */
 	private static final String METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new_model_results_absolute_analyzed.csv";
+			new File("").getAbsolutePath() + "/resources/analysis/new.model_results_absolute_analyzed.csv";
 	
 	/**
 	 * path of the metrics analysis result file, that analyzes the model metrics results
 	 */
 	private static final String METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new_model_results_relative_analyzed.csv";
+			new File("").getAbsolutePath() + "/resources/analysis/new.model_results_relative_analyzed.csv";
 	
 	/**
 	 * path of the metrics analysis analysis result file, that analyzes the metrics analysis
 	 */
 	private static final String ANALYSIS_ANALYSIS_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new_analysis_results_analyzed.csv";
+			new File("").getAbsolutePath() + "/resources/analysis/new.analysis_results_analyzed.csv";
 	
 	private static final String ADD_DELETE_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new_add_delete_results.csv";
+			new File("").getAbsolutePath() + "/resources/analysis/new.add_delete_results.csv";
 	
 	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
 	

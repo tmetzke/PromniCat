@@ -218,7 +218,8 @@ public class AnalysisHelper {
 		Collections.addAll(processModelMetrics, 
 				METRICS.NUM_EVENTS,	METRICS.NUM_ACTIVITIES, 
 				METRICS.NUM_GATEWAYS,METRICS.NUM_NODES, 
-				METRICS.NUM_EDGES, METRICS.NUM_ROLES);
+				METRICS.NUM_EDGES, METRICS.NUM_ROLES,
+				METRICS.NUM_DATA_NODES);
 		return processModelMetrics;
 	}
 	
