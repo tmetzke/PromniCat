@@ -88,11 +88,10 @@ public class WriterHelper {
 	 * @return a String representation of the formatted model results
 	 */
 	private static String toCsvString(AnalysisProcessModel model, Collection<? extends Enum> metrics) {
-		SortedMap<Integer, AnalysisModelRevision> revisions = model.getRevisions();
 		// collect all information from the revisions
 		// display each revision in a separate line
 		StringBuilder builder = new StringBuilder();
-		for (AnalysisModelRevision revision : revisions.values()) {
+		for (AnalysisModelRevision revision : model.getRevisions().values()) {
 			builder
 				.append("\n")
 				.append(model.getName())
@@ -122,6 +121,7 @@ public class WriterHelper {
 	 */
 	public static void writeAnalysisWith(String filePath, Map<String, Integer> features)
 			throws IOException {
+		// write growing models
 		StringBuilder resultBuilder = new StringBuilder()
 			.append(AnalysisConstant.NUM_MODELS.getDescription() + ITEMSEPARATOR)
 			.append(AnalysisConstant.NUM_GROWING.getDescription() + ITEMSEPARATOR)
@@ -132,6 +132,7 @@ public class WriterHelper {
 			.append(features.get(AnalysisConstant.NUM_NOT_GROWING.getDescription()))
 			.append("\n\n");			
 		
+		// write high/low/same analysis
 		Collection<METRICS> processModelMetrics = AnalysisHelper.getProcessModelMetrics();
 		for (METRICS metric : processModelMetrics)
 			resultBuilder.append(ITEMSEPARATOR + metric);
@@ -145,6 +146,7 @@ public class WriterHelper {
 				resultBuilder.append(ITEMSEPARATOR + features.get(metric.name() + measure));
 		}
 		
+		// write lazy revisions
 		resultBuilder
 			.append("\n\n")
 			.append(AnalysisConstant.NUM_REVISIONS.getDescription() + ITEMSEPARATOR)
@@ -154,7 +156,45 @@ public class WriterHelper {
 			.append(features.get(AnalysisConstant.NUM_REVISIONS.getDescription()) +ITEMSEPARATOR)
 			.append(features.get(AnalysisConstant.ALTERING_REVISIONS.getDescription()) +ITEMSEPARATOR)
 			.append(features.get(AnalysisConstant.UNALTERING_REVISIONS.getDescription()) +ITEMSEPARATOR);
-			
+		
+		// write high level model language analysis
+		resultBuilder.append("\n\n");
+		for (AnalysisConstant languageConstant : AnalysisHelper.getModelLanguageMetrics())
+			if (features.containsKey(languageConstant.getDescription()))
+					resultBuilder.append(languageConstant.getDescription() + ITEMSEPARATOR);
+		resultBuilder.append("\n");
+		for (AnalysisConstant languageConstant : AnalysisHelper.getModelLanguageMetrics())
+			if (features.containsKey(languageConstant.getDescription()))
+				resultBuilder.append(features.get(languageConstant.getDescription()) + ITEMSEPARATOR);
+		
+		// write to file
+		BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+		writer.write(resultBuilder.toString());
+		writer.close();
+	}
+
+	public static void writeModelLanguage(String filePath,
+			Map<String, AnalysisProcessModel> analyzedModels) throws IOException {
+		// header
+		StringBuilder resultBuilder = new StringBuilder()
+			.append("Process Model" + ITEMSEPARATOR)
+			.append("Revision" + ITEMSEPARATOR)
+			.append("Model Language");
+		// language elements for every revision
+		for (AnalysisProcessModel model : analyzedModels.values())
+			for (AnalysisModelRevision revision : model.getRevisions().values()) {
+				resultBuilder
+				.append("\n")
+				.append(model.getName())
+				.append(ITEMSEPARATOR + revision.getRevisionNumber());
+				int count = 0;
+				for (String languageElement : revision.getMetrics().keySet()) {
+					if (count > 0) resultBuilder.append(",");
+					else resultBuilder.append(ITEMSEPARATOR);
+					resultBuilder.append(languageElement);
+					count++;
+				}
+			}
 		BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
 		writer.write(resultBuilder.toString());
 		writer.close();

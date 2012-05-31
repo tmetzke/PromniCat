@@ -243,12 +243,16 @@ public class AnalysisHelper {
 	 * @param analyzedModels
 	 * @throws IOException
 	 */
-	public static Map<String, Integer> highLevelAnalysis(Map<String, AnalysisProcessModel> analyzedModels) throws IOException {
-		// continuously growing models
+	public static Map<String, Integer> highLevelAnalysis(Map<String, AnalysisProcessModel> models) throws IOException {
 		Map<String, Integer> features = new HashMap<>();
-		int numberOfModels = analyzedModels.size();
+		
+		// perform difference analysis as preliminary step for further analyses
+		Map<String, AnalysisProcessModel> differenceAnalyzedModels = analyzeMetrics(models, false);
+		
+		// continuously growing models
+		int numberOfModels = differenceAnalyzedModels.size();
 		int growingModels = 0;
-		for (AnalysisProcessModel model : analyzedModels.values())
+		for (AnalysisProcessModel model : differenceAnalyzedModels.values())
 			if (model.isGrowing()) growingModels++;
 		features.put(AnalysisConstant.NUM_MODELS.getDescription(), numberOfModels);
 		features.put(AnalysisConstant.NUM_GROWING.getDescription(), growingModels);
@@ -259,7 +263,7 @@ public class AnalysisHelper {
 			int higher = 0;
 			int lower =  0;
 			int same = 0;
-			for (AnalysisProcessModel model : analyzedModels.values())
+			for (AnalysisProcessModel model : differenceAnalyzedModels.values())
 				for (AnalysisModelRevision revision : model.getRevisions().values()) {
 					double actualValue = revision.get(metric);
 					if (actualValue < 0) lower++;
@@ -274,7 +278,7 @@ public class AnalysisHelper {
 		// number of revisions that don't alter the number of any metric
 		int alteringRevisions = 0;
 		int numberOfRevisions = 0;
-		for (AnalysisProcessModel model : analyzedModels.values()) {
+		for (AnalysisProcessModel model : differenceAnalyzedModels.values()) {
 			numberOfRevisions += model.getRevisions().size();
 			for (AnalysisModelRevision revision : model.getRevisions().values())
 				for (METRICS metric : getProcessModelMetrics()) 
@@ -288,6 +292,139 @@ public class AnalysisHelper {
 		features.put(AnalysisConstant.ALTERING_REVISIONS.getDescription(), alteringRevisions);
 		features.put(AnalysisConstant.UNALTERING_REVISIONS.getDescription(), numberOfRevisions - alteringRevisions);
 		
+		// analyze the order of model language that is used in modeling history (Data Flow, Organization, Control Flow)
+		Map<String, AnalysisProcessModel> languageAnalyzedModels = modelLanguageAnalysis(models);
+		for (AnalysisProcessModel model : languageAnalyzedModels.values()) {
+			AnalysisConstant behavior = AnalysisConstant.NONE;
+			for (AnalysisModelRevision revision : model.getRevisions().values()) {
+				Collection<String> languageElements = revision.getMetrics().keySet();
+				behavior = findBehavior(languageElements,behavior);
+			}
+			String behaviorString = behavior.getDescription();
+			int oldValue = features.containsKey(behaviorString) ? features.get(behaviorString) : 0;
+			features.put(behaviorString, ++oldValue);
+		}
+		
 		return features;
+	}
+
+	private static AnalysisConstant findBehavior(Collection<String> languageElements,
+			AnalysisConstant behavior) {
+		AnalysisConstant newBehavior = behavior;
+		String controlConstant = AnalysisConstant.CONTROL_FLOW.getDescription();
+		String dataConstant = AnalysisConstant.DATA_FLOW.getDescription();
+		String orgaConstant = AnalysisConstant.ORGANISATION.getDescription();
+		
+		switch (behavior) {
+		case CONTROL_FLOW:
+			if (languageElements.contains(orgaConstant))
+				newBehavior = AnalysisConstant.CONTROL_ORGA;
+			else if (languageElements.contains(dataConstant))
+				newBehavior = AnalysisConstant.CONTROL_DATA;
+			else
+				break;
+			newBehavior = findBehavior(languageElements, newBehavior);
+			break;
+
+		case DATA_FLOW:
+			if (languageElements.contains(controlConstant))
+				newBehavior = AnalysisConstant.DATA_CONTROL;
+			else if (languageElements.contains(orgaConstant))
+				newBehavior = AnalysisConstant.DATA_ORGA;
+			else
+				break;
+			newBehavior = findBehavior(languageElements, newBehavior);
+			break;
+			
+		case ORGANISATION:
+			if (languageElements.contains(controlConstant))
+				newBehavior = AnalysisConstant.ORGA_CONTROL;
+			else if (languageElements.contains(dataConstant))
+				newBehavior = AnalysisConstant.ORGA_DATA;
+			else
+				break;
+			newBehavior = findBehavior(languageElements, newBehavior);
+			break;
+			
+		case CONTROL_ORGA:
+			if (languageElements.contains(dataConstant))
+				newBehavior = AnalysisConstant.CONTROL_ORGA_DATA;
+			break;
+			
+		case CONTROL_DATA:
+			if (languageElements.contains(orgaConstant))
+				newBehavior = AnalysisConstant.CONTROL_DATA_ORGA;
+			break;
+			
+		case DATA_CONTROL:
+			if (languageElements.contains(orgaConstant))
+				newBehavior = AnalysisConstant.DATA_CONTROL_ORGA;
+			break;
+			
+		case DATA_ORGA:
+			if (languageElements.contains(controlConstant))
+				newBehavior = AnalysisConstant.DATA_ORGA_CONTROL;
+			break;
+			
+		case ORGA_CONTROL:
+			if (languageElements.contains(dataConstant))
+				newBehavior = AnalysisConstant.ORGA_CONTROL_DATA;
+			break;
+			
+		case ORGA_DATA:
+			if (languageElements.contains(controlConstant))
+				newBehavior = AnalysisConstant.ORGA_DATA_CONTROL;
+			break;
+			
+		case NONE:
+			if (languageElements.contains(controlConstant))
+				newBehavior = AnalysisConstant.CONTROL_FLOW;
+			else if (languageElements.contains(orgaConstant))
+				newBehavior = AnalysisConstant.ORGANISATION;
+			else if (languageElements.contains(dataConstant))
+				newBehavior = AnalysisConstant.DATA_FLOW;
+			else
+				break;
+			
+			newBehavior = findBehavior(languageElements, newBehavior);
+			break;
+		
+		default:
+			break;
+		}
+		return newBehavior;
+	}
+
+	public static Map<String, AnalysisProcessModel> modelLanguageAnalysis(Map<String, AnalysisProcessModel> models) {
+		Map<String,AnalysisProcessModel> newModels = new HashMap<>();
+		for (AnalysisProcessModel model : models.values()) {
+			AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
+			for (AnalysisModelRevision revision : model.getRevisions().values()) {
+				AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
+				if (revision.get(METRICS.NUM_NODES) > 0 || revision.get(METRICS.NUM_EDGES) > 0)
+					newRevision.add(AnalysisConstant.CONTROL_FLOW.getDescription(), 1);
+				if (revision.get(METRICS.NUM_DATA_NODES) > 0)
+					newRevision.add(AnalysisConstant.DATA_FLOW.getDescription(), 1);
+				if (revision.get(METRICS.NUM_ROLES) > 0)
+					newRevision.add(AnalysisConstant.ORGANISATION.getDescription(), 1);
+				newModel.add(newRevision);
+			}
+			newModels.put(model.getName(), newModel);
+		}
+		return newModels;
+	}
+	
+	public static Collection<AnalysisConstant> getModelLanguageMetrics() {
+		Collection<AnalysisConstant> languageMetrics = new ArrayList<>();
+		Collections.addAll(languageMetrics,
+				AnalysisConstant.CONTROL_ORGA_DATA, AnalysisConstant.CONTROL_DATA_ORGA,
+				AnalysisConstant.DATA_CONTROL_ORGA, AnalysisConstant.DATA_ORGA_CONTROL, 
+				AnalysisConstant.ORGA_CONTROL_DATA, AnalysisConstant.ORGA_DATA_CONTROL,
+				AnalysisConstant.CONTROL_DATA, AnalysisConstant.CONTROL_ORGA,
+				AnalysisConstant.DATA_CONTROL, AnalysisConstant.DATA_ORGA,
+				AnalysisConstant.ORGA_CONTROL, AnalysisConstant.ORGA_DATA,
+				AnalysisConstant.CONTROL_FLOW, AnalysisConstant.DATA_FLOW,
+				AnalysisConstant.ORGANISATION);
+		return languageMetrics;
 	}
 }

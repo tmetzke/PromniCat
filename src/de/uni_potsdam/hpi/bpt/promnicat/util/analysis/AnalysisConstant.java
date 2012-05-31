@@ -66,7 +66,39 @@ public enum AnalysisConstant {
 	
 	DELETIONS ("deletions"), 
 	
-	EVENTS ("events");
+	EVENTS ("events"), 
+	
+	CONTROL_FLOW ("control flow"),
+	
+	ORGANISATION ("organisation"),
+	
+	DATA_FLOW ("data"),
+	
+	CONTROL_ORGA ("control flow > organisation"),
+	
+	CONTROL_DATA ("control flow > data"),
+	
+	DATA_CONTROL ("data > control flow"),
+	
+	DATA_ORGA ("data > organisation"),
+	
+	ORGA_CONTROL ("organisation > control flow"),
+	
+	ORGA_DATA ("organisation > data"),
+	
+	CONTROL_ORGA_DATA ("control flow > organisation > data"),
+	
+	CONTROL_DATA_ORGA ("control flow > data > organisation"),
+	
+	DATA_CONTROL_ORGA ("data > control flow > organisation"),
+	
+	DATA_ORGA_CONTROL ("data > organisation > control flow"),
+	
+	ORGA_CONTROL_DATA ("organisation > control flow > data"),
+	
+	ORGA_DATA_CONTROL ("organisation > data > control flow"),
+	
+	NONE ("none");
 	
 	private String stringRepresentation;
 	

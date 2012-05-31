@@ -83,6 +83,9 @@ public class IndividualProcessMetrics {
 	private static final String ADD_DELETE_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/new.add_delete_results.csv";
 	
+	private static final String MODEL_LANGUAGE_RESULT_FILE_PATH = 
+			new File("").getAbsolutePath() + "/resources/analysis/new.model_language_results.csv";
+	
 	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
 	
 	/**
@@ -231,8 +234,13 @@ public class IndividualProcessMetrics {
 		WriterHelper.writeToFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, analyzedModels);
 		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
 		
-		// high level analysis based on difference analysis
-		Map<String, Integer> features = AnalysisHelper.highLevelAnalysis(analyzedModels);
+		// model language analysis
+		analyzedModels = AnalysisHelper.modelLanguageAnalysis(models);
+		WriterHelper.writeModelLanguage(MODEL_LANGUAGE_RESULT_FILE_PATH, analyzedModels);
+		logger.info("Wrote analysis of model language to " + MODEL_LANGUAGE_RESULT_FILE_PATH + "\n");
+		
+		// high level analysis of model metrics
+		Map<String, Integer> features = AnalysisHelper.highLevelAnalysis(models);
 		WriterHelper.writeAnalysisWith(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, features);
 		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH + "\n");
 	}

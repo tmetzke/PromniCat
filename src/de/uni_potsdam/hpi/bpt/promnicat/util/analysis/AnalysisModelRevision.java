@@ -76,5 +76,9 @@ public class AnalysisModelRevision {
 	public ProcessModel getProcessModel() {
 		return processModel;
 	}
+	
+	public HashMap<String, Double> getMetrics() {
+		return metrics;
+	}
 
 }
