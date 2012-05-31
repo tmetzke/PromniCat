@@ -80,7 +80,7 @@ public static FastVector stringAttributes;
 	 * @param chainBuilder
 	 * @throws IllegalTypeException 
 	 */
-	private static void buildUpUnitChain(IUnitChainBuilder chainBuilder) throws IllegalTypeException {
+	public static void buildUpUnitChain(IUnitChainBuilder chainBuilder) throws IllegalTypeException {
 		//build db query
 		chainBuilder.addDbFilterConfig(createDbFilterConfig());
 		chainBuilder.createBpmaiJsonToJbptUnit(false);
