@@ -71,7 +71,10 @@ public class ProcessModelToPetriNetConverter {
 		}
 		//clone given model to keep model changes within this instance
 		this.model = model.clone();
+		//reset internal data structures
 		this.petriNet = new PetriNet();
+		this.nodeMapping.clear();
+		this.id = 0;
 		//copy id, name, desc, and tag
 		copyAttributes(this.model, this.petriNet);
 		
@@ -121,7 +124,7 @@ public class ProcessModelToPetriNetConverter {
 	private void convertActivity(Activity activity) {
 		Transition t = new Transition();
 		copyAttributes(activity, t);
-		this.petriNet.getTransitions().add(t);
+		this.petriNet.addTransition(t);
 		this.nodeMapping.put(activity, t);	
 	}
 
@@ -150,7 +153,7 @@ public class ProcessModelToPetriNetConverter {
 			
 			if ((source instanceof Place && target instanceof Transition)
 					|| (source instanceof Transition && target instanceof Place)) {
-				this.petriNet.addFlow(source, source);
+				this.petriNet.addFlow(source, target);
 			}
 			else if ((source instanceof Place && target instanceof Place)) {
 				this.connectTwoPlaces((Place) source, (Place) target, "helper transition for edge " + f.getId());
@@ -168,7 +171,7 @@ public class ProcessModelToPetriNetConverter {
 	private void convertEvent(Event event) {
 		Place p = new Place();
 		copyAttributes(event, p);
-		this.petriNet.getPlaces().add(p);
+		this.petriNet.addPlace(p);
 		this.nodeMapping.put(event, p);
 	}
 

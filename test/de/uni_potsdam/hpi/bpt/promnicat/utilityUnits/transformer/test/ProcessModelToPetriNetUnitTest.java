@@ -71,9 +71,13 @@ public class ProcessModelToPetriNetUnitTest {
 		//ensure successful parsing
 		assertNotNull(pn);
 		assertSame(unitData.getValue(), pn);
-		//TODO uncomment if mapping got implemented
-//		assertEquals(1, pn.getSinkNodes().size());
-//		assertEquals(1, pn.getSourceNodes().size());
+		assertEquals(1, pn.getSinkNodes().size());
+		assertEquals(1, pn.getSourceNodes().size());
+		assertEquals(17, pn.getNodes().size());
+		assertEquals(18, pn.getFlow().size());
+		assertEquals(9, pn.getPlaces().size());
+		assertEquals(8, pn.getTransitions().size());
+		assertEquals(2, pn.getSilentTransitions().size());
 	}
 	
 	@Test

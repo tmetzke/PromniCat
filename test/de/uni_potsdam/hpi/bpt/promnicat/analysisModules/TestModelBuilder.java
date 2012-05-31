@@ -29,11 +29,11 @@ import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.XorGateway;
 import org.jbpt.pm.bpmn.Bpmn;
 import org.jbpt.pm.bpmn.BpmnControlFlow;
+import org.jbpt.pm.bpmn.BpmnEventTypes.BPMN_EVENT_TYPES;
 import org.jbpt.pm.bpmn.EndEvent;
 import org.jbpt.pm.bpmn.StartEvent;
 import org.jbpt.pm.bpmn.Subprocess;
 import org.jbpt.pm.bpmn.Task;
-import org.jbpt.pm.bpmn.BpmnEventTypes.BPMN_EVENT_TYPES;
 
 
 /**
@@ -303,6 +303,28 @@ public class TestModelBuilder {
 		model.addControlFlow(xor2, t6);
 		model.addControlFlow(t6, e3);
 		
+		return model;
+	}
+	
+	/** 
+	 * @param size the total number of {@link FlowNode}s of this sequence  
+	 * @return a {@link ProcessModel} representing a sequence
+	 * of {@link Activity}s and {@link Event}s
+	 */
+	public static ProcessModel getSequence(int size) {
+		ProcessModel model = new ProcessModel("sequence model");
+		FlowNode lastNode = new Event("start");
+		for(int i = 1; i < size; i++) {
+			FlowNode node = null;
+			if(i % 2 == 1) {
+				node = new Activity("a " + i);
+			} else {
+				node = new Event("e " + i);
+			}
+			model.addFlowNode(node);
+			model.addControlFlow(lastNode, node);
+			lastNode = node;
+		}
 		return model;
 	}
 }
