@@ -19,9 +19,14 @@ package de.uni_potsdam.hpi.bpt.promnicat.analysisModules.classification;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jbpt.hypergraph.abs.GObject;
+import org.jbpt.petri.Node;
 import org.jbpt.petri.PetriNet;
+import org.jbpt.petri.Place;
+import org.jbpt.petri.Transition;
 import org.jbpt.pm.Activity;
 import org.jbpt.pm.AndGateway;
 import org.jbpt.pm.ControlFlow;
@@ -44,7 +49,10 @@ public class ProcessModelToPetriNetConverter {
 	private static final String THE_GIVEN_PROCESS_MODEL_CONTAINS_AT_LEAST_ONE_OR_GATEWAY = "The given ProcessModel contains at least one OrGateway.";
 	private ProcessModel model = null;
 	private PetriNet petriNet = null;
-
+	
+	private Map<FlowNode, Node> nodeMapping = new HashMap<FlowNode, Node>();
+	private int id = 0;
+	
 	/**
 	 * Transforms the given {@link ProcessModel} into a {@link PetriNet}.
 	 * <b><br/>Assumptions:</b><br/>
@@ -78,6 +86,46 @@ public class ProcessModelToPetriNetConverter {
 	}
 	
 	/**
+	 * Connects the two given {@link Place}s by inserting a silent {@link Transition} in the middle.
+	 * @param source {@link Place} to start with
+	 * @param target {@link Place} to end with
+	 * @param label to use as id for {@link Transition} being inserted, because
+	 * name must be the empty {@link String} to make the {@link Transition} silent.
+	 */
+	private void connectTwoPlaces(Place source, Place target, String label) {
+		Transition t = new Transition();
+		t.setId(label + this.getNextId());
+		this.petriNet.addTransition(t);
+		this.petriNet.addFlow(source, t);
+		this.petriNet.addFlow(t, target);
+	}
+
+	/**
+	 * Connects the two given {@link Transition}s by inserting a {@link Place} in the middle.
+	 * @param source {@link Transition} to start with
+	 * @param target {@link Transition} to end with
+	 * @param label to use for {@link Place} being inserted
+	 */
+	private void connectTwoTransitions(Transition source, Transition target, String label) {
+		Place p = new Place(label);
+		p.setId(label + this.getNextId());
+		this.petriNet.addPlace(p);
+		this.petriNet.addFlow(source, p);
+		this.petriNet.addFlow(p, target);
+	}
+
+	/**
+	 * Converts the given {@link Activity} to a {@link Transition}.
+	 * @param activity {@link Activity} to convert
+	 */
+	private void convertActivity(Activity activity) {
+		Transition t = new Transition();
+		copyAttributes(activity, t);
+		this.petriNet.getTransitions().add(t);
+		this.nodeMapping.put(activity, t);	
+	}
+
+	/**
 	 * Connect the already parsed {@link FlowNode}s according to the {@link ControlFlow}
 	 * of the {@link ProcessModel} to convert. 
 	 * The {@link ProcessModel} shall include {@link Gateway}s,
@@ -85,8 +133,43 @@ public class ProcessModelToPetriNetConverter {
 	 * shall have only one incoming and one outgoing {@link ControlFlow} edge.
 	 */
 	private void convertControlFlowEdges() {
-		// TODO Auto-generated method stub
-		
+		for(ControlFlow<FlowNode> f : this.model.getControlFlow()) {
+			Node source = this.nodeMapping.get(f.getSource());
+			Node target = this.nodeMapping.get(f.getTarget());
+	
+			// the mapping of a flow between an XOR-split and an AND-join
+			// might result in not semantically correct PetriNets
+			if (f.getSource() instanceof XorGateway && f.getTarget() instanceof AndGateway) {			
+				Transition t = new Transition();
+				t.setId("xor/and helper " + this.getNextId());
+				this.petriNet.addTransition(t);
+				this.petriNet.addFlow(source, source);
+				this.connectTwoTransitions(t, (Transition) target, "xor/and helper ");
+				continue;				
+			}
+			
+			if ((source instanceof Place && target instanceof Transition)
+					|| (source instanceof Transition && target instanceof Place)) {
+				this.petriNet.addFlow(source, source);
+			}
+			else if ((source instanceof Place && target instanceof Place)) {
+				this.connectTwoPlaces((Place) source, (Place) target, "helper transition for edge " + f.getId());
+			}
+			else if ((source instanceof Transition && target instanceof Transition)) {
+				this.connectTwoTransitions((Transition) source, (Transition) target, "helper place for edge " + f.getId());
+			}
+		}
+	}
+
+	/**
+	 * Converts the given {@link Event} to a {@link Place}.
+	 * @param event {@link Event} to convert
+	 */
+	private void convertEvent(Event event) {
+		Place p = new Place();
+		copyAttributes(event, p);
+		this.petriNet.getPlaces().add(p);
+		this.nodeMapping.put(event, p);
 	}
 
 	/**
@@ -97,8 +180,63 @@ public class ProcessModelToPetriNetConverter {
 	 * @throws TransformationException if an {@link OrGateway} should be converted
 	 */
 	private void convertFlowNodes() throws TransformationException {
-		// TODO Auto-generated method stub
-		
+		for(FlowNode flowNode : this.model.getFlowNodes()) {
+			if (flowNode instanceof Activity) {
+				convertActivity((Activity)flowNode);
+			} 
+			else if (flowNode instanceof Event) {
+				convertEvent((Event) flowNode);
+			} 
+			else if (flowNode instanceof Gateway) {
+				// OR joins cannot be mapped at all!!!
+				if(flowNode instanceof OrGateway) {
+					throw new TransformationException(THE_GIVEN_PROCESS_MODEL_CONTAINS_AT_LEAST_ONE_OR_GATEWAY);
+				}
+				convertGateway((Gateway) flowNode);
+			}
+		}	
+	}
+
+	/**
+	 * Converts the given {@link Gateway} into it's corresponding {@link PetriNet} 
+	 * representation. <br/>
+	 * {@link XorGateway}s are converted to {@link Place}s and {@link AndGateway}s
+	 * are converted to {@link Transition}s.
+	 * @param gateway {@link Gateway} to convert
+	 */
+	private void convertGateway(Gateway gateway) {
+		if(gateway instanceof AndGateway) {
+			//add a silent transition for AND-Gateway
+			Transition t = new Transition();
+			copyAttributes(gateway, t);
+			//make it a silent transition
+			t.setName("");
+			this.petriNet.addTransition(t);
+			this.nodeMapping.put(gateway, t);
+		} else if(gateway instanceof XorGateway) {
+			//add a place for XOR-Gateway
+			Place p = new Place();
+			copyAttributes(gateway, p);
+			this.petriNet.addPlace(p);
+			this.nodeMapping.put(gateway, p);
+		}		
+	}
+
+	/**
+	 * Copies the id, the name, the description, and the tag attribute from one
+	 * element to the other.
+	 * @param from element to copy the attributes from
+	 * @param to element to set the attributes of
+	 */
+	private void copyAttributes(GObject from, GObject to) {
+		to.setId(from.getId());
+		to.setName(from.getName());
+		to.setDescription(from.getDescription());
+		to.setTag(from.getTag());
+	}
+
+	private int getNextId() {
+		return this.id++;
 	}
 
 	/**
@@ -151,18 +289,5 @@ public class ProcessModelToPetriNetConverter {
 				this.model.addControlFlow(node, g);
 			}			
 		}
-	}
-
-	/**
-	 * Copies the id, the name, the description, and the tag attribute from one
-	 * element to the other.
-	 * @param from element to copy the attributes from
-	 * @param to element to set the attributes of
-	 */
-	private void copyAttributes(GObject from, GObject to) {
-		to.setId(from.getId());
-		to.setName(from.getName());
-		to.setDescription(from.getDescription());
-		to.setTag(from.getTag());
 	}
 }
