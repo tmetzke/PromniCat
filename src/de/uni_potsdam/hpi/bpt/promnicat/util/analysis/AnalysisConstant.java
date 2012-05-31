@@ -60,6 +60,8 @@ public enum AnalysisConstant {
 	
 	ROLES ("roles"), 
 	
+	DOCUMENTS ("documents"),
+	
 	ADDITIONS ("additions"),
 	
 	DELETIONS ("deletions"), 

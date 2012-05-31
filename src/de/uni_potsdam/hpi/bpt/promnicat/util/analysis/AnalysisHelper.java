@@ -32,6 +32,7 @@ import org.jbpt.pm.Event;
 import org.jbpt.pm.FlowNode;
 import org.jbpt.pm.Gateway;
 import org.jbpt.pm.ProcessModel;
+import org.jbpt.pm.bpmn.Document;
 import org.jbpt.pm.bpmn.Subprocess;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
@@ -107,7 +108,7 @@ public class AnalysisHelper {
 			break;
 		
 		case ROLES:
-			// TODO add IDs to IResource in jbpt-library
+			// TODO Resources need IDs
 //			newIDs = getResourceIDs(actualModel, includeSubprocesses);
 			break;
 			
@@ -115,6 +116,10 @@ public class AnalysisHelper {
 			newIDs = getIDsFor(Gateway.class, actualModel, includeSubprocesses);
 			break;
 
+		case DOCUMENTS:
+			newIDs = getIDsFor(Document.class, actualModel, includeSubprocesses);
+			break;
+			
 		default:
 			break;
 		}
@@ -227,7 +232,8 @@ public class AnalysisHelper {
 		Collection<AnalysisConstant> individualMetrics = new ArrayList<>();
 		Collections.addAll(individualMetrics,
 				AnalysisConstant.EVENTS, AnalysisConstant.ACTIVITIES, 
-				AnalysisConstant.GATEWAYS/*, AnalysisConstant.EDGES, AnalysisConstant.ROLES*/);
+				AnalysisConstant.GATEWAYS, AnalysisConstant.DOCUMENTS/*, 
+				AnalysisConstant.EDGES, AnalysisConstant.ROLES*/);
 		return individualMetrics;
 	}
 	
