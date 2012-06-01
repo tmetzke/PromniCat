@@ -265,11 +265,7 @@ public class BpmnParser implements IParser {
 		if (id.contains(constants.ENTITY_ASSOCIATION)){
 			assocs.add(s);
 		}
-		if (v != null) {
-			v.setId(s.getResourceId());
-			return v;
-		}
-		return null;
+		return v;
 	}
 	
 	/**
@@ -821,6 +817,7 @@ public class BpmnParser implements IParser {
 	 * @param node
 	 */
 	private void prepareNode(Shape s, Vertex node){
+	    	node.setId(s.getResourceId());
 		node.setName(s.getProperty(constants.PROPERTY_NAME));
 		node.setDescription(s.getProperty(constants.PROPERTY_DESCRIPTION));
 		//add id to map		
