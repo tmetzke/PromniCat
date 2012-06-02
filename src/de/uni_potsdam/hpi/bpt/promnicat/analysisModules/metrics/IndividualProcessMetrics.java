@@ -91,7 +91,7 @@ public class IndividualProcessMetrics {
 	/**
 	 * flag to decide whether to use the full database or just a small test subset
 	 */
-	private static final boolean useFullDB = false;
+	private static final boolean useFullDB = true;
 
 	/**
 	 * the collection of metrics all model revisions will be analyzed by

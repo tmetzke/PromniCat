@@ -378,9 +378,7 @@ public class BpmnParser implements IParser {
 	public Vertex createResource(Shape s){
 		BpmnResource f = new BpmnResource();
 		f.setType(s.getStencilId());
-
-		f.setName(s.getProperty(constants.PROPERTY_NAME));
-		f.setDescription(s.getProperty(constants.PROPERTY_DESCRIPTION));
+		prepareNode(s, f);
 		
 		//add id to map
 		this.nodeIds.put(s.getResourceId(), new AbstractMap.SimpleEntry<Object, Subprocess>(f, null));
@@ -396,7 +394,8 @@ public class BpmnParser implements IParser {
 			}
 		
 		}
-		return null;
+		this.process.addNonFlowNode(f);
+		return f;
 	}
 	
 	/**
@@ -530,6 +529,7 @@ public class BpmnParser implements IParser {
 				}
 			}
 		}
+		if (flow != null) flow.setId(s.getResourceId());
 		this.controlflowIds.put(s.getResourceId(), flow);
 	}
 	
@@ -575,7 +575,7 @@ public class BpmnParser implements IParser {
 		Entry<Object, Subprocess> fromNode = nodeIds.get(in.getResourceId());
 		Entry<Object, Subprocess> toNode = nodeIds.get(out.getResourceId());
 		//check if nodes are contained in subprocess
-		BpmnMessageFlow flow;
+		BpmnMessageFlow flow = null;
 		if (toNode.getValue() != null && toNode.getValue() == fromNode.getValue()){
 			flow = toNode.getValue().addMessageFlow((Object)fromNode.getKey(), (Object) toNode.getKey());
 			this.process.addMessageFlow(flow);
@@ -584,6 +584,7 @@ public class BpmnParser implements IParser {
 				flow = this.process.addMessageFlow((Object)fromNode.getKey(), (Object) toNode.getKey());
 			}
 		}
+		if (flow != null) flow.setId(s.getResourceId());
 	}
 	
 	/**

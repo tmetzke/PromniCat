@@ -38,9 +38,9 @@ import org.jbpt.pm.DataNode;
 import org.jbpt.pm.Event;
 import org.jbpt.pm.FlowNode;
 import org.jbpt.pm.Gateway;
-import org.jbpt.pm.IResource;
 import org.jbpt.pm.OrGateway;
 import org.jbpt.pm.ProcessModel;
+import org.jbpt.pm.Resource;
 import org.jbpt.pm.XorGateway;
 import org.jbpt.pm.bpmn.Bpmn;
 import org.jbpt.pm.bpmn.BpmnControlFlow;
@@ -708,19 +708,12 @@ public class ProcessMetricsCalculator {
 	 * @return the number of all roles (e.g. pools, lanes) of the given {@link ProcessModel}.
 	 */
 	public int getNumberOfRoles(ProcessModel model, boolean includeSubProcesses) {
-		Collection<Activity> activities = model.getActivities();
-		Set<IResource> roles = new HashSet<IResource>();
-		for (Activity activity : activities){
-			Collection<IResource> lanes = activity.getResources();
-			for (IResource lane : lanes)
-				roles.add(lane.getParent());
-			roles.addAll(lanes);
-		}
+		Collection<Resource> roles = model.getResources();
 		int result = roles.size();
-//		if (includeSubProcesses)
-//			for (FlowNode node : model.getVertices())
-//				if (node instanceof Subprocess)
-//					result += getNumberOfRoles(model, includeSubProcesses);
+		if (includeSubProcesses)
+			for (FlowNode node : model.getVertices())
+				if (node instanceof Subprocess)
+					result += getNumberOfRoles(((Subprocess) node).getSubProcess(), includeSubProcesses);
 		return result;
 	}
 
