@@ -17,6 +17,7 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData;
 
+import org.jbpt.petri.PetriNet;
 import org.jbpt.pm.ProcessModel;
 
 import de.uni_potsdam.hpi.bpt.ai.diagram.Diagram;
@@ -27,20 +28,33 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnitChain;
 /**
  * Interface for classes that can be used as {@link IUnit} input and output.
  * The id of the used {@link Representation} as well as the result value of the last {@link IUnit} of
- * the {@link IUnitChain} is stored. Furthermore, the parsed jBPT {@link ProcessModel} is stored.
+ * the {@link IUnitChain} is stored. Furthermore, the parsed jBPT {@link ProcessModel} and a
+ * {@link PetriNet} calculated from the {@link ProcessModel} are stored.
  * 
  * @author Tobias Hoppe
  */
 public interface IUnitDataJbpt< V extends Object> extends IUnitData<V>{
-	
-	
+		
 	/**
-	 * @return the parsed jBPT process model
+	 * @return the parsed jBPT {@link ProcessModel}
 	 */
 	public ProcessModel getProcessModel();
 	
 	/**
-	 * @param processModel the jBPT process model parsed from BPM AI {@link Diagram}.
+	 * @param processModel the jBPT {@link ProcessModel} parsed from BPM AI {@link Diagram}.
 	 */
 	public void setProcessModel(ProcessModel processModel);
+	
+	/**
+	 * @return the {@link PetriNet} generated from the {@link ProcessModel}
+	 * of this {@link UnitDataClassification}.
+	 */
+	public PetriNet getPetriNet();
+	
+	/**
+	 * Set the {@link PetriNet} generated from the {@link ProcessModel}
+	 * of this {@link UnitDataClassification}.
+	 * @param net
+	 */
+	public void setPetriNet(PetriNet net);
 }

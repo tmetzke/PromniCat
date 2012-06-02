@@ -221,6 +221,13 @@ public interface IUnitChainBuilder {
 	public void createElementExtractorUnit(Collection<Class<?>> classesToFilter) throws IllegalTypeException;
 	
 	/**
+	 * Add a {@link IUnit} to the internal {@link IUnitChain}, that is used to analyze the formerly
+	 * created {@link PetriNet} regarding soundness, free choice, S/T-Net, workflow net, ...
+	 * @throws IllegalTypeException if the unit's input and output value classes are not compatible.
+	 */
+	public void createPetriNetAnalyzerUnit() throws IllegalTypeException;
+
+	/**
 	 * Add a {@link IUnit} to the internal {@link IUnitChain}, that holds the result of the 
 	 * {@link IUnitChain} execution. The result is created by simply collecting
 	 * the results of all processed elements.

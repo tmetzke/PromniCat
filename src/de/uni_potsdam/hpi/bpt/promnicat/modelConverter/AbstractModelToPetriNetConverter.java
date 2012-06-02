@@ -236,10 +236,10 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 			// might result in not semantically correct PetriNets
 			if (f.getSource() instanceof XorGateway && f.getTarget() instanceof AndGateway) {			
 				Transition t = new Transition();
-				t.setId("xor/and helper " + this.getNextId());
+				t.setId("xor/and_helper_" + this.getNextId());
 				this.petriNet.addTransition(t);
 				this.petriNet.addFlow(source, source);
-				this.connectTwoTransitions(t, (Transition) target, "xor/and helper ");
+				this.connectTwoTransitions(t, (Transition) target, "xor/and_helper_");
 				continue;				
 			}
 			
@@ -248,10 +248,10 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 				this.petriNet.addFlow(source, target);
 			}
 			else if ((source instanceof Place && target instanceof Place)) {
-				this.connectTwoPlaces((Place) source, (Place) target, "helper transition for edge " + f.getId());
+				this.connectTwoPlaces((Place) source, (Place) target, "helper_transition_for_edge_" + f.getId());
 			}
 			else if ((source instanceof Transition && target instanceof Transition)) {
-				this.connectTwoTransitions((Transition) source, (Transition) target, "helper place for edge " + f.getId());
+				this.connectTwoTransitions((Transition) source, (Transition) target, "helper_place_for_edge_" + f.getId());
 			}
 		}
 		addInitialAndFinalPlaces();
@@ -263,12 +263,12 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 	 */
 	protected void addInitialAndFinalPlaces() {
 		for(Transition t : this.petriNet.getSinkTransitions()) {
-			Place p = new Place("final for " + t.getName());
+			Place p = new Place("final_for_" + t.getName());
 			this.petriNet.addPlace(p);
 			this.petriNet.addFlow(t, p);
 		}
 		for(Transition t : this.petriNet.getSourceTransitions()) {
-			Place p = new Place("start for " + t.getName());
+			Place p = new Place("start_for_" + t.getName());
 			this.petriNet.addPlace(p);
 			this.petriNet.addFlow(p, t);
 		}

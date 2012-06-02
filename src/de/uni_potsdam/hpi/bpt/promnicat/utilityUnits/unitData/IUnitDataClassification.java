@@ -20,18 +20,19 @@ package de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData;
 import org.jbpt.petri.PetriNet;
 import org.jbpt.pm.ProcessModel;
 
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnit;
+
 /**
+ * Interface for classes that can be used as {@link IUnit} input and output.
+ * Apart from the upper class attributes BPMN conformance levels are stored.
+ * Furthermore several {@link PetriNet} attributes  - like soundness, is free choice,
+ * is S/T-Net, is workflow net - are stored.
+ * 
  * @author Tobias Hoppe
- *
+ * TODO add comments
  */
 public interface IUnitDataClassification<V extends Object> extends IUnitDataJbpt<V> {
 
-	/**
-	 * @return the {@link PetriNet} generated from the {@link ProcessModel}
-	 * of this {@link UnitDataClassification}.
-	 */
-	public PetriNet getPetriNet();
-	
 	/**
 	 * @return <code>true</code> if the {@link ProcessModel} is
 	 * conform to the descriptive modeling specification as defined
@@ -55,13 +56,6 @@ public interface IUnitDataClassification<V extends Object> extends IUnitDataJbpt
 	 * <code>false</code> otherwise.
 	 */
 	public boolean getCommonExecutableModelingConformance();
-	
-	/**
-	 * Set the {@link PetriNet} generated from the {@link ProcessModel}
-	 * of this {@link UnitDataClassification}.
-	 * @param net
-	 */
-	public void setPetriNet(PetriNet net);
 	
 	/**
 	 * Set to <code>true</code>, if the analyzed {@link ProcessModel} is
@@ -89,9 +83,11 @@ public interface IUnitDataClassification<V extends Object> extends IUnitDataJbpt
 
 	/**
 	 * @param itemseparator char(s) to use for separation of result items
+	 * @param printPetriNet set to <code>true</code> if dot representation of {@link PetriNet}
+	 * should be stored, otherwise <code>false</code>;
 	 * @return a CSV-Representation of this {@link UnitDataClassification}.
 	 */
-	public String toCsv(String itemseparator);
+	public String toCsv(String itemseparator, boolean printPetriNet);
 	
 	/**
 	 * @return the modelPath
@@ -102,4 +98,81 @@ public interface IUnitDataClassification<V extends Object> extends IUnitDataJbpt
 	 * @param modelPath the modelPath to set
 	 */
 	public void setModelPath(String modelPath);
+	
+	/**
+	 * @return the isSound
+	 */
+	public boolean getSoundness();
+
+	/**
+	 * Set whether the {@link PetriNet} is sound or not
+	 * @param isSound the isSound to set
+	 */
+	public void setSoundness(boolean isSound);
+
+	/**
+	 * @return the isCyclic
+	 */
+	public boolean isCyclic();
+
+	/**
+	 * Set whether the {@link PetriNet} is cyclic or not
+	 * @param isCyclic the isCyclic to set
+	 */
+	public void setCyclic(boolean isCyclic);
+	
+	/**
+	 * @return the isFreeChoice
+	 */
+	public boolean isFreeChoice();
+
+	/**
+	 * Set whether the {@link PetriNet} is a free choice net or not
+	 * @param isFreeChoice the isFreeChoice to set
+	 */
+	public void setFreeChoice(boolean isFreeChoice);
+
+	/**
+	 * @return the isExtendedFreeChoice
+	 */
+	public boolean isExtendedFreeChoice();
+
+	/**
+	 * Set whether the {@link PetriNet} is a extended free choice net or not
+	 * @param isExtendedFreeChoice the isExtendedFreeChoice to set
+	 */
+	public void setExtendedFreeChoice(boolean isExtendedFreeChoice);
+
+	/**
+	 * @return the isSNet
+	 */
+	public boolean isSNet();
+
+	/**
+	 * Set whether the {@link PetriNet} is a S-net or not
+	 * @param isSNet the isSNet to set
+	 */
+	public void setSNet(boolean isSNet);
+
+	/**
+	 * @return the isTnet
+	 */
+	public boolean isTnet();
+
+	/**
+	 * Set whether the {@link PetriNet} is a T-net or not
+	 * @param isTnet the isTnet to set
+	 */
+	public void setTnet(boolean isTnet);
+
+	/**
+	 * @return the isWorkflowNet
+	 */
+	public boolean isWorkflowNet();
+
+	/**
+	 * Set whether the {@link PetriNet} is a workflow net or not
+	 * @param isWorkflowNet the isWorkflowNet parameter to set
+	 */
+	public void setWorkflowNet(boolean isWorkflowNet);
 }

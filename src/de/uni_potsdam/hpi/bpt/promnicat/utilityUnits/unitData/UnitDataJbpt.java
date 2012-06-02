@@ -17,8 +17,10 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData;
 
+import org.jbpt.petri.PetriNet;
 import org.jbpt.pm.ProcessModel;
 
+import de.uni_potsdam.hpi.bpt.ai.diagram.Diagram;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnitChain;
@@ -32,10 +34,14 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnitChain;
 public class UnitDataJbpt<V extends Object> extends UnitData<V> implements IUnitDataJbpt<V>{
 
 	/**
-	 * jBPT {@link ProcessModel}
+	 * jBPT {@link ProcessModel} parsed from BPM AI {@link Diagram}
 	 */
 	private ProcessModel processModel = null;
-
+	
+	/**
+	 * jBPT {@link PetriNet} converted from {@link ProcessModel}
+	 */
+	private PetriNet petriNet = null;
 	
 	/**
 	 * @see UnitData
@@ -74,12 +80,6 @@ public class UnitDataJbpt<V extends Object> extends UnitData<V> implements IUnit
 	}
 	
 	@Override
-	public String toString(){
-		return super.toString() +
-				"\nprocess model: " + this.processModel;
-	}
-
-	@Override
 	public ProcessModel getProcessModel() {
 		return processModel;
 	}
@@ -87,5 +87,22 @@ public class UnitDataJbpt<V extends Object> extends UnitData<V> implements IUnit
 	@Override
 	public void setProcessModel(ProcessModel processModel) {
 		this.processModel = processModel;
+	}
+
+	@Override
+	public PetriNet getPetriNet() {
+		return this.petriNet;
+	}
+
+	@Override
+	public void setPetriNet(PetriNet petriNet) {
+		this.petriNet = petriNet;		
+	}
+
+	@Override
+	public String toString(){
+		return super.toString() +
+				"\nprocess model: " + this.processModel +
+				"\npetri net: " + this.petriNet;
 	}
 }

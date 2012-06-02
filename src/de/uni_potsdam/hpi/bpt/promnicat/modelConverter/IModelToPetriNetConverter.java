@@ -22,6 +22,9 @@ import org.jbpt.pm.ProcessModel;
 import org.jbpt.utils.TransformationException;
 
 /**
+ * Interface for all converter transforming any kind of business process model
+ * into a jBPT {@link PetriNet}.
+ * 
  * @author Tobias Hoppe
  *
  */
