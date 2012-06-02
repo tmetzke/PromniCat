@@ -379,11 +379,7 @@ public class BpmnParser implements IParser {
 		BpmnResource f = new BpmnResource();
 		f.setType(s.getStencilId());
 
-		f.setName(s.getProperty(constants.PROPERTY_NAME));
-		f.setDescription(s.getProperty(constants.PROPERTY_DESCRIPTION));
-		
-		//add id to map
-		this.nodeIds.put(s.getResourceId(), new AbstractMap.SimpleEntry<Object, Subprocess>(f, null));
+		prepareNode(s, f);
 		
 		for (Shape subs : s.getChildShapes()){
 			String id = subs.getResourceId();
@@ -394,7 +390,7 @@ public class BpmnParser implements IParser {
 				else if (node.getKey() instanceof Resource)
 						((Resource) node.getKey()).setResource(f);
 			}
-		
+		this.process.addNonFlowNode(f);
 		}
 		return null;
 	}
