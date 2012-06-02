@@ -46,7 +46,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.filter.ProcessModelFilterUn
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.BpmaiJsonToDiagramUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.DiagramToJbptUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.ModelToFeatureVectorUnit;
-import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.ProcessModelToPetriNetUnit;
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.ModelToPetriNetUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitData;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitData;
 
@@ -242,13 +242,13 @@ public class UnitChainBuilder implements IUnitChainBuilder {
 	
 	@Override
 	public void createProcessModelToPetriNetUnit() throws IllegalTypeException {
-		ProcessModelToPetriNetUnit pmToPnUnit = new ProcessModelToPetriNetUnit();
+		ModelToPetriNetUnit pmToPnUnit = new ModelToPetriNetUnit();
 		checkForCompatibility(pmToPnUnit);		
 	}
 
 	@Override
 	public void createProcessModelToPetriNetUnit(IPersistenceApi persistenceAPI) throws IllegalTypeException {
-		ProcessModelToPetriNetUnit pmToPnUnit = new ProcessModelToPetriNetUnit(persistenceAPI);
+		ModelToPetriNetUnit pmToPnUnit = new ModelToPetriNetUnit(persistenceAPI);
 		checkForCompatibility(pmToPnUnit);
 	}
 

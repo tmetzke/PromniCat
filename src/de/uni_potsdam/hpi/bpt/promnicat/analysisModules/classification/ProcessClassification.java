@@ -119,7 +119,7 @@ public class ProcessClassification {
 		dbFilter.addFormat(Constants.FORMATS.BPMAI_JSON);
 		dbFilter.addNotation(Constants.NOTATIONS.BPMN1_1);
 		dbFilter.addNotation(Constants.NOTATIONS.BPMN2_0);
-		dbFilter.addNotation(Constants.NOTATIONS.EPC);
+//		dbFilter.addNotation(Constants.NOTATIONS.EPC);
 //		dbFilter.setLatestRevisionsOnly(true);
 		chainBuilder.addDbFilterConfig(dbFilter);
 		//transform to jBPT
@@ -128,7 +128,7 @@ public class ProcessClassification {
 		chainBuilder.createBpmnConformanceLevelCheckerUnit();
 		//transform to PetriNet
 		//TODO save result in db later on
-		chainBuilder.createProcessModelToPetriNetUnit();
+//		chainBuilder.createProcessModelToPetriNetUnit();
 		
 		//collect results
 		chainBuilder.createSimpleCollectorUnit();

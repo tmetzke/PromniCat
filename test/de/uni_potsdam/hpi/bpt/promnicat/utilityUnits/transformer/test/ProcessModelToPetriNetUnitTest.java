@@ -23,6 +23,7 @@ import static org.junit.Assert.assertSame;
 
 import org.jbpt.petri.PetriNet;
 import org.jbpt.pm.ProcessModel;
+import org.jbpt.pm.bpmn.Bpmn;
 import org.junit.Test;
 
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.TestModelBuilder;
@@ -32,21 +33,24 @@ import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.orientdb.test.Representat
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.orientdbObj.PersistenceApiOrientDbObj;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
-import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.ProcessModelToPetriNetUnit;
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.ModelToPetriNetUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitDataClassification;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataClassification;
 
 /**
- * Test class for {@link ProcessModelToPetriNetUnit}
+ * Test class for {@link ModelToPetriNetUnit}
  * @author Tobias Hoppe
  *
  */
 public class ProcessModelToPetriNetUnitTest {
 	
-	private ProcessModelToPetriNetUnit unit = new ProcessModelToPetriNetUnit();
-	private ProcessModel model = TestModelBuilder.getModelWithoutOrGateway();
+	private ModelToPetriNetUnit unit = new ModelToPetriNetUnit();
+	private ProcessModel model = TestModelBuilder.getModelWithoutOrGateway(Bpmn.class);
 	private IPersistenceApi persistenceApi = PersistenceApiOrientDbObj.getInstance(Constants.TEST_DB_CONFIG_PATH);
 
+	public ProcessModelToPetriNetUnitTest() throws Exception {		
+	}
+	
 	@Test
 	public void testGetName(){
 		assertEquals("ProcessModelToPetriNetUnit", unit.getName());
@@ -73,10 +77,10 @@ public class ProcessModelToPetriNetUnitTest {
 		assertSame(unitData.getValue(), pn);
 		assertEquals(1, pn.getSinkNodes().size());
 		assertEquals(1, pn.getSourceNodes().size());
-		assertEquals(17, pn.getNodes().size());
-		assertEquals(18, pn.getFlow().size());
-		assertEquals(9, pn.getPlaces().size());
-		assertEquals(8, pn.getTransitions().size());
+		assertEquals(23, pn.getNodes().size());
+		assertEquals(24, pn.getFlow().size());
+		assertEquals(12, pn.getPlaces().size());
+		assertEquals(11, pn.getTransitions().size());
 		assertEquals(2, pn.getSilentTransitions().size());
 	}
 	
@@ -86,7 +90,7 @@ public class ProcessModelToPetriNetUnitTest {
 		persistenceApi.savePojo(repr.getModel());
 		IUnitDataClassification<Object> unitData = new UnitDataClassification<Object>(this.model);
 		unitData.setDbId(repr.getDbId());
-		ProcessModelToPetriNetUnit unitPm2Pn = new ProcessModelToPetriNetUnit(this.persistenceApi);
+		ModelToPetriNetUnit unitPm2Pn = new ModelToPetriNetUnit(this.persistenceApi);
 		unitPm2Pn.execute(unitData);
 		
 		//ensure successful parsing

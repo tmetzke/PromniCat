@@ -27,7 +27,7 @@ import org.jbpt.pm.epc.Epc;
 import org.jbpt.utils.TransformationException;
 
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.classification.PetriNetSerializer;
-import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.classification.ProcessModelToPetriNetConverter;
+import de.uni_potsdam.hpi.bpt.promnicat.modelConverter.ModelToPetriNetConverter;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.IPersistenceApi;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Revision;
@@ -46,26 +46,26 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitDataJbpt;
  * @author Tobias Hoppe
  *
  */
-public class ProcessModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUnitData<Object> > {
+public class ModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUnitData<Object> > {
 
-	private Logger logger = Logger.getLogger(ProcessModelToPetriNetUnit.class.getName());
+	private Logger logger = Logger.getLogger(ModelToPetriNetUnit.class.getName());
 	private IPersistenceApi persistenceApi = null;
 	
 	/**
-	 * Create a new instance of {@link ProcessModelToPetriNetUnit}
+	 * Create a new instance of {@link ModelToPetriNetUnit}
 	 * transforming each {@link ProcessModel} during execution without
 	 * using any database lookups for already existing transformation results.
 	 */
-	public ProcessModelToPetriNetUnit() {
+	public ModelToPetriNetUnit() {
 	}
 	
 	/**
-	 * Create a new instance of {@link ProcessModelToPetriNetUnit}
+	 * Create a new instance of {@link ModelToPetriNetUnit}
 	 * looking up already parsed {@link PetriNet}s in the database before
 	 * trying to transform them from {@link ProcessModel} during execution.
 	 * @param persistenceApi the database instance to use for {@link PetriNet} lookup.
 	 */
-	public ProcessModelToPetriNetUnit(IPersistenceApi persistenceApi) {
+	public ModelToPetriNetUnit(IPersistenceApi persistenceApi) {
 		this.persistenceApi = persistenceApi;
 	}
 	
@@ -183,7 +183,7 @@ public class ProcessModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUni
 	 */
 	private PetriNet transformProcessModelToPetriNet(ProcessModel processModel) {
 		try {
-			return new ProcessModelToPetriNetConverter().convertToPetriNet(processModel);
+			return new ModelToPetriNetConverter().convertToPetriNet(processModel);
 		} catch (TransformationException e) {
 			logger.severe("This process model can not be transformed to a petri net: " + processModel.toString());
 			return null;

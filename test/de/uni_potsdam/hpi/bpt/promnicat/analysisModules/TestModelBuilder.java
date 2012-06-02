@@ -34,6 +34,7 @@ import org.jbpt.pm.bpmn.EndEvent;
 import org.jbpt.pm.bpmn.StartEvent;
 import org.jbpt.pm.bpmn.Subprocess;
 import org.jbpt.pm.bpmn.Task;
+import org.jbpt.pm.epc.Epc;
 
 
 /**
@@ -263,16 +264,20 @@ public class TestModelBuilder {
 	}
 	
 	/**
+	 * @param type The type of model to create. Must be one of 
+	 * {@link ProcessModel}, {@link Bpmn}, or {@link Epc}.
 	 * @return the following single entry/single exit {@link ProcessModel}
 	 * without {@link OrGateway}s:
 	 * 
 	 * e1->t1->and1->t2->and2-->t3->xor1->t5->xor2->t6->e3
 	 * 			|		 |			 |		    |
 	 * 			|-->e2-->|			 |--->t4--->|
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 * 
 	 */
-	public static ProcessModel getModelWithoutOrGateway() {
-		ProcessModel model = new ProcessModel();
+	public static ProcessModel getModelWithoutOrGateway(Class<?> type) throws InstantiationException, IllegalAccessException {
+		ProcessModel model = (ProcessModel) type.newInstance();
 		
 		StartEvent e1 = new StartEvent("e1");
 		Activity t1 = new Activity("t1");
@@ -307,12 +312,16 @@ public class TestModelBuilder {
 	}
 	
 	/** 
-	 * @param size the total number of {@link FlowNode}s of this sequence  
+	 * @param size the total number of {@link FlowNode}s of this sequence
+	 * @param type The type of model to create. Must be one of 
+	 * {@link ProcessModel}, {@link Bpmn}, or {@link Epc}.
 	 * @return a {@link ProcessModel} representing a sequence
 	 * of {@link Activity}s and {@link Event}s
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
 	 */
-	public static ProcessModel getSequence(int size) {
-		ProcessModel model = new ProcessModel("sequence model");
+	public static ProcessModel getSequence(int size, Class<?> type) throws InstantiationException, IllegalAccessException {
+		ProcessModel model = (ProcessModel) type.newInstance();
 		FlowNode lastNode = new Event("start");
 		for(int i = 1; i < size; i++) {
 			FlowNode node = null;

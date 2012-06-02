@@ -15,25 +15,30 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.parser;
+package de.uni_potsdam.hpi.bpt.promnicat.modelConverter;
 
+import org.jbpt.petri.PetriNet;
 import org.jbpt.pm.ProcessModel;
-
-import de.uni_potsdam.hpi.bpt.ai.diagram.Diagram;
+import org.jbpt.utils.TransformationException;
 
 /**
- * Interface for all parser classes.
- * @author Cindy Fähnrich
+ * @author Tobias Hoppe
  *
  */
-public interface IParser {
+public interface IModelToPetriNetConverter {
 	
 	/**
-	 * Parses the stencil set out of the diagram and creates the corresponding process model in jBPT
-	 * by delegating the diagram to the corresponding parser
-	 * @param process to transform into {@link ProcessModel}
-	 * @return the corresponding process model
+	 * Transforms the given {@link ProcessModel} into a {@link PetriNet}.
+	 * @param model to transform
+	 * @return the created {@link PetriNet}
+	 * @throws TransformationException if transformation failed.
 	 */
-	public ProcessModel transformProcess(Diagram process);
+	public PetriNet convertToPetriNet(ProcessModel model) throws TransformationException;
 
+	/**
+	 * @return the {@link PetriNet} being transformed from the last {@link ProcessModel}
+	 * converted with {@link #convertToPetriNet(ProcessModel)}. Or <code>null</code> if
+	 * no {@link ProcessModel} has been converted yet.
+	 */
+	public PetriNet getLastPetriNet();
 }
