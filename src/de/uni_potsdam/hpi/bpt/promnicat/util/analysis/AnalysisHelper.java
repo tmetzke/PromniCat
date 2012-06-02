@@ -232,8 +232,8 @@ public class AnalysisHelper {
 		Collection<AnalysisConstant> individualMetrics = new ArrayList<>();
 		Collections.addAll(individualMetrics,
 				AnalysisConstant.EVENTS, AnalysisConstant.ACTIVITIES, 
-				AnalysisConstant.GATEWAYS, AnalysisConstant.DOCUMENTS/*, 
-				AnalysisConstant.EDGES, AnalysisConstant.ROLES*/);
+				AnalysisConstant.GATEWAYS, AnalysisConstant.DOCUMENTS, 
+				AnalysisConstant.ROLES/*, AnalysisConstant.EDGES*/);
 		return individualMetrics;
 	}
 	
@@ -275,7 +275,7 @@ public class AnalysisHelper {
 			features.put(metric.name() + AnalysisConstant.LOWER.getDescription(), lower);
 		}
 		
-		// number of revisions that don't alter the number of any metric
+		// number of revisions that do not alter the number of any metric
 		int alteringRevisions = 0;
 		int numberOfRevisions = 0;
 		for (AnalysisProcessModel model : differenceAnalyzedModels.values()) {
@@ -287,10 +287,12 @@ public class AnalysisHelper {
 						break;
 					}
 		}
-					
+			
 		features.put(AnalysisConstant.NUM_REVISIONS.getDescription(), numberOfRevisions);
 		features.put(AnalysisConstant.ALTERING_REVISIONS.getDescription(), alteringRevisions);
 		features.put(AnalysisConstant.UNALTERING_REVISIONS.getDescription(), numberOfRevisions - alteringRevisions);
+		
+		// TODO number of revisions that do neither add nor delete anything
 		
 		// analyze the order of model language that is used in modeling history (Data Flow, Organization, Control Flow)
 		Map<String, AnalysisProcessModel> languageAnalyzedModels = modelLanguageAnalysis(models);
