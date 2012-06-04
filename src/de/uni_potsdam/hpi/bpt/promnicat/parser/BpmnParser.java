@@ -390,8 +390,9 @@ public class BpmnParser implements IParser {
 				else if (node.getKey() instanceof Resource)
 						((Resource) node.getKey()).setResource(f);
 			}
-		this.process.addNonFlowNode(f);
 		}
+		
+		this.process.addNonFlowNode(f);
 		return null;
 	}
 	
