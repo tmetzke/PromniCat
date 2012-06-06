@@ -303,24 +303,7 @@ public class AnalysisHelper {
 			features.put(metric.name() + AnalysisConstant.LOWER.getDescription(), lower);
 		}
 		
-		// number of revisions that do not alter the number of any metric
-//		int alteringRevisions = 0;
-//		int numberOfRevisions = 0;
-//		for (AnalysisProcessModel model : differenceAnalyzedModels.values()) {
-//			numberOfRevisions += model.getRevisions().size();
-//			for (AnalysisModelRevision revision : model.getRevisions().values())
-//				for (METRICS metric : getProcessModelMetrics()) 
-//					if (!revision.get(metric).equals(new Double(0))) {
-//						alteringRevisions++;
-//						break;
-//					}
-//		}
-//			
-//		features.put(AnalysisConstant.NUM_REVISIONS.getDescription(), numberOfRevisions);
-//		features.put(AnalysisConstant.ALTERING_REVISIONS.getDescription(), alteringRevisions);
-//		features.put(AnalysisConstant.UNALTERING_REVISIONS.getDescription(), numberOfRevisions - alteringRevisions);
-		
-		// TODO number of revisions that do neither add nor delete anything
+		// number of revisions that do neither add nor delete anything
 		Map<String, AnalysisProcessModel> addDeleteAnalyzedModels = 
 				analyzeMetrics(models, false, AnalysisConstant.ADD_DELETE.getDescription(), String.valueOf(true));
 		int alteringRevisions = 0;
