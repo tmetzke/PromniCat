@@ -215,32 +215,32 @@ public class IndividualProcessMetrics {
 	 */
 	private static void performAnalyses(Map<String, AnalysisProcessModel> models)
 			throws IOException {
-		// metrics results
-		WriterHelper.writeToFile(MODEL_RESULT_FILE_PATH, models);
-		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
-		
-		// difference analysis with relative differences
-		Map<String, AnalysisProcessModel> analyzedModels = AnalysisHelper.analyzeMetrics(models, true);
-		WriterHelper.writeToFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, analyzedModels);
-		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
-		
-		// additions/deletions analysis with absolute numbers
-		analyzedModels = AnalysisHelper.analyzeMetrics(models, false, AnalysisConstant.ADD_DELETE.getDescription(), String.valueOf(HANDLE_SUB_PROCESSES));
-		WriterHelper.writeToFile(ADD_DELETE_RESULT_FILE_PATH, analyzedModels, AnalysisConstant.ADD_DELETE.getDescription());
-		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
-		
-		// difference analysis with absolute differences
-		analyzedModels = AnalysisHelper.analyzeMetrics(models, false);
-		WriterHelper.writeToFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, analyzedModels);
-		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
-		
-		// model language analysis
-		analyzedModels = AnalysisHelper.modelLanguageAnalysis(models);
-		WriterHelper.writeModelLanguage(MODEL_LANGUAGE_RESULT_FILE_PATH, analyzedModels);
-		logger.info("Wrote analysis of model language to " + MODEL_LANGUAGE_RESULT_FILE_PATH + "\n");
+//		// metrics results
+//		WriterHelper.writeToFile(MODEL_RESULT_FILE_PATH, models);
+//		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
+//		
+//		// difference analysis with relative differences
+//		Map<String, AnalysisProcessModel> analyzedModels = AnalysisHelper.analyzeDifferencesInMetrics(models, true);
+//		WriterHelper.writeToFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, analyzedModels);
+//		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
+//		
+//		// additions/deletions analysis with absolute numbers
+//		analyzedModels = AnalysisHelper.analyzeAdditionsAndDeletions(models, HANDLE_SUB_PROCESSES);
+//		WriterHelper.writeToFile(ADD_DELETE_RESULT_FILE_PATH, analyzedModels, AnalysisConstant.ADD_DELETE.getDescription());
+//		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
+//		
+//		// difference analysis with absolute differences
+//		analyzedModels = AnalysisHelper.analyzeDifferencesInMetrics(models, false);
+//		WriterHelper.writeToFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, analyzedModels);
+//		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
+//		
+//		// model language analysis
+//		analyzedModels = AnalysisHelper.modelLanguageAnalysis(models);
+//		WriterHelper.writeModelLanguage(MODEL_LANGUAGE_RESULT_FILE_PATH, analyzedModels);
+//		logger.info("Wrote analysis of model language to " + MODEL_LANGUAGE_RESULT_FILE_PATH + "\n");
 		
 		// high level analysis of model metrics
-		Map<String, Integer> features = AnalysisHelper.highLevelAnalysis(models);
+		Map<String, Integer> features = AnalysisHelper.highLevelAnalysis(models, HANDLE_SUB_PROCESSES);
 		WriterHelper.writeAnalysisWith(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, features);
 		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH + "\n");
 	}
