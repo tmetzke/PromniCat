@@ -1,0 +1,82 @@
+/**
+ * PromniCAT - Collection and Analysis of Business Process Models
+ * Copyright (C) 2012 Cindy Fähnrich, Tobias Hoppe, Andrina Mascher
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses;
+
+import java.util.Collection;
+import java.util.Map;
+
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisHelper;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IMetricsAnalysis;
+
+/**
+ * @author Tobias Metzke
+ *
+ */
+public class LazyRevisionsAnalysis extends AbstractAnalysis {
+
+	private boolean includeSubprocesses;
+	private Collection<AnalysisConstant> metrics;
+	private int alteringRevisions = 0;
+	private int numberOfRevisions = 0;
+
+	/**
+	 * @param modelsToAnalyze
+	 * @param collection 
+	 */
+	public LazyRevisionsAnalysis(
+			Map<String, AnalysisProcessModel> modelsToAnalyze, boolean includeSubpreocesses, Collection<AnalysisConstant> metrics) {
+		super(modelsToAnalyze);
+		this.includeSubprocesses = includeSubpreocesses;
+		this.metrics = metrics;
+	}
+
+	@Override
+	protected void performAnalysis() {
+		IMetricsAnalysis addsDeletes = AnalysisHelper.analyzeAdditionsAndDeletions(modelsToAnalyze, includeSubprocesses);
+		Map<String, AnalysisProcessModel> addDeleteAnalyzedModels = addsDeletes.getAnalyzedModels();
+		for (AnalysisProcessModel model : addDeleteAnalyzedModels.values()) {
+			numberOfRevisions += model.getRevisions().size();
+			for (AnalysisModelRevision revision : model.getRevisions().values())
+				for (AnalysisConstant metric : metrics)
+					if (!revision.get(metric.getDescription() + AnalysisConstant.ADDITIONS.getDescription()).equals(new Double(0))
+							|| !revision.get(metric.getDescription() + AnalysisConstant.ADDITIONS.getDescription()).equals(new Double(0))) {
+						alteringRevisions++;
+						break;
+					}
+		}
+
+	}
+
+	@Override
+	protected String getResultCSVString() {
+		return new StringBuilder()
+			.append("\n\n")
+			.append(AnalysisConstant.NUM_REVISIONS.getDescription() + CSV_ITEMSEPARATOR)
+			.append(AnalysisConstant.ALTERING_REVISIONS.getDescription() + CSV_ITEMSEPARATOR)
+			.append(AnalysisConstant.UNALTERING_REVISIONS.getDescription() +CSV_ITEMSEPARATOR)
+			.append("\n")
+			.append(numberOfRevisions +CSV_ITEMSEPARATOR)
+			.append(alteringRevisions +CSV_ITEMSEPARATOR)
+			.append(numberOfRevisions - alteringRevisions +CSV_ITEMSEPARATOR)
+			.toString();
+	}
+
+}

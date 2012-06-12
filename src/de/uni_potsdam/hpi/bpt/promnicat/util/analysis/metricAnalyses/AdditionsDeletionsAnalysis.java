@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
+package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,11 +35,15 @@ import org.jbpt.pm.Resource;
 import org.jbpt.pm.bpmn.Document;
 import org.jbpt.pm.bpmn.Subprocess;
 
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
+
 /**
  * @author Tobias Metzke
  *
  */
-public class AdditionsDeletionsAnalysis extends MetricsAnalysis {
+public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 
 	private boolean includeSubprocesses;
 	private Collection<AnalysisConstant> metrics;
@@ -52,7 +56,7 @@ public class AdditionsDeletionsAnalysis extends MetricsAnalysis {
 	}
 
 	@Override
-	public void performAnalysis() {
+	protected void performAnalysis() {
 		for (AnalysisProcessModel model : modelsToAnalyze.values()) {
 			AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
 			Map<String, List<String>> oldElements = new HashMap<>();
@@ -164,5 +168,44 @@ public class AdditionsDeletionsAnalysis extends MetricsAnalysis {
 					ids.addAll(getEdgesIDs(((Subprocess)node).getSubProcess(), includeSubprocesses));
 		
 		return ids;
+	}
+	
+	@Override
+	protected String addCSVHeader() {
+		StringBuilder builder = new StringBuilder()
+			.append("Process Model" + CSV_ITEMSEPARATOR)
+			.append("Revision" + CSV_ITEMSEPARATOR);
+		for (AnalysisConstant metric : metrics) {
+			String metricAdditionName = metric.getDescription() + AnalysisConstant.ADDITIONS.getDescription();
+			String metricDeletionName = metric.getDescription() + AnalysisConstant.DELETIONS.getDescription();
+			builder
+				.append(metricAdditionName + CSV_ITEMSEPARATOR)
+				.append(metricDeletionName + CSV_ITEMSEPARATOR);
+		}
+		builder.append("grows continuously?");
+		return builder.toString();
+	}
+	
+	@Override
+	protected String toCsvString(AnalysisProcessModel model) {
+		// collect all information from the revisions
+		// display each revision in a separate line
+		StringBuilder builder = new StringBuilder();
+		for (AnalysisModelRevision revision : model.getRevisions().values()) {
+			builder
+				.append("\n")
+				.append(model.getName())
+				.append(CSV_ITEMSEPARATOR + revision.getRevisionNumber());
+			for (AnalysisConstant metric : metrics) {
+				String metricAdditionName = metric.getDescription() + AnalysisConstant.ADDITIONS.getDescription();
+				String metricDeletionName = metric.getDescription() + AnalysisConstant.DELETIONS.getDescription();
+				builder
+					.append(CSV_ITEMSEPARATOR + revision.get(metricAdditionName).intValue())
+					.append(CSV_ITEMSEPARATOR + revision.get(metricDeletionName).intValue());
+			}
+					
+		}
+		builder.append(CSV_ITEMSEPARATOR + model.isGrowing());
+		return builder.toString();
 	}
 }

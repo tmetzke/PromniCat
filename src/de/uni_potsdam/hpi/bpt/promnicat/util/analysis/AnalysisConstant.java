@@ -98,7 +98,9 @@ public enum AnalysisConstant {
 	
 	ORGA_DATA_CONTROL ("organisation > data > control flow"),
 	
-	NONE ("none");
+	NONE ("none"),
+	
+	ITEMSEPARATOR (";");
 	
 	private String stringRepresentation;
 	

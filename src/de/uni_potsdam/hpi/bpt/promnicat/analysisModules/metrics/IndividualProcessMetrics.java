@@ -33,11 +33,11 @@ import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisHelper;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.WriterHelper;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IFlexibleUnitChainBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnitChainBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.UnitChainBuilder;
@@ -56,11 +56,11 @@ public class IndividualProcessMetrics {
 	
 	private static final boolean HANDLE_SUB_PROCESSES = true;
 
-	/**
-	 * path of the model metrics result file
-	 */
-	private static final String MODEL_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new.model_results.csv";
+//	/**
+//	 * path of the model metrics result file
+//	 */
+//	private static final String MODEL_RESULT_FILE_PATH = 
+//			new File("").getAbsolutePath() + "/resources/analysis/new.model_results.csv";
 	
 	/**
 	 * path of the metrics analysis result file, that analyzes the model metrics results
@@ -86,7 +86,7 @@ public class IndividualProcessMetrics {
 	private static final String MODEL_LANGUAGE_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/new.model_language_results.csv";
 	
-	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
+	private static final Logger logger = Logger.getLogger(IndividualProcessMetrics.class.getName());
 	
 	/**
 	 * flag to decide whether to use the full database or just a small test subset
@@ -111,16 +111,7 @@ public class IndividualProcessMetrics {
 		IUnitChainBuilder chainBuilder = buildUpUnitChain(useFullDB);		
 		logger.info(chainBuilder.getChain().toString() + "\n");		
 		
-		// parser should not log parsing errors
-		Logger epcParserLog = Logger.getLogger(EpcParser.class.getName());
-		epcParserLog.setLevel(Level.SEVERE);
-		Logger bpmnParserLog = Logger.getLogger(BpmnParser.class.getName());
-		bpmnParserLog.setLevel(Level.SEVERE);
-
-		//run chain
-		@SuppressWarnings("unchecked")
-		Collection<IUnitDataProcessMetrics<Object> > result = 
-			(Collection<IUnitDataProcessMetrics<Object>>) chainBuilder.getChain().execute();
+		Collection<IUnitDataProcessMetrics<Object>> result = executeChain(chainBuilder);
 		
 		Map<String,AnalysisProcessModel> models = buildUpInternalDataStructure(result);
 
@@ -162,6 +153,26 @@ public class IndividualProcessMetrics {
 		//collect results
 		chainBuilder.createSimpleCollectorUnit();
 		return chainBuilder;
+	}
+
+	/**
+	 * @param chainBuilder
+	 * @return
+	 * @throws IllegalTypeException
+	 */
+	private static Collection<IUnitDataProcessMetrics<Object>> executeChain(
+			IUnitChainBuilder chainBuilder) throws IllegalTypeException {
+		// parser should not log parsing errors
+		Logger epcParserLog = Logger.getLogger(EpcParser.class.getName());
+		epcParserLog.setLevel(Level.SEVERE);
+		Logger bpmnParserLog = Logger.getLogger(BpmnParser.class.getName());
+		bpmnParserLog.setLevel(Level.SEVERE);
+	
+		//run chain
+		@SuppressWarnings("unchecked")
+		Collection<IUnitDataProcessMetrics<Object> > result = 
+			(Collection<IUnitDataProcessMetrics<Object>>) chainBuilder.getChain().execute();
+		return result;
 	}
 
 	/**
@@ -218,33 +229,33 @@ public class IndividualProcessMetrics {
 	 */
 	private static void performAnalyses(Map<String, AnalysisProcessModel> models)
 			throws IOException {
-		// metrics results
-		WriterHelper.writeToFile(MODEL_RESULT_FILE_PATH, models);
-		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
+//		// metrics results
+//		WriterHelper.writeToFile(MODEL_RESULT_FILE_PATH, models);
+//		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
 		
 		// difference analysis with relative differences
-		Map<String, AnalysisProcessModel> analyzedModels = AnalysisHelper.analyzeDifferencesInMetrics(models, true);
-		WriterHelper.writeToFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, analyzedModels);
+		IAnalysis relativeDifference = AnalysisHelper.analyzeDifferencesInMetrics(models, true);
+		WriterHelper.writeToCSVFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, relativeDifference);
 		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
 		
 		// additions/deletions analysis with absolute numbers
-		analyzedModels = AnalysisHelper.analyzeAdditionsAndDeletions(models, HANDLE_SUB_PROCESSES);
-		WriterHelper.writeToFile(ADD_DELETE_RESULT_FILE_PATH, analyzedModels, AnalysisConstant.ADD_DELETE.getDescription());
+		IAnalysis addsDeletes = AnalysisHelper.analyzeAdditionsAndDeletions(models, HANDLE_SUB_PROCESSES);
+		WriterHelper.writeToCSVFile(ADD_DELETE_RESULT_FILE_PATH, addsDeletes);
 		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
 		
 		// difference analysis with absolute differences
-		analyzedModels = AnalysisHelper.analyzeDifferencesInMetrics(models, false);
-		WriterHelper.writeToFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, analyzedModels);
+		IAnalysis difference = AnalysisHelper.analyzeDifferencesInMetrics(models, false);
+		WriterHelper.writeToCSVFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, difference);
 		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
 		
 		// model language analysis
-		analyzedModels = AnalysisHelper.modelLanguageAnalysis(models);
-		WriterHelper.writeModelLanguage(MODEL_LANGUAGE_RESULT_FILE_PATH, analyzedModels);
+		IAnalysis modelLanguage = AnalysisHelper.modelLanguageAnalysis(models);
+		WriterHelper.writeToCSVFile(MODEL_LANGUAGE_RESULT_FILE_PATH, modelLanguage);
 		logger.info("Wrote analysis of model language to " + MODEL_LANGUAGE_RESULT_FILE_PATH + "\n");
 		
 		// high level analysis of model metrics
-		Map<String, Integer> features = AnalysisHelper.highLevelAnalysis(models, HANDLE_SUB_PROCESSES);
-		WriterHelper.writeAnalysisWith(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, features);
+		IAnalysis highLevel = AnalysisHelper.highLevelAnalysis(models, HANDLE_SUB_PROCESSES);
+		WriterHelper.writeToCSVFile(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, highLevel);
 		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH + "\n");
 	}
 }

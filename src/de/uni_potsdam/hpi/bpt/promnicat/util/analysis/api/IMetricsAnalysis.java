@@ -15,29 +15,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
+package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
 
 /**
  * @author Tobias Metzke
  *
  */
-public class WriterHelper {
+public interface IMetricsAnalysis extends IAnalysis {
 
 	/**
-	 * Write the result into a CSV file
-	 * @param filePath
-	 * @param relativeDifference
-	 * @throws IOException
+	 * @return the analyzed models
 	 */
-	public static void writeToCSVFile(String filePath, IAnalysis relativeDifference) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-		writer.write(relativeDifference.toResultCSVString());
-		writer.close();
-	}
+	public Map<String, AnalysisProcessModel> getAnalyzedModels();
 }

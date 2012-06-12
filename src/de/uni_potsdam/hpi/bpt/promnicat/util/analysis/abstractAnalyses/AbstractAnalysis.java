@@ -15,57 +15,44 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
+package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses;
 
-import java.util.HashMap;
 import java.util.Map;
+
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
+
 
 /**
  * @author Tobias Metzke
- * 
+ *
  */
-public abstract class MetricsAnalysis {
+public abstract class AbstractAnalysis implements IAnalysis {
 
-	protected String name;
-	protected Map<String, AnalysisProcessModel> analyzedModels = new HashMap<String, AnalysisProcessModel>();
 	protected Map<String, AnalysisProcessModel> modelsToAnalyze;
+	
+	protected final String CSV_ITEMSEPARATOR = AnalysisConstant.ITEMSEPARATOR.getDescription();
 
-	public MetricsAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze) {
+	public AbstractAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze) {
 		this.modelsToAnalyze = modelsToAnalyze;
 	}
-
-	/**
-	 * executes the analysis method every subclass defines
-	 */
-	public abstract void performAnalysis();
-
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
+	
+	@Override
+	public String toResultCSVString() {
+		performAnalysis();
+		return getResultCSVString();
 	}
+	
 
 	/**
-	 * @param name
-	 *            the name to set
+	 * executes the analysis method every subclass defines itself
 	 */
-	public void setName(String name) {
-		this.name = name;
-	}
-
+	protected abstract void performAnalysis();
+	
 	/**
-	 * @return the models
+	 * converts the analysis results into a proper CSV format 
+	 * @return the CSV format of the results as String
 	 */
-	public Map<String, AnalysisProcessModel> getAnalyzedModels() {
-		return analyzedModels;
-	}
-
-	/**
-	 * @param models
-	 *            the models to set
-	 */
-	public void setAnalyzedModels(Map<String, AnalysisProcessModel> models) {
-		this.analyzedModels = models;
-	}
+	protected abstract String getResultCSVString();
 }

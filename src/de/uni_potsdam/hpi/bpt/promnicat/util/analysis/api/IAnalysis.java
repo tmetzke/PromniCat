@@ -15,30 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
-
-import java.util.Collection;
-import java.util.Map;
-
-import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
+package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api;
 
 /**
  * @author Tobias Metzke
  *
  */
-public class RelativeDifferenceAnalysis extends DifferenceAnalysis {
+public interface IAnalysis {
 
-	public RelativeDifferenceAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Collection<METRICS> metrics) {
-		super(modelsToAnalyze, metrics);
-	}
-	
-	@Override
-	protected double calculateDifference(METRICS metric, double actualValue, double oldValue) {
-		double divisor = oldValue == 0 ? actualValue : oldValue;
-		if (divisor == 0) divisor = 1;
-		int factor = 100;
-		double difference = (actualValue - oldValue) * factor / divisor;
-		return difference;
-	}
-
+	/**
+	 * delivers the results of the analysis in a CSV-formatted String
+	 * @return the formatted results as a string
+	 */
+	public String toResultCSVString();
 }

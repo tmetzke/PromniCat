@@ -15,29 +15,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
+package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.util.Collection;
+import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
 
 /**
  * @author Tobias Metzke
  *
  */
-public class WriterHelper {
+public class RelativeDifferenceAnalysis extends DifferenceAnalysis {
 
-	/**
-	 * Write the result into a CSV file
-	 * @param filePath
-	 * @param relativeDifference
-	 * @throws IOException
-	 */
-	public static void writeToCSVFile(String filePath, IAnalysis relativeDifference) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
-		writer.write(relativeDifference.toResultCSVString());
-		writer.close();
+	public RelativeDifferenceAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Collection<METRICS> metrics) {
+		super(modelsToAnalyze, metrics);
 	}
+	
+	@Override
+	protected double calculateDifference(METRICS metric, double actualValue, double oldValue) {
+		double divisor = oldValue == 0 ? actualValue : oldValue;
+		if (divisor == 0) divisor = 1;
+		int factor = 100;
+		double difference = (actualValue - oldValue) * factor / divisor;
+		return difference;
+	}
+
 }

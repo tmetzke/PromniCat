@@ -15,24 +15,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
+package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses;
 
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
 
 /**
  * @author Tobias Metzke
  *
  */
-public class ModelLanguageAnalysis extends MetricsAnalysis {
+public class ModelLanguageAnalysis extends AbstractMetricsAnalysis {
 
 	public ModelLanguageAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze) {
 		super(modelsToAnalyze);
 	}
 
 	@Override
-	public void performAnalysis() {
+	protected void performAnalysis() {
 		for (AnalysisProcessModel model : modelsToAnalyze.values()) {
 			AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
 			for (AnalysisModelRevision revision : model.getRevisions().values()) {
@@ -49,4 +52,34 @@ public class ModelLanguageAnalysis extends MetricsAnalysis {
 		}
 	}
 
+	@Override
+	protected String addCSVHeader() {
+		StringBuilder resultBuilder = new StringBuilder()
+			.append("Process Model" + CSV_ITEMSEPARATOR)
+			.append("Revision" + CSV_ITEMSEPARATOR)
+			.append("Model Language");
+		return resultBuilder.toString();
+	}
+
+	@Override
+	protected String toCsvString(AnalysisProcessModel model) {
+		StringBuilder resultBuilder = new StringBuilder();
+		// language elements for every revision
+		for (AnalysisModelRevision revision : model.getRevisions().values()) {
+			resultBuilder
+				.append("\n")
+				.append(model.getName())
+				.append(CSV_ITEMSEPARATOR + revision.getRevisionNumber());
+			int count = 0;
+			for (String languageElement : revision.getMetrics().keySet()) {
+				if (count > 0)
+					resultBuilder.append(",");
+				else
+					resultBuilder.append(CSV_ITEMSEPARATOR);
+				resultBuilder.append(languageElement);
+				count++;
+			}
+		}
+		return resultBuilder.toString();
+	}
 }
