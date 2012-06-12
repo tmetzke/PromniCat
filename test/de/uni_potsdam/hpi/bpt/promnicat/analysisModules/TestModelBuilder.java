@@ -323,12 +323,13 @@ public class TestModelBuilder {
 	public static ProcessModel getSequence(int size, Class<?> type) throws InstantiationException, IllegalAccessException {
 		ProcessModel model = (ProcessModel) type.newInstance();
 		FlowNode lastNode = new Event("start");
+		model.addFlowNode(lastNode);
 		for(int i = 1; i < size; i++) {
 			FlowNode node = null;
 			if(i % 2 == 1) {
-				node = new Activity("a " + i);
+				node = new Activity("a" + i);
 			} else {
-				node = new Event("e " + i);
+				node = new Event("e" + i);
 			}
 			model.addFlowNode(node);
 			model.addControlFlow(lastNode, node);

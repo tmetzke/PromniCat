@@ -27,10 +27,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.ConnectedEPC;
-import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.Clustering;
-import de.uni_potsdam.hpi.bpt.promnicat.importer.ibm.IBMModelImporter;
 import de.uni_potsdam.hpi.bpt.promnicat.importer.sap_rm.SapReferenceModelImporter;
 import de.uni_potsdam.hpi.bpt.promnicat.importer.test.ImporterTest;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
@@ -42,7 +39,6 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnitChainBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.UnitChainBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitDataJbpt;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataJbpt;
-import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataProcessMetrics;
 
 /**
  * test class for {@link SapReferenceModelImporter}

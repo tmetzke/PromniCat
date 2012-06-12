@@ -17,7 +17,20 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import org.jbpt.petri.PetriNet;
+import org.jbpt.pm.epc.Epc;
+import org.junit.Test;
+
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.TestModelBuilder;
+import de.uni_potsdam.hpi.bpt.promnicat.modelConverter.ModelToPetriNetConverter;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.PetriNetAnalyzerUnit;
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitDataClassification;
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataClassification;
 
 /**
  * Test class for {@link PetriNetAnalyzerUnit}.
@@ -26,5 +39,40 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.PetriNetAnalyzerU
  */
 public class PetriNetAnalyzerUnitTest {
 
-	//TODO implement me
+	private static final PetriNetAnalyzerUnit unit = new PetriNetAnalyzerUnit();
+	
+	@Test
+	public void testGetName(){
+		assertTrue(unit.getName().equals("PetriNetAnalyzerUnit"));
+	}
+	
+	@Test
+	public void testGetInputType(){
+		assertEquals(PetriNet.class, unit.getInputType());
+	}
+	
+	@Test
+	public void testGetOutputType(){
+		assertEquals(PetriNet.class, unit.getOutputType());
+	}
+	
+	@Test
+	public void testExecute(){
+		IUnitDataClassification<Object> unitData = new UnitDataClassification<Object>();
+		PetriNet petriNet = null;
+		try {
+			petriNet = new ModelToPetriNetConverter().convertToPetriNet(TestModelBuilder.getSequence(5, Epc.class));
+			unitData.setValue(petriNet);
+			unit.execute(unitData);
+		} catch (Exception e) {
+			fail("Model to PetriNet convertion failed with: " + e.getMessage());
+		}
+		assertTrue(unitData.getSoundness());
+		assertFalse(unitData.isCyclic());
+		assertTrue(unitData.isFreeChoice());
+		assertTrue(unitData.isExtendedFreeChoice());
+		assertTrue(unitData.isSNet());
+		assertTrue(unitData.isTnet());
+		assertTrue(unitData.isWorkflowNet());
+	}
 }

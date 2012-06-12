@@ -41,19 +41,16 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import org.json.JSONException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import org.json.JSONException;
 
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import de.uni_potsdam.hpi.bpt.ai.diagram.Diagram;
 import de.uni_potsdam.hpi.bpt.ai.diagram.DiagramBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.importer.AbstractImporter;
-import de.uni_potsdam.hpi.bpt.promnicat.importer.bpmai.BpmaiImporter;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.IPersistenceApi;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Model;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;

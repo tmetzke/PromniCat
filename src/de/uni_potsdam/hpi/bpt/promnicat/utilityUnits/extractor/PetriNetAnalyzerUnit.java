@@ -59,18 +59,25 @@ public class PetriNetAnalyzerUnit implements IUnit<IUnitData<Object>, IUnitData<
 		if (input == null) {
 			throw new IllegalArgumentException("Got an invalid null pointer input!");
 		}
-		if (input.getValue() == null){
-			logger.warning("Got no petri net as input for soundness check");
-			return input;
-		}
 		if (input instanceof IUnitDataClassification<?>){
-			PetriNet petriNet = ((IUnitDataClassification<?>) input).getPetriNet();
+			PetriNet petriNet = null;
+			if (input.getValue() == null || !(input.getValue() instanceof PetriNet)){
+				if (((IUnitDataClassification<Object>) input).getPetriNet() == null){
+					logger.warning("Got no petri net as input for soundness check");
+					return input;					
+				} else {
+					petriNet = ((IUnitDataClassification<Object>) input).getPetriNet();
+				}
+			} else {
+				petriNet = (PetriNet) input.getValue();
+			}
 			try {
 				NetSystem netSystem = new NetSystem();
 				netSystem.addNodes(petriNet.getNodes());
 				for(Flow edge : petriNet.getEdges()) {
 					netSystem.addFlow(edge.getSource(), edge.getTarget());
 				}
+				netSystem.loadNaturalMarking();
 				((IUnitDataClassification<?>) input).setSoundness(LolaSoundnessChecker.isSound(netSystem));
 			} catch (Exception e) {
 				logger.warning("Soundness check failed with message: " + e.getMessage());
@@ -89,7 +96,7 @@ public class PetriNetAnalyzerUnit implements IUnit<IUnitData<Object>, IUnitData<
 
 	@Override
 	public String getName() {
-		return "SoundnessCheckerUnit";
+		return "PetriNetAnalyzerUnit";
 	}
 
 	@Override

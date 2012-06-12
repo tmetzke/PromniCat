@@ -18,12 +18,7 @@
 package de.uni_potsdam.hpi.bpt.promnicat.importer.ibm;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,9 +38,7 @@ import org.oryxeditor.server.diagram.Point;
 import org.oryxeditor.server.diagram.Shape;
 import org.oryxeditor.server.diagram.StencilSet;
 import org.oryxeditor.server.diagram.StencilType;
-import org.springframework.util.FileCopyUtils;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import de.hpi.bpmn2_0.model.Definitions;
 import de.hpi.bpmn2_0.model.FlowElement;
 import de.hpi.bpmn2_0.model.RootElement;
@@ -55,7 +48,6 @@ import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.IPersistenceApi;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Model;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Revision;
-import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.orientdbObj.PersistenceApiOrientDbObj;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 
 /**
