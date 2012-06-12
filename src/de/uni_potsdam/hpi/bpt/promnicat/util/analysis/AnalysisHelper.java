@@ -22,20 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.collections.ListUtils;
-import org.jbpt.hypergraph.abs.Vertex;
-import org.jbpt.pm.Activity;
-import org.jbpt.pm.ControlFlow;
-import org.jbpt.pm.Event;
-import org.jbpt.pm.FlowNode;
-import org.jbpt.pm.Gateway;
-import org.jbpt.pm.ProcessModel;
-import org.jbpt.pm.Resource;
-import org.jbpt.pm.bpmn.Document;
-import org.jbpt.pm.bpmn.Subprocess;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 
@@ -45,11 +32,6 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
  */
 public class AnalysisHelper {
 
-	/*
-	 * ------------------------------------------------------------------------
-	 * DIFFERENCE ANALYSIS
-	 * ------------------------------------------------------------------------
-	 */
 	/**
 	 * analysis of the analyzed models.
 	 * @param models the models to be analyzed further
@@ -57,226 +39,24 @@ public class AnalysisHelper {
 	 * to the absolute old number (<code>true</code>) or absolute (<code>false</code>)
 	 * @return the analyzed models, their revisions and their values
 	 */
-	public static Map<String,AnalysisProcessModel> analyzeDifferencesInMetrics(Map<String, AnalysisProcessModel> models, boolean relative) {
-		// a new data structure to store the results in
-		Map<String,AnalysisProcessModel> newModels = new HashMap<>();
-		for (AnalysisProcessModel model : models.values()) {
-			AnalysisProcessModel newModel = performDifferenceAnalysisFor(model, relative);
-			newModels.put(model.getName(), newModel);
-		}
-		return newModels;
-	}
-	
-	/**
-	 * per model revision the difference to the previous revision
-	 * is stored for all metrics
-	 * @param relative flag to determine whether the values shall be relative
-	 * @param model the model to be analyzed
-	 * @return the analyzed model
-	 */
-	private static AnalysisProcessModel performDifferenceAnalysisFor(AnalysisProcessModel model, boolean relative) {
-		
-		AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
-		Map<METRICS, Double> oldValues = getInitialMetricsValues();
-		// perform the analysis of differences for every revision and metric
-		for (AnalysisModelRevision revision : model.getRevisions().values()) {
-			AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
-			for (METRICS metric : getProcessModelMetrics()) {
-				double actualValue = revision.get(metric);
-				double oldValue = oldValues.get(metric);
-				double difference = calculateDifference(metric, actualValue, oldValue, relative);
-				// save the new value as back-reference for the next revision
-				oldValues.put(metric,actualValue);
-				newRevision.add(metric, difference);
-				// if a metric is actually lower than in the previous revision,
-				// the model is not growing continuously
-				if (difference < 0) newModel.setGrowing(false);
-			}
-			newModel.add(newRevision);
-		}
-		return newModel;
+	public static Map<String, AnalysisProcessModel> analyzeDifferencesInMetrics(Map<String, AnalysisProcessModel> models, boolean relative) {
+		MetricsAnalysis differenceAnalysis = relative ? 
+				new RelativeDifferenceAnalysis(models, getProcessModelMetrics()) :
+				new DifferenceAnalysis(models, getProcessModelMetrics());
+		differenceAnalysis.performAnalysis();
+		return differenceAnalysis.getAnalyzedModels();
 	}
 
-	/**
-	 * initialize a first collection of metrics zero-values to have a starting
-	 * point for the first revision of a model to be compared to
-	 * @return
-	 */
-	private static Map<METRICS, Double> getInitialMetricsValues() {
-		Map<METRICS, Double> oldValues = new HashMap<>();
-		for (METRICS metric : getProcessModelMetrics())
-			oldValues.put(metric, new Double(0));
-		return oldValues;
-	}
-
-	/**
-	 * execution of the difference analysis
-	 * @param metric the metric to be analyzed
-	 * @param revision the actual revision containing its metric values
-	 * @param oldValues the previous set of values
-	 * @param relative
-	 * @return
-	 */
-	private static double calculateDifference(METRICS metric, double actualValue, double oldValue, boolean relative) {
-		double divisor = 1;
-		int factor = 1;
-		if (relative) {
-			divisor = oldValue == 0 ? actualValue : oldValue;
-			if (divisor == 0) divisor = 1;
-			factor = 100;
-		}
-		double difference = (actualValue - oldValue) * factor / divisor;
-		return difference;
-	}
-	
-	/*
-	 * ------------------------------------------------------------------------
-	 * ADDITIONS AND DELETIONS ANALYSIS
-	 * ------------------------------------------------------------------------
-	 */
 	public static Map<String,AnalysisProcessModel> analyzeAdditionsAndDeletions(Map<String, AnalysisProcessModel> models, boolean includeSubprocesses) {
-		Map<String,AnalysisProcessModel> newModels = new HashMap<>();
-		for (AnalysisProcessModel model : models.values()) {
-			AnalysisProcessModel newModel = performAdditionsDeletionsAnalysisFor(model, includeSubprocesses);
-			newModels.put(model.getName(), newModel);
-		}
-		return newModels;
+		MetricsAnalysis addDeleteAnalysis = new AdditionsDeletionsAnalysis(models, getIndividualMetrics(), includeSubprocesses);
+		addDeleteAnalysis.performAnalysis();
+		return addDeleteAnalysis.getAnalyzedModels();
 	}
 	
-	private static AnalysisProcessModel performAdditionsDeletionsAnalysisFor(AnalysisProcessModel model, boolean includeSubprocesses) {
-		AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
-		Map<String, List<String>> oldElements = new HashMap<>();
-		for (AnalysisModelRevision revision : model.getRevisions().values()) {
-			AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
-			// check adds and deletes for every class like Activities, Gateways, Edges etc.
-			for (AnalysisConstant classToAnalyze : getIndividualMetrics()) {
-				Map<AnalysisConstant, Integer> addsAndDeletes = analyzeAddsAndDeletesFor(classToAnalyze, oldElements, revision, includeSubprocesses);
-				newRevision.add(classToAnalyze.getDescription() + AnalysisConstant.ADDITIONS.getDescription(), addsAndDeletes.get(AnalysisConstant.ADDITIONS));
-				newRevision.add(classToAnalyze.getDescription() + AnalysisConstant.DELETIONS.getDescription(), addsAndDeletes.get(AnalysisConstant.DELETIONS));
-			}
-			newModel.add(newRevision);
-		}
-		return newModel;
-	}
-
-	/**
-	 * @param oldElements
-	 * @param revision
-	 */
-	@SuppressWarnings("unchecked")
-	private static Map<AnalysisConstant, Integer> analyzeAddsAndDeletesFor(
-			AnalysisConstant classToAnalyze, Map<String, List<String>> oldElements, 
-			AnalysisModelRevision revision, boolean includeSubprocesses) {
-		List<String> newIDs = new ArrayList<>();
-		List<String> deletions;
-		List<String> additions;
-		ProcessModel actualModel = revision.getProcessModel();
-		switch (classToAnalyze) {
-		case EVENTS:
-			newIDs = getIDsFor(Event.class, actualModel, includeSubprocesses);
-			break;
-		
-		case ACTIVITIES:
-			newIDs = getIDsFor(Activity.class, actualModel, includeSubprocesses);
-			break;
-		
-		case EDGES:
-			newIDs = getEdgesIDs(actualModel, includeSubprocesses);
-			break;
-		
-		case ROLES:
-			newIDs = getResourceIDs(actualModel, includeSubprocesses);
-			break;
-			
-		case GATEWAYS:
-			newIDs = getIDsFor(Gateway.class, actualModel, includeSubprocesses);
-			break;
-
-		case DOCUMENTS:
-			newIDs = getIDsFor(Document.class, actualModel, includeSubprocesses);
-			break;
-			
-		default:
-			break;
-		}
-		List<String> oldIDs = oldElements.get(classToAnalyze.getDescription());
-		oldIDs = oldIDs == null ? new ArrayList<String>() : oldIDs;
-		deletions = ListUtils.subtract(oldIDs, newIDs);
-		additions = ListUtils.subtract(newIDs, oldIDs);
-		Map<AnalysisConstant, Integer> results = new HashMap<>();
-		oldElements.put(classToAnalyze.getDescription(), newIDs);
-		results.put(AnalysisConstant.ADDITIONS, additions.size());
-		results.put(AnalysisConstant.DELETIONS, deletions.size());
-		return results;
-	}
-
-	/**
-	 * @param actualModel
-	 * @return
-	 */
-	@SuppressWarnings("unchecked")
-	private static List<String> getIDsFor(Class<?> classToAnalyze, ProcessModel actualModel, boolean includeSubprocesses) {
-		Collection<? extends Vertex> elements = (Collection<? extends Vertex>)actualModel.filter(classToAnalyze);
-		List<String> ids = new ArrayList<>();
-		for (Vertex element : elements)
-			ids.add(element.getId());
-		if (includeSubprocesses)
-			for (FlowNode node : actualModel.getVertices())
-				if (node instanceof Subprocess) 
-					ids.addAll(getIDsFor(classToAnalyze, ((Subprocess)node).getSubProcess(), includeSubprocesses));
-		return ids;
-	}
-
-	private static List<String> getResourceIDs(ProcessModel actualModel,
-			boolean includeSubprocesses) {
-		Collection<Resource> resources = actualModel.getResources();
-		List<String> ids = new ArrayList<>();
-		for (Resource resource : resources)
-			ids.add(resource.getId());
-		if (includeSubprocesses)
-			for (FlowNode node : actualModel.getVertices())
-				if (node instanceof Subprocess) 
-					ids.addAll(getResourceIDs(((Subprocess)node).getSubProcess(), includeSubprocesses));
-		
-		return ids;
-	}
-
-	private static List<String> getEdgesIDs(ProcessModel actualModel,
-			boolean includeSubprocesses) {
-		Collection<ControlFlow<FlowNode>> flows = actualModel.getEdges();
-		List<String> ids = new ArrayList<>();
-		for (ControlFlow<FlowNode> flow : flows)
-			ids.add(flow.getId());
-		if (includeSubprocesses)
-			for (FlowNode node : actualModel.getVertices())
-				if (node instanceof Subprocess) 
-					ids.addAll(getEdgesIDs(((Subprocess)node).getSubProcess(), includeSubprocesses));
-		
-		return ids;
-	}
-	
-	/*
-	 * ------------------------------------------------------------------------
-	 * MODEL LANGUAGE ANALYSIS
-	 * ------------------------------------------------------------------------
-	 */
 	public static Map<String, AnalysisProcessModel> modelLanguageAnalysis(Map<String, AnalysisProcessModel> models) {
-		Map<String,AnalysisProcessModel> newModels = new HashMap<>();
-		for (AnalysisProcessModel model : models.values()) {
-			AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
-			for (AnalysisModelRevision revision : model.getRevisions().values()) {
-				AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
-				if (revision.get(METRICS.NUM_NODES) > 0 || revision.get(METRICS.NUM_EDGES) > 0)
-					newRevision.add(AnalysisConstant.CONTROL_FLOW.getDescription(), 1);
-				if (revision.get(METRICS.NUM_DATA_NODES) > 0)
-					newRevision.add(AnalysisConstant.DATA_FLOW.getDescription(), 1);
-				if (revision.get(METRICS.NUM_ROLES) > 0)
-					newRevision.add(AnalysisConstant.ORGANISATION.getDescription(), 1);
-				newModel.add(newRevision);
-			}
-			newModels.put(model.getName(), newModel);
-		}
-		return newModels;
+		MetricsAnalysis modelLanguageAnalysis = new ModelLanguageAnalysis(models);
+		modelLanguageAnalysis.performAnalysis();
+		return modelLanguageAnalysis.getAnalyzedModels();
 	}
 
 	/*

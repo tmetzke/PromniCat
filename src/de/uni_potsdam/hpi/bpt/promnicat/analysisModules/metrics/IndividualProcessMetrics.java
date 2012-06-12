@@ -167,7 +167,8 @@ public class IndividualProcessMetrics {
 	/**
 	 * puts in place the internal data structure where:
 	 * 1. each model holds all its revisions
-	 * 2. each revision holds the values of all metrics of this revision
+	 * 2. each revision holds the values of 
+	 * all {@link METRICS} of this revision and the {@link ProcessModel}
 	 * 
 	 * @param resultSet the collection of results of the metric analysis
 	 * @return the internal data structure representation
@@ -210,34 +211,36 @@ public class IndividualProcessMetrics {
 	}
 
 	/**
+	 * executes all analyses that are listed in here.
+	 * every analysis also takes care of being written, e.g. to file.
 	 * @param models
 	 * @throws IOException
 	 */
 	private static void performAnalyses(Map<String, AnalysisProcessModel> models)
 			throws IOException {
-//		// metrics results
-//		WriterHelper.writeToFile(MODEL_RESULT_FILE_PATH, models);
-//		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
-//		
-//		// difference analysis with relative differences
-//		Map<String, AnalysisProcessModel> analyzedModels = AnalysisHelper.analyzeDifferencesInMetrics(models, true);
-//		WriterHelper.writeToFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, analyzedModels);
-//		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
-//		
-//		// additions/deletions analysis with absolute numbers
-//		analyzedModels = AnalysisHelper.analyzeAdditionsAndDeletions(models, HANDLE_SUB_PROCESSES);
-//		WriterHelper.writeToFile(ADD_DELETE_RESULT_FILE_PATH, analyzedModels, AnalysisConstant.ADD_DELETE.getDescription());
-//		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
-//		
-//		// difference analysis with absolute differences
-//		analyzedModels = AnalysisHelper.analyzeDifferencesInMetrics(models, false);
-//		WriterHelper.writeToFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, analyzedModels);
-//		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
-//		
-//		// model language analysis
-//		analyzedModels = AnalysisHelper.modelLanguageAnalysis(models);
-//		WriterHelper.writeModelLanguage(MODEL_LANGUAGE_RESULT_FILE_PATH, analyzedModels);
-//		logger.info("Wrote analysis of model language to " + MODEL_LANGUAGE_RESULT_FILE_PATH + "\n");
+		// metrics results
+		WriterHelper.writeToFile(MODEL_RESULT_FILE_PATH, models);
+		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
+		
+		// difference analysis with relative differences
+		Map<String, AnalysisProcessModel> analyzedModels = AnalysisHelper.analyzeDifferencesInMetrics(models, true);
+		WriterHelper.writeToFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, analyzedModels);
+		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
+		
+		// additions/deletions analysis with absolute numbers
+		analyzedModels = AnalysisHelper.analyzeAdditionsAndDeletions(models, HANDLE_SUB_PROCESSES);
+		WriterHelper.writeToFile(ADD_DELETE_RESULT_FILE_PATH, analyzedModels, AnalysisConstant.ADD_DELETE.getDescription());
+		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
+		
+		// difference analysis with absolute differences
+		analyzedModels = AnalysisHelper.analyzeDifferencesInMetrics(models, false);
+		WriterHelper.writeToFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, analyzedModels);
+		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
+		
+		// model language analysis
+		analyzedModels = AnalysisHelper.modelLanguageAnalysis(models);
+		WriterHelper.writeModelLanguage(MODEL_LANGUAGE_RESULT_FILE_PATH, analyzedModels);
+		logger.info("Wrote analysis of model language to " + MODEL_LANGUAGE_RESULT_FILE_PATH + "\n");
 		
 		// high level analysis of model metrics
 		Map<String, Integer> features = AnalysisHelper.highLevelAnalysis(models, HANDLE_SUB_PROCESSES);
