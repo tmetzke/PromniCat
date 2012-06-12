@@ -18,6 +18,7 @@
 package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
@@ -34,7 +35,7 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 
 	private boolean includeSubprocesses;
 	private Collection<AnalysisConstant> metrics;
-	private int alteringRevisions = 0;
+	private int numberOfAlteringRevisions = 0;
 	private int numberOfRevisions = 0;
 
 	/**
@@ -50,6 +51,9 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 
 	@Override
 	protected void performAnalysis() {
+		Map<String, AnalysisProcessModel> alteringRevisions = new HashMap<String, AnalysisProcessModel>();
+
+		// analyze additions and deletions and find altering revisions
 		IMetricsAnalysis addsDeletes = AnalysisHelper.analyzeAdditionsAndDeletions(modelsToAnalyze, includeSubprocesses);
 		Map<String, AnalysisProcessModel> addDeleteAnalyzedModels = addsDeletes.getAnalyzedModels();
 		for (AnalysisProcessModel model : addDeleteAnalyzedModels.values()) {
@@ -58,11 +62,26 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 				for (AnalysisConstant metric : metrics)
 					if (!revision.get(metric.getDescription() + AnalysisConstant.ADDITIONS.getDescription()).equals(new Double(0))
 							|| !revision.get(metric.getDescription() + AnalysisConstant.ADDITIONS.getDescription()).equals(new Double(0))) {
-						alteringRevisions++;
+						if (!alteringRevisions.containsKey(model.getName()))
+							alteringRevisions.put(model.getName(), new AnalysisProcessModel(model.getName()));
+						alteringRevisions.get(model.getName()).add(revision);
 						break;
 					}
 		}
-
+		
+		// if revision not already present as altering revision,
+		// add it to altering revision if it is one concerning layout changes
+		IMetricsAnalysis layoutChanges = AnalysisHelper.analyzeElementMovements(modelsToAnalyze);
+		Map<String, AnalysisProcessModel> newLayoutModels = layoutChanges.getAnalyzedModels();
+		for (AnalysisProcessModel model : newLayoutModels.values())
+			for (AnalysisModelRevision revision : model.getRevisions().values())
+				if (alteringRevisions.containsKey(model.getName()))
+					if (!alteringRevisions.get(model.getName()).getRevisions().containsKey(revision.getRevisionNumber()))
+						if (!revision.get(AnalysisConstant.NEW_LAYOUT.getDescription()).equals(new Double(0)))
+							alteringRevisions.get(model.getName()).add(revision);
+		
+		for (AnalysisProcessModel model : alteringRevisions.values())
+			numberOfAlteringRevisions += model.getRevisions().size();
 	}
 
 	@Override
@@ -74,8 +93,8 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 			.append(AnalysisConstant.UNALTERING_REVISIONS.getDescription() +CSV_ITEMSEPARATOR)
 			.append("\n")
 			.append(numberOfRevisions +CSV_ITEMSEPARATOR)
-			.append(alteringRevisions +CSV_ITEMSEPARATOR)
-			.append(numberOfRevisions - alteringRevisions +CSV_ITEMSEPARATOR)
+			.append(numberOfAlteringRevisions +CSV_ITEMSEPARATOR)
+			.append(numberOfRevisions - numberOfAlteringRevisions +CSV_ITEMSEPARATOR)
 			.toString();
 	}
 

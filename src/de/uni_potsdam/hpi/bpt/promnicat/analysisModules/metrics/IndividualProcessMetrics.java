@@ -83,6 +83,9 @@ public class IndividualProcessMetrics {
 	private static final String ADD_DELETE_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/new.add_delete_results.csv";
 	
+	private static final String MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH = 
+			new File("").getAbsolutePath() + "/resources/analysis/new.layout_changes_results.csv";
+	
 	private static final String MODEL_LANGUAGE_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/new.model_language_results.csv";
 	
@@ -252,6 +255,11 @@ public class IndividualProcessMetrics {
 		IAnalysis modelLanguage = AnalysisHelper.modelLanguageAnalysis(models);
 		WriterHelper.writeToCSVFile(MODEL_LANGUAGE_RESULT_FILE_PATH, modelLanguage);
 		logger.info("Wrote analysis of model language to " + MODEL_LANGUAGE_RESULT_FILE_PATH + "\n");
+		
+		// number of changed elements according to their position in the model
+		IAnalysis layoutChanges = AnalysisHelper.analyzeElementMovements(models);
+		WriterHelper.writeToCSVFile(MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH, layoutChanges);
+		logger.info("Wrote analysis of moved elements to " + MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH + "\n");
 		
 		// high level analysis of model metrics
 		IAnalysis highLevel = AnalysisHelper.highLevelAnalysis(models, HANDLE_SUB_PROCESSES);

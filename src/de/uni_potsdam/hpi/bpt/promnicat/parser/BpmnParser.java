@@ -816,6 +816,11 @@ public class BpmnParser implements IParser {
 		node.setName(s.getProperty(constants.PROPERTY_NAME));
 		node.setDescription(s.getProperty(constants.PROPERTY_DESCRIPTION));
 		node.setId(s.getResourceId());
+		int x = s.getUpperLeft().getX().intValue();
+		int y = s.getUpperLeft().getY().intValue();
+		int width = new Double(s.getWidth()).intValue();
+		int height = new Double(s.getHeight()).intValue();
+		node.setLayout(x, y, width, height);
 		//add id to map		
 		this.nodeIds.put(s.getResourceId(), new AbstractMap.SimpleEntry<Object, Subprocess>(node, null));
 		

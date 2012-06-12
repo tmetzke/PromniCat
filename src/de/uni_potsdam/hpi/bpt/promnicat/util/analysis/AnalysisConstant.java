@@ -100,7 +100,9 @@ public enum AnalysisConstant {
 	
 	NONE ("none"),
 	
-	ITEMSEPARATOR (";");
+	ITEMSEPARATOR (";"), 
+	
+	NEW_LAYOUT ("newLayout");
 	
 	private String stringRepresentation;
 	

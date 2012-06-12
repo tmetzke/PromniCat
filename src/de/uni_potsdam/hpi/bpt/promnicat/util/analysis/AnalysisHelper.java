@@ -30,6 +30,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IMetricsAnalysis;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses.AdditionsDeletionsAnalysis;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses.DifferenceAnalysis;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses.ModelLanguageAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses.MovedElementsAnalysis;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses.RelativeDifferenceAnalysis;
 
 /**
@@ -58,6 +59,11 @@ public class AnalysisHelper {
 	
 	public static IMetricsAnalysis modelLanguageAnalysis(Map<String, AnalysisProcessModel> models) {
 		return new ModelLanguageAnalysis(models);
+	}
+
+	public static IMetricsAnalysis analyzeElementMovements(
+			Map<String, AnalysisProcessModel> modelsToBeAnalyzed) {
+		return new MovedElementsAnalysis(modelsToBeAnalyzed);
 	}
 
 	/**
