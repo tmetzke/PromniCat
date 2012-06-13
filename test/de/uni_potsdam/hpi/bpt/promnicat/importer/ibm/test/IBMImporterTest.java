@@ -108,7 +108,7 @@ public class IBMImporterTest {
 	}
 	@Test
 	public void parse() throws JAXBException, JSONException{
-		File xml = new File("C:\\Users\\Philipp\\work\\processrepos\\promnicat\\resources\\IBM\\A\\s00000016\\s00000018\\s00000020\\s00000024\\s00000777.bpmn.xml");
+		File xml = new File("resources\\IBM\\A\\s00000016\\s00000018\\s00000020\\s00000024\\s00000777.bpmn.xml");
 		JAXBContext context = JAXBContext.newInstance(Definitions.class);
 		Unmarshaller unmarshaller = context.createUnmarshaller();
 		Definitions definitions = (Definitions) unmarshaller.unmarshal(xml);
@@ -130,6 +130,7 @@ public class IBMImporterTest {
 			    if(flowElement instanceof Edge){
 				Edge edge = (Edge) flowElement;
 				if(edge.getSourceRef() !=null){
+					//FIXME parse all nodes first and afterwards add edges.
 				    shapes.get(edge.getSourceRef().getId()).addOutgoing(new Shape(edge.getId()));
 				}
 				
@@ -151,7 +152,7 @@ public class IBMImporterTest {
 			diagrams.add(diagram);
 		    }
 		}
-
+		//TODO use logger
 		System.out.println(JSONBuilder.parseModeltoString(diagrams.get(0)));
 
 	}
