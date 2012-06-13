@@ -32,6 +32,8 @@ import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.metrics.ProcessMetrics;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.BpmnParser;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.EpcParser;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
+import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.IPersistenceApi;
+import de.uni_potsdam.hpi.bpt.promnicat.util.ConfigurationParser;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnitChainBuilder;
@@ -104,22 +106,31 @@ public class ProcessClassification {
 	 */
 	private static IUnitChainBuilder buildUpUnitChain(boolean useFullDB) throws IOException, IllegalTypeException {
 		IUnitChainBuilder chainBuilder = null;
+		String configPath = "";
 		if (useFullDB){
-			chainBuilder = new UnitChainBuilder("configuration(full).properties", Constants.DATABASE_TYPES.ORIENT_DB, UnitDataClassification.class);
-		} else {
-			chainBuilder = new UnitChainBuilder("", Constants.DATABASE_TYPES.ORIENT_DB, UnitDataClassification.class);
+			configPath = "configuration(full).properties";
 		}
+		ConfigurationParser configParser = new ConfigurationParser(configPath);
+		IPersistenceApi persistenceApi = configParser.getDbInstance(Constants.DATABASE_TYPES.ORIENT_DB);
+		chainBuilder = new UnitChainBuilder(persistenceApi, configParser.getThreadCount(), UnitDataClassification.class);
 		//build db query
 		DbFilterConfig dbFilter = new DbFilterConfig();
 		dbFilter.addOrigin(Constants.ORIGINS.BPMAI);		
 		dbFilter.addFormat(Constants.FORMATS.BPMAI_JSON);
-//		dbFilter.addNotation(Constants.NOTATIONS.BPMN1_1);
+		dbFilter.addNotation(Constants.NOTATIONS.BPMN1_1);
 		dbFilter.addNotation(Constants.NOTATIONS.BPMN2_0);
-//		dbFilter.addNotation(Constants.NOTATIONS.EPC);
+		dbFilter.addNotation(Constants.NOTATIONS.EPC);
 //		dbFilter.setLatestRevisionsOnly(true);
 		chainBuilder.addDbFilterConfig(dbFilter);
-		//transform to jBPT and calculate metrics
+		//transform to jBPT
 		chainBuilder.createBpmaiJsonToJbptUnit(false);
+		//check conformance level
+		chainBuilder.createBpmnConformanceLevelCheckerUnit();
+		//transform to PetriNet
+		//TODO save result in db later on
+		chainBuilder.createProcessModelToPetriNetUnit();
+		//analyse petri nets
+		chainBuilder.createPetriNetAnalyzerUnit();
 		
 		//collect results
 		chainBuilder.createSimpleCollectorUnit();
@@ -141,7 +152,8 @@ public class ProcessClassification {
 			resultString.append(addHeader());
 			//collect result from each model
 			for(IUnitDataClassification<Object> resultItem : resultSet){
-				resultString.append(resultItem.toCsv(ITEMSEPARATOR));
+				//do not print dot representation of petri net
+				resultString.append(resultItem.toCsv(ITEMSEPARATOR, false));
 			}
 			writer.write(resultString.toString());
 		} catch (IOException e) {
@@ -168,7 +180,13 @@ public class ProcessClassification {
 		builder.append("Descriptive Modeling Conform" + ITEMSEPARATOR);
 		builder.append("Analytic Modeling Conform" + ITEMSEPARATOR);
 		builder.append("Common Executable Modeling Conform" + ITEMSEPARATOR);
-		//TODO add further attributes here
+		builder.append("isSound" + ITEMSEPARATOR);
+		builder.append("isCyclic" + ITEMSEPARATOR);
+		builder.append("isFreeChoice" + ITEMSEPARATOR);
+		builder.append("isExtendedFreeChoice" + ITEMSEPARATOR);
+		builder.append("isSNet" + ITEMSEPARATOR);
+		builder.append("isTNet" + ITEMSEPARATOR);
+		builder.append("isWorkFlowNet" + ITEMSEPARATOR);
 		builder.append("Petri Net as DOT");
 		builder.append("\n");
 		return builder.toString();

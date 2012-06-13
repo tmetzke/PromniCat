@@ -28,6 +28,12 @@ import de.uni_potsdam.hpi.bpt.ai.diagram.Diagram;
  */
 public interface IParser {
 	
+	/**
+	 * Parses the stencil set out of the diagram and creates the corresponding process model in jBPT
+	 * by delegating the diagram to the corresponding parser
+	 * @param process to transform into {@link ProcessModel}
+	 * @return the corresponding process model
+	 */
 	public ProcessModel transformProcess(Diagram process);
 
 }

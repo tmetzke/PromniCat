@@ -36,6 +36,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.collector.SimpleCollectorUn
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.BpmnConformanceLevelCheckerUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.ElementExtractorUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.ElementLabelExtractorUnit;
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.PetriNetAnalyzerUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.ProcessModelLabelExtractorUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.ProcessModelMetricsCalculatorUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.filter.ConnectednessFilterUnit;
@@ -46,6 +47,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.filter.ProcessModelFilterUn
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.BpmaiJsonToDiagramUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.DiagramToJbptUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.ModelToFeatureVectorUnit;
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.ModelToPetriNetUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitData;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitData;
 
@@ -197,6 +199,12 @@ public class UnitChainBuilder implements IUnitChainBuilder {
 	}
 
 	@Override
+	public void createPetriNetAnalyzerUnit() throws IllegalTypeException {
+		PetriNetAnalyzerUnit pnAnalyzerUnit = new PetriNetAnalyzerUnit();
+		checkForCompatibility(pnAnalyzerUnit);
+	}
+
+	@Override
 	public void createProcessModelFilterUnit(Class<?> classType) throws IllegalTypeException {
 		ProcessModelFilterUnit elemFilterUnit = new ProcessModelFilterUnit(classType);
 		checkForCompatibility(elemFilterUnit);
@@ -239,6 +247,18 @@ public class UnitChainBuilder implements IUnitChainBuilder {
 		checkForCompatibility(metricsUnit);
 	}
 	
+	@Override
+	public void createProcessModelToPetriNetUnit() throws IllegalTypeException {
+		ModelToPetriNetUnit pmToPnUnit = new ModelToPetriNetUnit();
+		checkForCompatibility(pmToPnUnit);		
+	}
+
+	@Override
+	public void createProcessModelToPetriNetUnit(IPersistenceApi persistenceAPI) throws IllegalTypeException {
+		ModelToPetriNetUnit pmToPnUnit = new ModelToPetriNetUnit(persistenceAPI);
+		checkForCompatibility(pmToPnUnit);
+	}
+
 	@Override
 	public void createModelToFeatureVectorUnit(FeatureConfig conf) throws IllegalTypeException {
 		ModelToFeatureVectorUnit featureUnit = new ModelToFeatureVectorUnit(conf);

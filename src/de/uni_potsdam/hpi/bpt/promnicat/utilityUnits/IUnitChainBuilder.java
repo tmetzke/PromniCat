@@ -21,11 +21,13 @@ import java.util.Collection;
 import java.util.regex.Pattern;
 
 import org.jbpt.hypergraph.abs.Vertex;
+import org.jbpt.petri.PetriNet;
 import org.jbpt.pm.ProcessModel;
 
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
-import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
+import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.IPersistenceApi;
 import de.uni_potsdam.hpi.bpt.promnicat.util.FeatureConfig;
+import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.filter.DatabaseFilterUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitData;
 
@@ -133,6 +135,23 @@ public interface IUnitChainBuilder {
 	public void createProcessModelMetricsCalulatorUnit(boolean handleSubProcesses) throws IllegalTypeException;
 
 	/**
+	 * Add a {@link IUnit} to the internal {@link IUnitChain}, that is used to transform a
+	 * {@link ProcessModel} to the corresponding {@link PetriNet} without using any database
+	 * lookups for already existing transformation results.
+	 * @throws IllegalTypeException if the unit's input and output value classes are not compatible.
+	 */
+	public void createProcessModelToPetriNetUnit() throws IllegalTypeException;
+	
+	/**
+	 * 	Add a {@link IUnit} to the internal {@link IUnitChain}, that is used to transform a
+	 * {@link ProcessModel} to the corresponding {@link PetriNet} using  the given database
+	 * to look up already existing transformation results.
+	 * @param persistenceAPI the database to use
+	 * @throws IllegalTypeException if the unit's input and output value classes are not compatible.
+	 */
+	public void createProcessModelToPetriNetUnit(IPersistenceApi persistenceAPI) throws IllegalTypeException;
+	
+	/**
 	 * Add a {@link IUnit} to the internal {@link IUnitChain}, that is used to transform the formerly
 	 * calculated process model metrics into a feature vector for a jBPT {@link ProcessModel}.
 	 * @throws IllegalTypeException if the unit's input and output value classes are not compatible.
@@ -201,6 +220,13 @@ public interface IUnitChainBuilder {
 	 */
 	public void createElementExtractorUnit(Collection<Class<?>> classesToFilter) throws IllegalTypeException;
 	
+	/**
+	 * Add a {@link IUnit} to the internal {@link IUnitChain}, that is used to analyze the formerly
+	 * created {@link PetriNet} regarding soundness, free choice, S/T-Net, workflow net, ...
+	 * @throws IllegalTypeException if the unit's input and output value classes are not compatible.
+	 */
+	public void createPetriNetAnalyzerUnit() throws IllegalTypeException;
+
 	/**
 	 * Add a {@link IUnit} to the internal {@link IUnitChain}, that holds the result of the 
 	 * {@link IUnitChain} execution. The result is created by simply collecting

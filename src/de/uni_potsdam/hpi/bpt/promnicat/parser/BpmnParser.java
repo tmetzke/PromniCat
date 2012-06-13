@@ -504,13 +504,13 @@ public class BpmnParser implements IParser {
 				
 		String type = s.getProperty(constants.PROPERTY_CONDITION_TYPE);
 		boolean defaultFlow = false;
-		if (type.equals(constants.VALUE_DEFAULT)){ 
+		if (type == null  || type.equals(constants.VALUE_DEFAULT)){ 
 			defaultFlow = true;
 		}
 		//check the control flow flow conditions and add the control flow
 		String expression = s.getProperty(constants.PROPERTY_CONDITION_EXPRESSION);
 		BpmnControlFlow<FlowNode> flow = null;
-		if (expression != "") {
+		if (expression == null || expression != "") {
 			if (toNode.getValue() != null && toNode.getValue() == fromNode.getValue()){
 				flow = toNode.getValue().addControlFlow((FlowNode)fromNode.getKey(), (FlowNode) toNode.getKey(), expression, defaultFlow);
 			} else {

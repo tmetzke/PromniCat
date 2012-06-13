@@ -94,6 +94,7 @@ public class ImporterTest {
 				persistenceApi.dropDb();
 			}
 			fail("Unexpected exception occurred: " + e.getMessage());
+			throw new IllegalStateException(e);
 		}
 
 	}
