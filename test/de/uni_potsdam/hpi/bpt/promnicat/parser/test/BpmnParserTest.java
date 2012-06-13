@@ -17,6 +17,7 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.parser.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -25,8 +26,13 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 
+import org.jbpt.pm.Activity;
+import org.jbpt.pm.AndGateway;
+import org.jbpt.pm.Event;
+import org.jbpt.pm.FlowNode;
 import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.bpmn.Bpmn;
+import org.jbpt.pm.bpmn.BpmnControlFlow;
 import org.json.JSONException;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -84,6 +90,7 @@ public class BpmnParserTest {
 	/**
 	 * Tests the transformation for all read-in diagram objects.
 	 */
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testTransformProcess(){
 		assertTrue(BpmnParserTest.diagrams.size() != 0);
@@ -92,5 +99,15 @@ public class BpmnParserTest {
 		}
 		assertTrue(this.processes.size() == 2);
 		assertTrue(this.processes.get(0) instanceof Bpmn);
+		Bpmn<BpmnControlFlow<FlowNode>, FlowNode> process = (Bpmn<BpmnControlFlow<FlowNode>, FlowNode>) this.processes.get(0);
+		assertEquals(2, process.filter(AndGateway.class).size());
+		assertEquals(6, process.filter(Activity.class).size());
+		assertEquals(0, process.filter(Event.class).size());
+		
+		assertTrue(this.processes.get(1) instanceof Bpmn);
+		process = (Bpmn<BpmnControlFlow<FlowNode>, FlowNode>) this.processes.get(1);
+		assertEquals(2, process.filter(AndGateway.class).size());
+		assertEquals(6, process.filter(Activity.class).size());
+		assertEquals(2, process.filter(Event.class).size());
 	}
 }

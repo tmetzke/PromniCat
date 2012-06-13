@@ -18,6 +18,7 @@
 package de.uni_potsdam.hpi.bpt.promnicat.modelConverter;
 
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import org.jbpt.petri.PetriNet;
 import org.jbpt.pm.ProcessModel;
@@ -53,14 +54,15 @@ public class ModelToPetriNetConverter implements IModelToPetriNetConverter {
 	 */
 	@Override
 	public PetriNet convertToPetriNet(ProcessModel model) throws TransformationException {
-		if (model instanceof Bpmn) {
-			this.lastPetriNet = this.delegates.get(Bpmn.class).convertToPetriNet((Bpmn<?, ?>)model);
-		} else if (model instanceof Epc) {
-			this.lastPetriNet = this.delegates.get(Epc.class).convertToPetriNet((Epc)model);
+		IModelToPetriNetConverter converter = this.delegates.get(model.getClass());
+		if (converter != null) {
+			this.lastPetriNet = converter.convertToPetriNet(model);		
+			return this.lastPetriNet;			
 		} else {
-			this.lastPetriNet = this.delegates.get(ProcessModel.class).convertToPetriNet(model);
+			Logger.getLogger(ModelToPetriNetConverter.class.getName()).
+				warning("Model from class " + model.getClass() + " could not be transformed to a petri net!");
+			return null;
 		}
-		return this.lastPetriNet;
 	}
 
 	@Override

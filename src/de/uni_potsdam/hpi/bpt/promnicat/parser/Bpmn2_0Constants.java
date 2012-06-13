@@ -19,26 +19,62 @@ package de.uni_potsdam.hpi.bpt.promnicat.parser;
 
 /**
  * Constants for id matching of a JSON Diagram for Bpmn 2.0
- * @author Cindy Fähnrich
+ * @author Cindy Fähnrich, Tobias Hoppe
  *
  */
 public class Bpmn2_0Constants extends Bpmn1_1Constants {
-		
-	/**
-	 * Constructor; here, all constants differing from Bpmn 1.1 are reset to a new value
-	 */
-	public Bpmn2_0Constants(){
-		
-		ENTITY_SUBPROCESS_EVENT = "Event";
 	
-		ENTITY_GATEWAY_AND = "ParallelGateway";
-		ENTITY_GATEWAY_OR = "InclusiveGateway";
-		ENTITY_GATEWAY_XOR = "Exclusive_Databased_Gateway";
-		ENTITY_GATEWAY_EVENTBASED = "EventbasedGateway";
-		ENTITY_GATEWAY_ALTERNATIVE = "ComplexGateway";
-		
-		PROPERTY_ISCOMPENSATION = "isforcompensation";
-		PROPERTY_MI_ORDER = "looptype";
+	/*
+	 * here, all constants differing from Bpmn 1.1 are reset to a new value
+	 */
+	private static final String ENTITY_SUBPROCESS_EVENT = "Event";
+	private static final String ENTITY_GATEWAY_AND = "ParallelGateway";
+	private static final String ENTITY_GATEWAY_OR = "InclusiveGateway";
+	private static final String ENTITY_GATEWAY_XOR = "Exclusive_Databased_Gateway";
+	private static final String ENTITY_GATEWAY_EVENTBASED = "EventbasedGateway";
+	private static final String ENTITY_GATEWAY_ALTERNATIVE = "ComplexGateway";
+	
+	private static final String PROPERTY_ISCOMPENSATION = "isforcompensation";
+	private static final String PROPERTY_MI_ORDER = "looptype";
+
+	@Override
+	public String getEntitySubprocessEvent() {
+		return ENTITY_SUBPROCESS_EVENT;
+	}
+
+	@Override
+	public String getEntityGatewayAnd() {
+		return ENTITY_GATEWAY_AND;
+	}
+
+	@Override
+	public String getPropertyMiOrder() {
+		return PROPERTY_MI_ORDER;
+	}
+
+	@Override
+	public String getPropertyIscompensation() {
+		return PROPERTY_ISCOMPENSATION;
+	}
+
+	@Override
+	public String getEntityGatewayAlternative() {
+		return ENTITY_GATEWAY_ALTERNATIVE;
+	}
+
+	@Override
+	public String getEntityGatewayEventbased() {
+		return ENTITY_GATEWAY_EVENTBASED;
+	}
+
+	@Override
+	public String getEntityGatewayXor() {
+		return ENTITY_GATEWAY_XOR;
+	}
+
+	@Override
+	public String getEntityGatewayOr() {
+		return ENTITY_GATEWAY_OR;
 	}
 }
 
