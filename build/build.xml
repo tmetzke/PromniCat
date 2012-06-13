@@ -73,7 +73,7 @@
 	         ================================= -->
 	<target name="build" depends="compile" description="Build a jar file of the framwork and include a manifest file">
 	<!--Build a jar file of the framwork and include a manifest file-->
-		<jar destfile="${dir.build}/${project.shortName}_${version}.jar" basedir="${dir.build}/bin" manifest="${dir.manifest}/MANIFEST.MF">
+		<jar destfile="${dir.build}/${project.shortName}-${version}.jar" basedir="${dir.build}/bin" manifest="${dir.manifest}/MANIFEST.MF">
 		</jar>
 		<!--remove .class files -->
 		<delete>
