@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import org.jbpt.hypergraph.abs.IVertex;
 import org.jbpt.hypergraph.abs.Vertex;
 import org.jbpt.pm.AndGateway;
 import org.jbpt.pm.DataNode;
@@ -73,7 +74,7 @@ public class IBMBpmnParser implements IParser {
 	/**
 	 * Index for the different JSON ids of nodes(needed for edge construction)
 	 */
-	public HashMap<String, Entry<Object, Subprocess>> nodeIds = new HashMap<String, Entry<Object, Subprocess>>();
+	public HashMap<String, Entry<IVertex, Subprocess>> nodeIds = new HashMap<String, Entry<IVertex, Subprocess>>();
 	
 	/**
 	 * Index for the different JSON ids of control flows (needed for association construction)
@@ -194,9 +195,9 @@ public class IBMBpmnParser implements IParser {
 	public void addChildNodes(Shape s, Subprocess proc){
 		for (Shape subs : s.getChildShapes()){
 			String id = subs.getResourceId();
-			Entry<Object, Subprocess> tuple = nodeIds.get(id);
+			Entry<IVertex, Subprocess> tuple = nodeIds.get(id);
 			if (tuple != null){
-				Object node = tuple.getKey();
+				IVertex node = tuple.getKey();
 				if (node instanceof FlowNode){
 					proc.addFlowNode((FlowNode) node);
 					this.process.removeFlowNode((FlowNode) node);
@@ -388,7 +389,7 @@ public class IBMBpmnParser implements IParser {
 		f.setDescription(s.getProperty(constants.PROPERTY_DESCRIPTION));
 		
 		//add id to map
-		this.nodeIds.put(s.getResourceId(), new AbstractMap.SimpleEntry<Object, Subprocess>(f, null));
+		this.nodeIds.put(s.getResourceId(), new AbstractMap.SimpleEntry<IVertex, Subprocess>(f, null));
 		
 		for (Shape subs : s.getChildShapes()){
 			String id = subs.getResourceId();
@@ -397,7 +398,7 @@ public class IBMBpmnParser implements IParser {
 				((FlowNode) node).addResource(f);
 			} else {
 				if (node instanceof Resource){
-					((Resource) node).setResource(f);
+					((Resource) node).setParent(f);
 				}
 			}
 		}
@@ -507,8 +508,8 @@ public class IBMBpmnParser implements IParser {
 		}
 		
 		//get the nodes for the resourceIds
-		Entry<Object, Subprocess> toNode = nodeIds.get(out.getResourceId());
-		Entry<Object, Subprocess> fromNode = nodeIds.get(in.getResourceId());
+		Entry<IVertex, Subprocess> toNode = nodeIds.get(out.getResourceId());
+		Entry<IVertex, Subprocess> fromNode = nodeIds.get(in.getResourceId());
 				
 		String type = s.getProperty(constants.PROPERTY_CONDITION_TYPE);
 		boolean defaultFlow = false;
@@ -577,16 +578,16 @@ public class IBMBpmnParser implements IParser {
 			return;
 		}
 		
-		Entry<Object, Subprocess> fromNode = nodeIds.get(in.getResourceId());
-		Entry<Object, Subprocess> toNode = nodeIds.get(out.getResourceId());
+		Entry<IVertex, Subprocess> fromNode = nodeIds.get(in.getResourceId());
+		Entry<IVertex, Subprocess> toNode = nodeIds.get(out.getResourceId());
 		//check if nodes are contained in subprocess
 		BpmnMessageFlow flow;
 		if (toNode.getValue() != null && toNode.getValue() == fromNode.getValue()){
-			flow = toNode.getValue().addMessageFlow((Object)fromNode.getKey(), (Object) toNode.getKey());
+			flow = toNode.getValue().addMessageFlow(fromNode.getKey(), toNode.getKey());
 			this.process.addMessageFlow(flow);
 		} else {
 			if (toNode.getValue() == null && fromNode.getValue() != null){
-				flow = this.process.addMessageFlow((Object)fromNode.getKey(), (Object) toNode.getKey());
+				flow = this.process.addMessageFlow(fromNode.getKey(), toNode.getKey());
 			}
 		}
 	}
@@ -824,7 +825,7 @@ public class IBMBpmnParser implements IParser {
 		node.setName(s.getProperty(constants.PROPERTY_NAME));
 		node.setDescription(s.getProperty(constants.PROPERTY_DESCRIPTION));
 		//add id to map		
-		this.nodeIds.put(s.getResourceId(), new AbstractMap.SimpleEntry<Object, Subprocess>(node, null));
+		this.nodeIds.put(s.getResourceId(), new AbstractMap.SimpleEntry<IVertex, Subprocess>(node, null));
 		
 	}
 
