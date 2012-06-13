@@ -41,13 +41,12 @@ import de.uni_potsdam.hpi.bpt.ai.diagram.Shape;
 /**
  * Retrieves a Diagram instance (JSON format) of the EPC process model and maps it
  * on jBPT. 
- * @author Cindy Fähnrich
+ * @author Cindy Fähnrich, Tobias Hoppe
  *
  */
 public class EpcParser implements IParser {
 	
 	private final static Logger logger = Logger.getLogger(EpcParser.class.getName());
-	public EpcConstants constants;
 	public Diagram diagram = null;
 	public Epc process = null;
 	public boolean strictness = false;
@@ -65,7 +64,6 @@ public class EpcParser implements IParser {
 	
 	public EpcParser(EpcConstants epc, boolean strictness){
 		this.strictness = strictness;
-		constants = new EpcConstants();
 	}
 	
 	/**
@@ -86,7 +84,7 @@ public class EpcParser implements IParser {
 	 */
 	public ProcessModel transformProcess(Diagram diagram){
 		clear();
-		this.process.setName(diagram.getProperty(constants.PROPERTY_TITLE));
+		this.process.setName(diagram.getProperty(EpcConstants.PROPERTY_TITLE));
 		
 		//EPC processes do only have one level of childshapes (no pools/lanes), no recursion needed here
 		List<Shape> shapes = diagram.getChildShapes();
@@ -113,33 +111,33 @@ public class EpcParser implements IParser {
 		String id = s.getStencil().getId();
 		Vertex v = null;
 		
-		if (id.equals(constants.ENTITY_FUNCTION)){
+		if (id.equals(EpcConstants.ENTITY_FUNCTION)){
 			v = createFunction(s);
 		}
-		if (id.equals(constants.ENTITY_EVENT)){
+		if (id.equals(EpcConstants.ENTITY_EVENT)){
 			v = createEvent(s);
 		}
-		if (id.equals(constants.ENTITY_XORCONNECTOR)){
+		if (id.equals(EpcConstants.ENTITY_XORCONNECTOR)){
 			v = createXorConnector(s);
 		}
-		if (id.equals(constants.ENTITY_ORCONNECTOR)){
+		if (id.equals(EpcConstants.ENTITY_ORCONNECTOR)){
 			v = createOrConnector(s);
 		}
-		if (id.equals(constants.ENTITY_ANDCONNECTOR)){
+		if (id.equals(EpcConstants.ENTITY_ANDCONNECTOR)){
 			v = createAndConnector(s);
 		}
-		if (id.equals(constants.ENTITY_CONTROLFLOW) || id.equals(constants.ENTITY_RELATION)){
+		if (id.equals(EpcConstants.ENTITY_CONTROLFLOW) || id.equals(EpcConstants.ENTITY_RELATION)){
 			edges.add(s);
 			return;
 		}
-		if (id.equals(constants.ENTITY_PROCESSINTERFACE)){
+		if (id.equals(EpcConstants.ENTITY_PROCESSINTERFACE)){
 			v = createProcessInterface(s);
 		}
-		if (id.equals(constants.ENTITY_POSITION) || id.equals(constants.ENTITY_ORGANIZATION) || id.equals(constants.ENTITY_ORGANIZATIONUNIT)){
+		if (id.equals(EpcConstants.ENTITY_POSITION) || id.equals(EpcConstants.ENTITY_ORGANIZATION) || id.equals(EpcConstants.ENTITY_ORGANIZATIONUNIT)){
 			createResource(s);
 			return;
 		}
-		if (id.equals(constants.ENTITY_DATA)){
+		if (id.equals(EpcConstants.ENTITY_DATA)){
 			createDataObject(s);
 			return;
 		}
@@ -155,11 +153,11 @@ public class EpcParser implements IParser {
 	 * @param Shape s, which is an edge
 	 */
 	private void createEdges(Shape s){
-		if (s.getStencil().getId().equals(constants.ENTITY_RELATION)){
+		if (s.getStencil().getId().equals(EpcConstants.ENTITY_RELATION)){
 			createRelation(s);
 			return;
 		}
-		if (s.getStencil().getId().equals(constants.ENTITY_CONTROLFLOW)){
+		if (s.getStencil().getId().equals(EpcConstants.ENTITY_CONTROLFLOW)){
 			createControlFlow(s);
 			return;
 		}
@@ -220,21 +218,21 @@ public class EpcParser implements IParser {
 	 * @param node
 	 */
 	public void checkInformationflow(Shape s, Document dataNode, FlowNode node){
-		String infoflow = s.getProperty(constants.PROPERTY_INFOFLOW);
+		String infoflow = s.getProperty(EpcConstants.PROPERTY_INFOFLOW);
 			
-		if (infoflow.equals(constants.VALUE_FALSE)){ //this relation is undefined
+		if (infoflow.equals(EpcConstants.VALUE_FALSE)){ //this relation is undefined
 			dataNode.addUnspecifiedFlowNode(node);
 			return;
 		}
 			
 		if (nodeIds.get(s.getIncomings().get(0)) == node){//FlowNode is the source
-			if (infoflow.equals(constants.VALUE_TRUEINVERSE)){ //reading access
+			if (infoflow.equals(EpcConstants.VALUE_TRUEINVERSE)){ //reading access
 				dataNode.addReadingFlowNode(node);
 			} else {//infoflow is True - writing access
 				dataNode.addWritingFlowNode(node);
 			}
 		} else { //DataNode is the source
-			if (infoflow.equals(constants.VALUE_TRUEINVERSE)){ //writing access
+			if (infoflow.equals(EpcConstants.VALUE_TRUEINVERSE)){ //writing access
 				dataNode.addWritingFlowNode(node);
 			} else {//infoflow is True - reading access
 				dataNode.addReadingFlowNode(node);
@@ -262,8 +260,8 @@ public class EpcParser implements IParser {
 	 */
 	private void createDataObject(Shape s) {
 		Document doc = new Document();
-		doc.setName(s.getProperty(constants.PROPERTY_TITLE));
-		doc.setDescription(s.getProperty(constants.PROPERTY_DESCRIPTION));
+		doc.setName(s.getProperty(EpcConstants.PROPERTY_TITLE));
+		doc.setDescription(s.getProperty(EpcConstants.PROPERTY_DESCRIPTION));
 		
 		prepareNode(s, doc);
 		this.process.addNonFlowNode(doc);
@@ -276,8 +274,8 @@ public class EpcParser implements IParser {
 	 */
 	private void createResource(Shape s) {
 		EpcResource res = new EpcResource();
-		res.setName(s.getProperty(constants.PROPERTY_TITLE));
-		res.setDescription(s.getProperty(constants.PROPERTY_DESCRIPTION));
+		res.setName(s.getProperty(EpcConstants.PROPERTY_TITLE));
+		res.setDescription(s.getProperty(EpcConstants.PROPERTY_DESCRIPTION));
 		//add id to map
 		this.nodeIds.put(s.getResourceId(), res);
 		
@@ -290,7 +288,7 @@ public class EpcParser implements IParser {
 	 */
 	private Vertex createProcessInterface(Shape s) {
 		ProcessInterface procInt = new ProcessInterface();
-		procInt.setEntry(s.getProperty(constants.PROPERTY_ENTRY));
+		procInt.setEntry(s.getProperty(EpcConstants.PROPERTY_ENTRY));
 		
 		prepareNode(s, procInt);
 		return procInt;
@@ -407,8 +405,8 @@ public class EpcParser implements IParser {
 	 * @param node
 	 */
 	private void prepareNode(Shape s, Vertex node){
-		node.setName(s.getProperty(constants.PROPERTY_TITLE));
-		node.setDescription(s.getProperty(constants.PROPERTY_DESCRIPTION));
+		node.setName(s.getProperty(EpcConstants.PROPERTY_TITLE));
+		node.setDescription(s.getProperty(EpcConstants.PROPERTY_DESCRIPTION));
 		//add id to map
 		this.nodeIds.put(s.getResourceId(), node);
 		

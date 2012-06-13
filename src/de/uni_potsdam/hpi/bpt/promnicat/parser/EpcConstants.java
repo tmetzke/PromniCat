@@ -27,31 +27,31 @@ public class EpcConstants {
 	/**
 	 * Notation elements
 	 */
-	public String ENTITY_EVENT = "Event";
-	public String ENTITY_FUNCTION = "Function";
-	public String ENTITY_XORCONNECTOR = "XorConnector";
-	public String ENTITY_ORCONNECTOR = "OrConnector";
-	public String ENTITY_ANDCONNECTOR = "AndConnector";
-	public String ENTITY_CONTROLFLOW = "ControlFlow";
-	public String ENTITY_PROCESSINTERFACE = "ProcessInterface";
-	public String ENTITY_ORGANIZATION = "Organization";
-	public String ENTITY_ORGANIZATIONUNIT = "OrganizationUnit";
-	public String ENTITY_POSITION = "Position";
-	public String ENTITY_DATA = "Data";
-	public String ENTITY_RELATION = "Relation";
+	public static final String ENTITY_EVENT = "Event";
+	public static final String ENTITY_FUNCTION = "Function";
+	public static final String ENTITY_XORCONNECTOR = "XorConnector";
+	public static final String ENTITY_ORCONNECTOR = "OrConnector";
+	public static final String ENTITY_ANDCONNECTOR = "AndConnector";
+	public static final String ENTITY_CONTROLFLOW = "ControlFlow";
+	public static final String ENTITY_PROCESSINTERFACE = "ProcessInterface";
+	public static final String ENTITY_ORGANIZATION = "Organization";
+	public static final String ENTITY_ORGANIZATIONUNIT = "OrganizationUnit";
+	public static final String ENTITY_POSITION = "Position";
+	public static final String ENTITY_DATA = "Data";
+	public static final String ENTITY_RELATION = "Relation";
 	
 	/**
 	 * Property names in Json
 	 */
-	public String PROPERTY_INFOFLOW = "informationflow";
-	public String PROPERTY_TITLE = "title";
-	public String PROPERTY_DESCRIPTION = "description";
-	public String PROPERTY_ENTRY = "entry";
+	public static final String PROPERTY_INFOFLOW = "informationflow";
+	public static final String PROPERTY_TITLE = "title";
+	public static final String PROPERTY_DESCRIPTION = "description";
+	public static final String PROPERTY_ENTRY = "entry";
 	
 	/**
 	 * Property values in Json
 	 */
-	public String VALUE_FALSE = "False";
-	public String VALUE_TRUEINVERSE = "TrueInverse";
+	public static final String VALUE_FALSE = "False";
+	public static final String VALUE_TRUEINVERSE = "TrueInverse";
 	
 }
