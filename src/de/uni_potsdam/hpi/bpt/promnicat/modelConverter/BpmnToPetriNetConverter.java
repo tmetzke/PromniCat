@@ -31,7 +31,7 @@ import org.jbpt.pm.OrGateway;
 import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.bpmn.Bpmn;
 import org.jbpt.pm.bpmn.BpmnControlFlow;
-import org.jbpt.utils.TransformationException;
+import org.jbpt.throwable.TransformationException;
 
 /**
  * @author Tobias Hoppe

@@ -24,7 +24,7 @@ import org.jbpt.petri.PetriNet;
 import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.bpmn.Bpmn;
 import org.jbpt.pm.epc.Epc;
-import org.jbpt.utils.TransformationException;
+import org.jbpt.throwable.TransformationException;
 import org.junit.Test;
 
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.TestModelBuilder;

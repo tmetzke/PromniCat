@@ -36,7 +36,7 @@ import org.jbpt.pm.Gateway;
 import org.jbpt.pm.OrGateway;
 import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.XorGateway;
-import org.jbpt.utils.TransformationException;
+import org.jbpt.throwable.TransformationException;
 
 /**
  * Abstract base class for {@link ProcessModel} to {@link PetriNet} converter.

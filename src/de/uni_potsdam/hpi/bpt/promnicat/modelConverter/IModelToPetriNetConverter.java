@@ -19,7 +19,7 @@ package de.uni_potsdam.hpi.bpt.promnicat.modelConverter;
 
 import org.jbpt.petri.PetriNet;
 import org.jbpt.pm.ProcessModel;
-import org.jbpt.utils.TransformationException;
+import org.jbpt.throwable.TransformationException;
 
 /**
  * Interface for all converter transforming any kind of business process model

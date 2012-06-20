@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.LinkedList;
 
-import org.jbpt.graph.algo.GraphAlgorithms;
+import org.jbpt.algo.graph.GraphAlgorithms;
 import org.jbpt.pm.ControlFlow;
 import org.jbpt.pm.FlowNode;
 import org.jbpt.pm.ProcessModel;

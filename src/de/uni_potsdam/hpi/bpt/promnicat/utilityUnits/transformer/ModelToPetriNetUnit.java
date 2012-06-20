@@ -24,7 +24,6 @@ import org.jbpt.petri.PetriNet;
 import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.bpmn.Bpmn;
 import org.jbpt.pm.epc.Epc;
-import org.jbpt.utils.TransformationException;
 
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.classification.PetriNetSerializer;
 import de.uni_potsdam.hpi.bpt.promnicat.modelConverter.ModelToPetriNetConverter;
@@ -184,7 +183,7 @@ public class ModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUnitData<O
 	private PetriNet transformProcessModelToPetriNet(ProcessModel processModel) {
 		try {
 			return new ModelToPetriNetConverter().convertToPetriNet(processModel);
-		} catch (TransformationException e) {
+		} catch (org.jbpt.throwable.TransformationException e) {
 			logger.severe("This process model can not be transformed to a petri net: " + processModel.toString());
 			return null;
 		}
