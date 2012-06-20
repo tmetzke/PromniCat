@@ -67,7 +67,8 @@ public class PetriNetAnalyzerUnitTest {
 		} catch (Exception e) {
 			fail("Model to PetriNet convertion failed with: " + e.getMessage());
 		}
-		assertTrue(unitData.getSoundness());
+		//TODO check all attributes coming from LoLA Soundness checker
+		assertTrue(unitData.getSoundnessResults().isClassicalSound());
 		assertFalse(unitData.isCyclic());
 		assertTrue(unitData.isFreeChoice());
 		assertTrue(unitData.isExtendedFreeChoice());

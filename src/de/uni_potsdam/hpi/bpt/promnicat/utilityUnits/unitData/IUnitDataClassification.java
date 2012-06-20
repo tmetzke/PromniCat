@@ -18,6 +18,7 @@
 package de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData;
 
 import org.jbpt.petri.PetriNet;
+import org.jbpt.petri.bevahior.LolaSoundnessCheckerResult;
 import org.jbpt.pm.ProcessModel;
 
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnit;
@@ -29,7 +30,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnit;
  * is S/T-Net, is workflow net - are stored.
  * 
  * @author Tobias Hoppe
- * TODO add comments
+ * 
  */
 public interface IUnitDataClassification<V extends Object> extends IUnitDataJbpt<V> {
 
@@ -100,15 +101,14 @@ public interface IUnitDataClassification<V extends Object> extends IUnitDataJbpt
 	public void setModelPath(String modelPath);
 	
 	/**
-	 * @return the isSound
+	 * @return the soundness results
 	 */
-	public boolean getSoundness();
+	public LolaSoundnessCheckerResult getSoundnessResults();
 
 	/**
-	 * Set whether the {@link PetriNet} is sound or not
-	 * @param isSound the isSound to set
+	 * @param soundnessResults the soundness results to set
 	 */
-	public void setSoundness(boolean isSound);
+	public void setSoundnessResults(LolaSoundnessCheckerResult soundnessResults);
 
 	/**
 	 * @return the isCyclic

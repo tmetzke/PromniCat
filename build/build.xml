@@ -63,14 +63,14 @@
 	<!--Compile all promnicat source code files.-->
 		<javac srcdir="${dir.src}" destdir="${dir.build}/bin" includeantruntime="false" source="1.6" target="1.6" debug="on" nowarn="on">
 			<classpath>
-				<fileset dir="${dir.lib}" includes="**/*.jar"/>
 				<fileset dir="${dir.build}" includes="*.jar"/>
+				<fileset dir="${dir.lib}" includes="**/*.jar"/>
 			</classpath>
 		</javac>
 		<javac srcdir="${dir.launcher}" destdir="${dir.build}/launcher" includeantruntime="false" source="1.6" target="1.6" debug="on" nowarn="on">
 			<classpath>
-				<fileset dir="${dir.lib}" includes="**/*.jar"/>
 				<fileset dir="${dir.build}" includes="*.jar"/>
+				<fileset dir="${dir.lib}" includes="**/*.jar"/>
 			</classpath>
 		</javac>
 	</target>
