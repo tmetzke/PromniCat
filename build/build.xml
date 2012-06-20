@@ -174,11 +174,13 @@
 			<bottom><![CDATA[<i>Copyright &#169; 2012 by ${author}</i>]]></bottom>
 			<tag name="TODO" scope="all" description="To do:"/>
 			<tag name="FIXME" scope="all" description="To fix:"/>
+			<group title="Analysis Modules" packages="${javadoc.analysisModules}"/>
+			<group title="Utility Units" packages="${javadoc.utilityUnits}"/>
 			<group title="Importer" packages="${javadoc.importer}"/>
+			<group title="Model Converter" packages="${javadoc.modelConverter}"/>
+			<group title="Model Parser" packages="${javadoc.parser}"/>
 			<group title="Persistence API" packages="${javadoc.persistenceApi}"/>
 			<group title="OrientDB Database" packages="${javadoc.orientDB}"/>
-			<group title="Utility Units" packages="${javadoc.utilityUnits}"/>
-			<group title="Analysis Modules" packages="${javadoc.analysisModules}"/>
 		</javadoc>
     </target>
 
