@@ -195,7 +195,9 @@ public class UnitDataClassification<V extends Object> extends UnitDataJbpt<V> im
 		builder.append(this.isAnalyticModelingConform);
 		builder.append(", isCommonExecutableModelingConform=");
 		builder.append(this.isCommonExecutableModelingConform);
-		builder.append(this.soundnessResults.toString());
+		if(this.soundnessResults != null) {
+			builder.append(this.soundnessResults.toString());
+		}
 		builder.append(", isCyclic=" + this.isCyclic);
 		builder.append(", isFreeChoice=" + this.isFreeChoice);
 		builder.append(", isExtendedFreeChoice=" + this.isExtendedFreeChoice);
