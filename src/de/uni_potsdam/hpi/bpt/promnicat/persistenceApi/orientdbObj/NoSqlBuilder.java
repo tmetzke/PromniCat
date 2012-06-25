@@ -104,7 +104,7 @@ public class NoSqlBuilder {
 		addSnippetForMetadataKeys(config.getMetadataKeys(), pathToMd, snippets);
 		
 		allowSubstrings = true;
-		addSnippetForStrings(config.getLanguages(), pathToRev + DbConstants.ATTR_LANGUAGE, allowSubstrings, snippets);
+		addSnippetForStrings(config.getLanguages(), DbConstants.ATTR_LANGUAGE, allowSubstrings, snippets);
 		addSnippetForStrings(config.getAuthors(), pathToRev + DbConstants.ATTR_AUTHOR, allowSubstrings, snippets);
 		addSnippetForStrings(config.getTitles(), pathToModel + DbConstants.ATTR_TITLE, allowSubstrings, snippets);
 		addSnippetForMetadataEntries(config.getMetadataEntries(), pathToMd, snippets);
