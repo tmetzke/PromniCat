@@ -28,6 +28,10 @@ import com.jdotsoft.jarloader.JarClassLoader;
  */
 public class ModelImporterLauncher {
 
+	/**
+	 * Start the model importer with the given arguments.
+	 * @param args arguments passed on to the model importer of PromniCAT
+	 */
 	public static void main(String[] args) {
 		JarClassLoader jcl = new JarClassLoader();
 		try {

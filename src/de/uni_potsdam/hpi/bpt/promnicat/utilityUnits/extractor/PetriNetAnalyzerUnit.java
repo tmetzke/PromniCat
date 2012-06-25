@@ -78,7 +78,7 @@ public class PetriNetAnalyzerUnit implements IUnit<IUnitData<Object>, IUnitData<
 					netSystem.addFlow(edge.getSource(), edge.getTarget());
 				}
 				netSystem.loadNaturalMarking();
-				((IUnitDataClassification<?>) input).setSoundness(LolaSoundnessChecker.isSound(netSystem));
+				((IUnitDataClassification<?>) input).setSoundnessResults(LolaSoundnessChecker.analyzeSoundness(netSystem));
 			} catch (Exception e) {
 				logger.warning("Soundness check failed with message: " + e.getMessage());
 			}

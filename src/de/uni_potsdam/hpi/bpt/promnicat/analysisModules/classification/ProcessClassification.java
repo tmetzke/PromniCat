@@ -93,12 +93,12 @@ public class ProcessClassification {
 		//print result
 		writeResultToFile(result, time);
 		
-		logger.info("Time needed for metric calculation: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+		logger.info("Time needed for process model classification: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
 	}
 	
 	/**
 	 * Create an new unit chain builder and builds up
-	 * a chain to get the metrics of the {@link ProcessModel}s from the given database.
+	 * a chain to get structural information of the {@link ProcessModel}s from the given database.
 	 * @param useFullDB use full data set or if set to <code>false</code> only a small excerpt
 	 * @return the builder with the created chain
 	 * @throws IOException if the given configuration file path could not be found
@@ -179,8 +179,17 @@ public class ProcessClassification {
 		builder.append("DB ID" + ITEMSEPARATOR);
 		builder.append("Descriptive Modeling Conform" + ITEMSEPARATOR);
 		builder.append("Analytic Modeling Conform" + ITEMSEPARATOR);
-		builder.append("Common Executable Modeling Conform" + ITEMSEPARATOR);
-		builder.append("isSound" + ITEMSEPARATOR);
+		builder.append("Common Executable Modeling Conform" + ITEMSEPARATOR);		
+		builder.append("boundedness" + ITEMSEPARATOR);
+		builder.append("liveness" + ITEMSEPARATOR);
+		builder.append("quasi liveness" + ITEMSEPARATOR);
+		builder.append("relaxed sound" + ITEMSEPARATOR);
+		builder.append("weak sound" + ITEMSEPARATOR);
+		builder.append("classical sound" + ITEMSEPARATOR);
+		builder.append("transitioncover" + ITEMSEPARATOR);
+		builder.append("dead transitions" + ITEMSEPARATOR);
+		builder.append("uncovered transitions" + ITEMSEPARATOR);
+		builder.append("unbounded places" + ITEMSEPARATOR);		
 		builder.append("isCyclic" + ITEMSEPARATOR);
 		builder.append("isFreeChoice" + ITEMSEPARATOR);
 		builder.append("isExtendedFreeChoice" + ITEMSEPARATOR);
