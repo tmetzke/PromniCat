@@ -175,4 +175,24 @@ public interface IUnitDataClassification<V extends Object> extends IUnitDataJbpt
 	 * @param isWorkflowNet the isWorkflowNet parameter to set
 	 */
 	public void setWorkflowNet(boolean isWorkflowNet);
+	
+	/**
+	 * @return the isStructured
+	 */
+	public boolean isStructured();
+
+	/**
+	 * @param isStructured the isStructured to set
+	 */
+	public void setStructured(boolean isStructured);
+
+	/**
+	 * @return the canBeStructured
+	 */
+	public boolean canBeStructured();
+
+	/**
+	 * @param canBeStructured the canBeStructured to set
+	 */
+	public void setAsStructurable(boolean canBeStructured);
 }

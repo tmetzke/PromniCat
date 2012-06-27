@@ -49,6 +49,8 @@ public class UnitDataClassification<V extends Object> extends UnitDataJbpt<V> im
 	private boolean isSNet = false;
 	private boolean isTnet = false;
 	private boolean isWorkflowNet = false;
+	private boolean isStructured = false;
+	private boolean canBeStructured = false;
 
 	/**
 	 * Creates an empty result with <code>null</code> elements.
@@ -204,6 +206,7 @@ public class UnitDataClassification<V extends Object> extends UnitDataJbpt<V> im
 		builder.append(", isSNet=" + this.isSNet);
 		builder.append(", isTNet=" + this.isTnet);
 		builder.append(", isWorkFlowNet=" + this.isWorkflowNet);
+		builder.append(", isStructured=" + this.isStructured);
 		builder.append("]\n");
 		return builder.toString();
 	}
@@ -235,6 +238,7 @@ public class UnitDataClassification<V extends Object> extends UnitDataJbpt<V> im
 		builder.append(addCsvContentFor(this.isSNet) + itemseparator);
 		builder.append(addCsvContentFor(this.isTnet) + itemseparator);
 		builder.append(addCsvContentFor(this.isWorkflowNet) + itemseparator);
+		builder.append(addCsvContentFor(this.isStructured) + itemseparator);
 		//add Petri net if wanted
 		if (this.petriNet != null && printPetriNet) {
 			builder.append(this.petriNet.toDOT());		
@@ -263,6 +267,26 @@ public class UnitDataClassification<V extends Object> extends UnitDataJbpt<V> im
 	 @Override
 	public void setSoundnessResults(LolaSoundnessCheckerResult soundnessResults) {
 		this.soundnessResults = soundnessResults;
+	}
+
+	@Override
+	public boolean isStructured() {
+		return isStructured;
+	}
+
+	@Override
+	public void setStructured(boolean isStructured) {
+		this.isStructured = isStructured;
+	}
+
+	@Override
+	public boolean canBeStructured() {
+		return canBeStructured;
+	}
+
+	@Override
+	public void setAsStructurable(boolean canBeStructured) {
+		this.canBeStructured = canBeStructured;
 	}
 
 }

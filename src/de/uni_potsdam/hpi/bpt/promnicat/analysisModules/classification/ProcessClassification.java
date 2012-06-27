@@ -126,6 +126,8 @@ public class ProcessClassification {
 		chainBuilder.createBpmaiJsonToJbptUnit(false);
 		//check conformance level
 		chainBuilder.createBpmnConformanceLevelCheckerUnit();
+		//perform structural checks
+		chainBuilder.createModelStructuringUnit();
 		//transform to PetriNet
 		//TODO save result in db later on
 		chainBuilder.createProcessModelToPetriNetUnit();
@@ -196,6 +198,7 @@ public class ProcessClassification {
 		builder.append("isSNet" + ITEMSEPARATOR);
 		builder.append("isTNet" + ITEMSEPARATOR);
 		builder.append("isWorkFlowNet" + ITEMSEPARATOR);
+		builder.append("isStructured" + ITEMSEPARATOR);
 		builder.append("Petri Net as DOT");
 		builder.append("\n");
 		return builder.toString();

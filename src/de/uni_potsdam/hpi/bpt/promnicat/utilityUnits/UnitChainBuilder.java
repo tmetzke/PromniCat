@@ -36,6 +36,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.collector.SimpleCollectorUn
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.BpmnConformanceLevelCheckerUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.ElementExtractorUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.ElementLabelExtractorUnit;
+import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.ModelStructuringUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.PetriNetAnalyzerUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.ProcessModelLabelExtractorUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.extractor.ProcessModelMetricsCalculatorUnit;
@@ -196,6 +197,12 @@ public class UnitChainBuilder implements IUnitChainBuilder {
 	public void createMetaDataFilterUnit(String keyToFilter, String valueToFilter) throws IllegalTypeException {
 		MetaDataFilterUnit metaDataFilter = new MetaDataFilterUnit(keyToFilter, valueToFilter);
 		checkForCompatibility(metaDataFilter);
+	}
+
+	@Override
+	public void createModelStructuringUnit() throws IllegalTypeException {
+		ModelStructuringUnit modelStructuringUnit = new ModelStructuringUnit();
+		checkForCompatibility(modelStructuringUnit);		
 	}
 
 	@Override

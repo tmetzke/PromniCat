@@ -216,6 +216,7 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 				}
 				convertGateway((Gateway) flowNode);
 			}
+			//TODO handle further cases like sub processes, boundary events
 		}	
 	}
 	
