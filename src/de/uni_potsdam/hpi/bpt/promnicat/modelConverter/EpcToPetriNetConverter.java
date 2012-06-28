@@ -26,6 +26,7 @@ import org.jbpt.pm.epc.Epc;
 import org.jbpt.throwable.TransformationException;
 
 /**
+ * This class converts an {@link Epc} model to the corresponding {@link PetriNet}.
  * @author Tobias Hoppe
  *
  */

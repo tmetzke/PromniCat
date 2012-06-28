@@ -110,4 +110,18 @@ public class ModelToPetriNetConverterTest {
 		}
 	}
 	
+	@Test
+	public void testSubprocessConverting() {
+		//TODO implement me
+	}
+	
+	@Test
+	public void testgatewayConverting() {
+		//TODO implement me
+	}
+	
+	@Test
+	public void testBoundaryEventConverting() {
+		//TODO implement me
+	}
 }

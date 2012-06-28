@@ -20,7 +20,10 @@ package de.uni_potsdam.hpi.bpt.promnicat.modelConverter;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.jbpt.petri.Flow;
+import org.jbpt.petri.Node;
 import org.jbpt.petri.PetriNet;
+import org.jbpt.petri.Place;
 import org.jbpt.pm.Activity;
 import org.jbpt.pm.AndGateway;
 import org.jbpt.pm.ControlFlow;
@@ -31,9 +34,12 @@ import org.jbpt.pm.OrGateway;
 import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.bpmn.Bpmn;
 import org.jbpt.pm.bpmn.BpmnControlFlow;
+import org.jbpt.pm.bpmn.BpmnEvent;
+import org.jbpt.pm.bpmn.Subprocess;
 import org.jbpt.throwable.TransformationException;
 
 /**
+ * This class converts a {@link Bpmn} model to the corresponding {@link PetriNet}.
  * @author Tobias Hoppe
  *
  */
@@ -42,7 +48,8 @@ public class BpmnToPetriNetConverter extends AbstractModelToPetriNetConverter {
 	/**
 	 * Transforms the given {@link ProcessModel} into a {@link PetriNet}.
 	 * <b><br/>Assumptions:</b><br/>
-	 * - Model does not contain any {@link OrGateway}s
+	 * - Model does not contain any {@link OrGateway}s or Ad-hoc-{@link Subprocess}es
+	 * or event-based-{@link Subprocess}es
 	 * 
 	 * @param model to transform
 	 * @return the created {@link PetriNet}
@@ -86,7 +93,7 @@ public class BpmnToPetriNetConverter extends AbstractModelToPetriNetConverter {
 			}
 			if(conditional.size() >= outgoingControlFlows.size() - 1) {
 				throw new TransformationException(THE_GIVEN_PROCESS_MODEL_CONTAINS_AT_LEAST_ONE_OR_GATEWAY);
-				//uncomment if or gateways could be handled
+				//TODO check if or gateway could be handled
 				//g = new OrGateway(name);
 			}
 		}
@@ -94,6 +101,110 @@ public class BpmnToPetriNetConverter extends AbstractModelToPetriNetConverter {
 			edge.setSource(g);
 		}
 		model.addControlFlow(node, g);
+	}
+	
+	/**
+	 * Apart from classical {@link Activity}s, {@link Subprocess}es are handled.
+	 * @see AbstractModelToPetriNetConverter#convertActivity(Activity)
+	 */
+	@Override
+	protected void convertActivity(Activity activity) throws TransformationException {
+		//handle different subprocesses
+		if (activity instanceof Subprocess) {
+			if (((Subprocess) activity).isCollapsed()) {
+				super.convertActivity(activity);
+			} else if (((Subprocess) activity).isAdhoc()) {
+				//TODO handle ad hoc subprocess converting
+				throw new TransformationException("Ad hoc supbrocesses could not be handled.");
+			} else if (((Subprocess) activity).isEventDriven()) {
+				//TODO check how to handle
+				throw new TransformationException("Event driven subprocess could not be handled.");
+			} else {				
+				convertSubprocess((Subprocess)activity);
+			}
+		} else {
+			//handle activities that are not a subprocess
+			super.convertActivity(activity);
+		}
+	}
+	
+	/**
+	 * Handles boundary events before creation of {@link Flow}s.
+	 * @see AbstractModelToPetriNetConverter#convertControlFlowEdges(Collection)
+	 */
+	@Override
+	protected void convertControlFlowEdges(Collection<ControlFlow<FlowNode>> edges) {
+		for(ControlFlow<FlowNode> edge : edges) {
+			if (((BpmnControlFlow<FlowNode>)edge).hasAttachedEvent()) {
+				convertAttachedEvent((BpmnControlFlow<FlowNode>) edge);
+			}
+		}
+		super.convertControlFlowEdges(edges);
+	}
+
+	/**
+	 * converts the attached {@link BpmnEvent} of the given {@link BpmnControlFlow}.
+	 * @param edge
+	 */
+	private void convertAttachedEvent(BpmnControlFlow<FlowNode> edge) {
+		// TODO Auto-generated method stub		
+	}
+
+	/**
+	 * Converts a {@link Subprocess} into a {@link PetriNet} fragment by converting an
+	 * included subprocess to a {@link PetriNet} and adding this net to the result.
+	 * Afterwards, the source nodes of the subprocess' {@link PetriNet} are connected with
+	 * a {@link Place} which is mapped as defined by the incoming edges of the {@link Subprocess}
+	 * node. This is done in the same manner with the sink {@link Node}s of the {@link PetriNet}
+	 * representing the {@link Subprocess}. Therefore, a dummy {@link Activity} is added to the
+	 * given {@link ProcessModel} to ensure a correct mapping of the {@link Flow} from the last
+	 * {@link Place} of the subprocess' {@link PetriNet} to the following {@link FlowNode} of
+	 * the given {@link ProcessModel}.
+	 * @param subprocess the {@link Subprocess} to convert
+	 * @throws TransformationException if the {@link Subprocess} could not be converted
+	 */
+	private void convertSubprocess(Subprocess subprocess) throws TransformationException {
+		Bpmn<BpmnControlFlow<FlowNode>, FlowNode> process = subprocess.getSubProcess();
+		//convert subprocess to Petrinet and add it to the resulting net
+		PetriNet pn = new BpmnToPetriNetConverter().convertToPetriNet(process);
+		if(pn.getNodes().isEmpty()) {
+			super.convertActivity(subprocess);
+		}
+		this.petriNet.addNodes(pn.getNodes());
+		for (Flow f : pn.getFlow()) {
+			this.petriNet.addFlow(f.getSource(), f.getTarget());
+		}
+		//insert place to connecting to all start nodes of subprocess net
+		if (pn.getSourceNodes().size() > 1) {
+			Place p = new Place("subprocesses_start" + getNextId());
+			for(Node n : pn.getSourceNodes()) {
+				this.petriNet.addFlow(p, n);
+			}
+			this.nodeMapping.put(subprocess, p);
+		} else if (!pn.getSourceNodes().isEmpty()){
+			this.nodeMapping.put(subprocess, pn.getSourceNodes().iterator().next());
+		}
+		//add dummy activity to original process model to handle end of subprocess
+		ProcessModel model = subprocess.getModel();
+		Collection<ControlFlow<FlowNode>> outgoingEdges = model.getOutgoingControlFlow(subprocess);
+		if (outgoingEdges.size() > 0) {
+			ControlFlow<FlowNode> outgoingEdge = outgoingEdges.iterator().next();
+			Activity dummy = new Activity();
+			model.addControlFlow(dummy, outgoingEdge.getTarget());
+			model.removeControlFlow(outgoingEdge);
+			//handle integration of end of subprocess into Petrinet
+			if (pn.getSinkNodes().size() > 1) {
+				//insert place to connect all ends
+				Place p = new Place("subprocesses_end" + getNextId());
+				for(Node n : pn.getSinkNodes()) {
+					this.petriNet.addFlow(n, p);
+				}
+				this.nodeMapping.put(dummy, p);
+			} else if (!pn.getSinkNodes().isEmpty()) {
+				this.nodeMapping.put(dummy, pn.getSinkNodes().iterator().next());
+			}
+		}
+		
 	}
 
 }

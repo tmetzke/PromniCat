@@ -216,7 +216,6 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 				}
 				convertGateway((Gateway) flowNode);
 			}
-			//TODO handle further cases like sub processes, boundary events
 		}	
 	}
 	
@@ -307,8 +306,9 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 	/**
 	 * Converts the given {@link Activity} to a {@link Transition}.
 	 * @param activity {@link Activity} to convert
+	 * @throws TransformationException 
 	 */
-	protected void convertActivity(Activity activity) {
+	protected void convertActivity(Activity activity) throws TransformationException {
 		Transition t = new Transition();
 		copyAttributes(activity, t);
 		this.petriNet.addTransition(t);

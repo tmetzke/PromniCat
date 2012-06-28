@@ -27,6 +27,7 @@ import org.jbpt.pm.epc.Epc;
 import org.jbpt.throwable.TransformationException;
 
 /**
+ * This class transforms a jBPT {@link ProcessModel} to the corresponding {@link PetriNet}.
  * @author Tobias Hoppe
  *
  */
