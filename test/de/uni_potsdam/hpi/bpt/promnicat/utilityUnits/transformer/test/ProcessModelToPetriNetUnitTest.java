@@ -20,6 +20,7 @@ package de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import org.jbpt.petri.PetriNet;
 import org.jbpt.pm.ProcessModel;
@@ -27,7 +28,9 @@ import org.jbpt.pm.bpmn.Bpmn;
 import org.junit.Test;
 
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.TestModelBuilder;
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.classification.PetriNetSerializer;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.IPersistenceApi;
+import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Model;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.orientdb.test.RepresentationFactory;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.orientdbObj.PersistenceApiOrientDbObj;
@@ -98,15 +101,18 @@ public class ProcessModelToPetriNetUnitTest {
 		assertNotNull(pn);
 		assertSame(unitData.getValue(), pn);
 		
-		//check successful saving in db
-		//TODO uncomment if petri net serialization has been implemented
-//		Model model = persistenceApi.loadCompleteModelWithDbId(repr.getModel().getDbId());
-//		boolean found = false;
-//		for(Representation representation : model.getLatestRevision().getRepresentations()) {
-//			if(representation.getFormat().equals(Constants.FORMATS.PNML) && representation.getNotation().equals(Constants.NOTATIONS.PETRINET.toString())) {
-//				found = true;
-//			}
-//		}
-//		assertTrue("Petri Net has not been saved as expected!", found);
+		//check successful saving in and loading from database
+		Model model = persistenceApi.loadCompleteModelWithDbId(repr.getModel().getDbId());
+		boolean found = false;
+		for(Representation representation : model.getLatestRevision().getRepresentations()) {
+			if(representation.getFormat().equals(Constants.FORMATS.PNML.toString()) && representation.getNotation().equals(Constants.NOTATIONS.PETRINET.toString())) {
+				found = true;
+				assertNotNull(representation.getDataContent());
+				PetriNet petriNet = PetriNetSerializer.parsePetriNet(representation.getDataContent());
+				assertEquals(pn.getNodes().size(), petriNet.getNodes().size());
+				assertEquals(pn.getEdges().size(), petriNet.getEdges().size());
+			}
+		}
+		assertTrue("Petri Net has not been saved as expected!", found);
 	}
 }

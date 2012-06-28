@@ -17,13 +17,13 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.transformer;
 
-import java.io.File;
 import java.util.logging.Logger;
 
 import org.jbpt.petri.PetriNet;
 import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.bpmn.Bpmn;
 import org.jbpt.pm.epc.Epc;
+import org.jbpt.throwable.TransformationException;
 
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.classification.PetriNetSerializer;
 import de.uni_potsdam.hpi.bpt.promnicat.modelConverter.ModelToPetriNetConverter;
@@ -84,7 +84,7 @@ public class ModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUnitData<O
 				if (pmRepresentation.getRevision() != null) {
 					for (Representation representation : pmRepresentation.getRevision().getRepresentations()) {
 						if(representation.getNotation().equals(Constants.NOTATIONS.PETRINET)) {
-							pn = PetriNetSerializer.parsePetriNet(representation.getOriginalFilePath());
+							pn = PetriNetSerializer.parsePetriNet(representation.getDataContent());
 							if(pn != null) {
 								input.setValue(pn);
 								return input;
@@ -163,13 +163,12 @@ public class ModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUnitData<O
 			logger.warning("Petri Net could not be saved, due to missing database model of current process model!");
 			return;
 		}
-		//TODO handle failing serialization
-		File petriNetFile = PetriNetSerializer.serialize(petriNet);
-		if(petriNetFile == null) {
+		byte[] petriNetBytes = PetriNetSerializer.serialize(petriNet);
+		if(petriNetBytes == null) {
 			logger.warning("Petri Net could not be saved, due to failing serialization!");
 			return;
 		}
-		Representation representation = new Representation(Constants.FORMATS.PNML.toString(), Constants.NOTATIONS.PETRINET.toString(), petriNetFile);
+		Representation representation = new Representation(Constants.FORMATS.PNML.toString(), Constants.NOTATIONS.PETRINET.toString(), petriNetBytes);
 		pmRepresentation.getRevision().connectRepresentation(representation);
 		this.persistenceApi.savePojo(pmRepresentation.getModel());
 	}
@@ -183,7 +182,7 @@ public class ModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUnitData<O
 	private PetriNet transformProcessModelToPetriNet(ProcessModel processModel) {
 		try {
 			return new ModelToPetriNetConverter().convertToPetriNet(processModel);
-		} catch (org.jbpt.throwable.TransformationException e) {
+		} catch (TransformationException e) {
 			logger.severe("This process model can not be transformed to a petri net: " + processModel.toString());
 			return null;
 		}

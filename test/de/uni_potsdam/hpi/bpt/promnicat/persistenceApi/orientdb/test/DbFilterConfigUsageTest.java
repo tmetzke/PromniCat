@@ -159,7 +159,7 @@ public class DbFilterConfigUsageTest {
 		assertTrue(sql.contains("where"));
 		assertTrue(sql.contains(DbConstants.ATTR_FORMAT + " like '" + format1 + "')"));
 		assertTrue(sql.contains(DbConstants.ATTR_FORMAT + " like '" + format2 + "')"));
-		assertTrue(sql.contains(" and (" + DbConstants.ATTR_REVISION +"."+ DbConstants.ATTR_LANGUAGE + " like '%" + language + "%')"));
+		assertTrue(sql.contains(" and (" + DbConstants.ATTR_LANGUAGE + " like '%" + language + "%')"));
 		assertTrue(sql.contains(DbConstants.ATTR_LATEST_REVISION + " = 'true"));
 	}
 }
