@@ -50,6 +50,7 @@
 	<target name="prepare">
 	<!--Create directories for generated files.-->
 		<mkdir dir="${dir.build}"/>
+		<mkdir dir="${dir.build}/launcher"/>
 		<mkdir dir="${dir.build}/bin"/>
 		<mkdir dir="${dir.testReports}"/>
 		<mkdir dir="${dir.testReports}/promnicat"/>
@@ -62,8 +63,14 @@
 	<!--Compile all promnicat source code files.-->
 		<javac srcdir="${dir.src}" destdir="${dir.build}/bin" includeantruntime="false" source="1.6" target="1.6" debug="on" nowarn="on">
 			<classpath>
-				<fileset dir="${dir.lib}" includes="**/*.jar"/>
 				<fileset dir="${dir.build}" includes="*.jar"/>
+				<fileset dir="${dir.lib}" includes="**/*.jar"/>
+			</classpath>
+		</javac>
+		<javac srcdir="${dir.launcher}" destdir="${dir.build}/launcher" includeantruntime="false" source="1.6" target="1.6" debug="on" nowarn="on">
+			<classpath>
+				<fileset dir="${dir.build}" includes="*.jar"/>
+				<fileset dir="${dir.lib}" includes="**/*.jar"/>
 			</classpath>
 		</javac>
 	</target>
@@ -73,12 +80,21 @@
 	         ================================= -->
 	<target name="build" depends="compile" description="Build a jar file of the framwork and include a manifest file">
 	<!--Build a jar file of the framwork and include a manifest file-->
-		<jar destfile="${dir.build}/${project.shortName}_${version}.jar" basedir="${dir.build}/bin" manifest="${dir.manifest}/MANIFEST.MF">
+		<jar destfile="${dir.build}/bin/${project.shortName}-${version}.jar" basedir="${dir.build}/bin">
 		</jar>
 		<!--remove .class files -->
 		<delete>
 			<fileset dir="${dir.build}/bin" includes="*.class"/>
 		</delete>
+		<!--create executable jar file-->
+		<jar destfile="${dir.build}/${project.shortName}-${version}.jar" basedir="${dir.build}/launcher" manifest="${dir.manifest}/MANIFEST.MF">
+			<fileset dir="${dir.lib}">
+				<include name="**/**"/>
+			</fileset>
+			<fileset dir="${dir.build}/bin">
+				<include name="${project.shortName}-${version}.jar"/>
+			</fileset>
+		</jar>
 		<!-- Compile test files -->
 		<javac srcdir="${dir.test}" destdir="${dir.build}/bin" includeantruntime="false" source="1.6" target="1.6" debug="on" nowarn="on">
 			<classpath>
@@ -158,11 +174,13 @@
 			<bottom><![CDATA[<i>Copyright &#169; 2012 by ${author}</i>]]></bottom>
 			<tag name="TODO" scope="all" description="To do:"/>
 			<tag name="FIXME" scope="all" description="To fix:"/>
+			<group title="Analysis Modules" packages="${javadoc.analysisModules}"/>
+			<group title="Utility Units" packages="${javadoc.utilityUnits}"/>
 			<group title="Importer" packages="${javadoc.importer}"/>
+			<group title="Model Converter" packages="${javadoc.modelConverter}"/>
+			<group title="Model Parser" packages="${javadoc.parser}"/>
 			<group title="Persistence API" packages="${javadoc.persistenceApi}"/>
 			<group title="OrientDB Database" packages="${javadoc.orientDB}"/>
-			<group title="Utility Units" packages="${javadoc.utilityUnits}"/>
-			<group title="Analysis Modules" packages="${javadoc.analysisModules}"/>
 		</javadoc>
     </target>
 

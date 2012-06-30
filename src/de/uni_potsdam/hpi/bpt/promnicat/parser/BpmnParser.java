@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import org.jbpt.hypergraph.abs.IVertex;
 import org.jbpt.hypergraph.abs.Vertex;
 import org.jbpt.pm.AndGateway;
 import org.jbpt.pm.DataNode;
@@ -58,13 +59,13 @@ import de.uni_potsdam.hpi.bpt.ai.diagram.Shape;
 /**
  * Retrieves a Diagram instance (JSON format) of the BPMN process model and maps it
  * on jBPT. 
- * @author Cindy Fähnrich
+ * @author Cindy Fähnrich, Tobias Hoppe
  *
  */
 public class BpmnParser implements IParser {
 
 	private final static Logger logger = Logger.getLogger(BpmnParser.class.getName());
-	public Bpmn1_1Constants constants;
+	public IBpmnConstants constants;
 	public Diagram diagram = null;
 	public Bpmn<BpmnControlFlow<FlowNode>, FlowNode> process = null;
 	public boolean strictness = false;
@@ -73,7 +74,7 @@ public class BpmnParser implements IParser {
 	/**
 	 * Index for the different JSON ids of nodes(needed for edge construction)
 	 */
-	public HashMap<String, Entry<Object, Subprocess>> nodeIds = new HashMap<String, Entry<Object, Subprocess>>();
+	public HashMap<String, Entry<IVertex, Subprocess>> nodeIds = new HashMap<String, Entry<IVertex, Subprocess>>();
 	
 	/**
 	 * Index for the different JSON ids of control flows (needed for association construction)
@@ -103,7 +104,7 @@ public class BpmnParser implements IParser {
 	 * Set the constants set in the constructor
 	 * @param constants
 	 */
-	public BpmnParser(Bpmn1_1Constants constants, boolean strictness) {
+	public BpmnParser(IBpmnConstants constants, boolean strictness) {
 		this.strictness = strictness;
 		this.constants = constants;
 	}
@@ -128,7 +129,7 @@ public class BpmnParser implements IParser {
 	@Override
 	public ProcessModel transformProcess(Diagram diagram) {
 		clear();
-		this.process.setName(diagram.getProperty(constants.PROPERTY_TITLE));
+		this.process.setName(diagram.getProperty(constants.getPropertyTitle()));
 		
 		//invoke transformation of nodes
 		List<Shape> shapes = diagram.getChildShapes();
@@ -162,7 +163,7 @@ public class BpmnParser implements IParser {
 	 */
 	public void createFlows(Shape s){
 		String id = s.getStencilId();
-		if (id.contains(constants.ENTITY_MESSAGEFLOW)){
+		if (id.contains(constants.getEntityMessageflow())){
 			createMessageFlow(s);
 		} else {//otherwise it is a sequence flow
 			createSequenceFlow(s);
@@ -194,14 +195,14 @@ public class BpmnParser implements IParser {
 	public void addChildNodes(Shape s, Subprocess proc){
 		for (Shape subs : s.getChildShapes()){
 			String id = subs.getResourceId();
-			Entry<Object, Subprocess> tuple = nodeIds.get(id);
+			Entry<IVertex, Subprocess> tuple = nodeIds.get(id);
 			if (tuple != null){
-				Object node = tuple.getKey();
+				IVertex node = tuple.getKey();
 				if (node instanceof FlowNode){
 					proc.addFlowNode((FlowNode) node);
 					this.process.removeFlowNode((FlowNode) node);
 				} else {
-					if (node instanceof NonFlowNode){//Resources are not mapped here, since they are only lanes/pools that can not occur in subprocesses
+					if (node instanceof NonFlowNode){
 						proc.addNonFlowNode((NonFlowNode) node);
 						this.process.removeNonFlowNode((NonFlowNode) node);
 					}
@@ -218,51 +219,52 @@ public class BpmnParser implements IParser {
 	 */
 	public Vertex parseIds(Shape s){
 		String id = s.getStencilId();
-		if (id.contains(constants.ENTITY_TASK)){
+		if (id.contains(constants.getEntityTask())){
 			return createTask(s);
 			}
-		if (id.contains(constants.ENTITY_SUBPROCESS)){
+		if (id.contains(constants.getEntitySubprocess())){
 			return createSubprocess(s);
 		}
-		if (id.contains(constants.ENTITY_GATEWAY_XOR)){
+		if (id.contains(constants.getEntityGatewayXor())){
 			return createXorGateway(s);
 		}
-		if (id.contains(constants.ENTITY_GATEWAY_AND)){
+		if (id.contains(constants.getEntityGatewayAnd())){
 			return createAndGateway(s);
 		}
-		if (id.contains(constants.ENTITY_GATEWAY_OR)){
+		if (id.contains(constants.getEntityGatewayOr())){
 			return createOrGateway(s);
 		}
-		if (id.contains(constants.ENTITY_GATEWAY_ALTERNATIVE)){
+		if (id.contains(constants.getEntityGatewayAlternative())){
 			return createAlternativeGateway(s);
 		}
-		if (id.contains(constants.ENTITY_GATEWAY_EVENTBASED)){
+		if (id.contains(constants.getEntityGatewayEventbased())){
 			return createEventbasedGateway(s);
 		}
-		if (id.contains(constants.ENTITY_LANE) || id.contains(constants.ENTITY_POOL)){
+		if (id.contains(constants.getEntityLane()) || id.contains(constants.getEntityPool())){
 			return createResource(s);
 		}
-		if (id.contains(constants.ENTITY_DATA)){
+		if (id.contains(constants.getEntityData())){
 			return createDocument(s);
 		}
-		if (id.contains(constants.ENTITY_EVENT_START)){
+		if (id.contains(constants.getEntityEventStart())){
 			return createStartEvent(s);
 		}
-		if (id.contains(constants.EVENT_END)){
+		if (id.contains(constants.getEventEnd())){
 			return createEndEvent(s);
 		}
-		if (id.contains(constants.ENTITY_EVENT_THROWING)){
+		if (id.contains(constants.getEntityEventThrowing())){
 			return createIntermediateThrowingEvent(s);
 		}
-		if (id.contains(constants.ENTITY_EVENT_CATCHING) || id.contains(constants.ENTITY_EVENT_INTERMEDIATE)){
+		if (id.contains(constants.getEntityEventCatching()) || id.contains(constants.getEntityEventIntermediate())){
 			return createIntermediateCatchingEvent(s);
 		}
-		if (id.contains(constants.ENTITY_SEQUENCEFLOW) || id.contains(constants.ENTITY_MESSAGEFLOW)){
+		if (id.contains(constants.getEntitySequenceflow()) || id.contains(constants.getEntityMessageflow())){
 			flows.add(s);
 			return null;
 		}
-		if (id.contains(constants.ENTITY_ASSOCIATION)){
+		if (id.contains(constants.getEntityAssociation())){
 			assocs.add(s);
+			return null;
 		}
 		return null;
 	}
@@ -289,18 +291,18 @@ public class BpmnParser implements IParser {
 		Subprocess f = new Subprocess();
 		prepareNode(s, f);
 		prepareActivity(s,f);
-		if (s.getStencilId().contains(constants.ENTITY_SUBPROCESS_COLLAPSED)){
+		if (s.getStencilId().contains(constants.getEntitySubprocessCollapsed())){
 			f.setCollapsed(true);
 		}
 		//event-subprocess - only relevant for bpmn 2.0
-		if (s.getStencilId().contains(constants.ENTITY_SUBPROCESS_EVENT)){
+		if (s.getStencilId().contains(constants.getEntitySubprocessEvent())){
 			f.setEventDriven(true);
 		}
 		//check if process is adhoc
-		String prop = s.getProperty(constants.PROPERTY_ISADHOC);
-		if ((prop != null) && (prop.equals(constants.VALUE_TRUE))){ //this is an adhoc process
-			prop = s.getProperty(constants.PROPERTY_ADHOC_ORDER);
-			if (prop.equals(constants.VALUE_SEQUENTIAL)){
+		String prop = s.getProperty(constants.getPropertyIsadhoc());
+		if ((prop != null) && (prop.equals(constants.getValueTrue()))){ //this is an adhoc process
+			prop = s.getProperty(constants.getPropertyAdhocOrder());
+			if (prop.equals(constants.getValueSequential())){
 				f.setSequentialAdhoc();
 			} else {
 				f.setParallelAdhoc();
@@ -378,16 +380,16 @@ public class BpmnParser implements IParser {
 	public Vertex createResource(Shape s){
 		BpmnResource f = new BpmnResource();
 		f.setType(s.getStencilId());
-		prepareNode(s, f);
+		prepareNode(s, f);		
 		
 		for (Shape subs : s.getChildShapes()){
 			String id = subs.getResourceId();
-			Entry<Object, Subprocess> node = nodeIds.get(id);
+			Entry<IVertex, Subprocess> node = nodeIds.get(id);
 			if (node != null) {
 				if (node.getKey() instanceof FlowNode)
 					((FlowNode) node.getKey()).addResource(f);
 				else if (node.getKey() instanceof Resource)
-						((Resource) node.getKey()).setResource(f);
+						((Resource) node.getKey()).setParent(f);
 			}
 		}
 		this.process.addNonFlowNode(f);
@@ -497,18 +499,18 @@ public class BpmnParser implements IParser {
 		}
 		
 		//get the nodes for the resourceIds
-		Entry<Object, Subprocess> toNode = nodeIds.get(out.getResourceId());
-		Entry<Object, Subprocess> fromNode = nodeIds.get(in.getResourceId());
+		Entry<IVertex, Subprocess> toNode = nodeIds.get(out.getResourceId());
+		Entry<IVertex, Subprocess> fromNode = nodeIds.get(in.getResourceId());
 				
-		String type = s.getProperty(constants.PROPERTY_CONDITION_TYPE);
+		String type = s.getProperty(constants.getPropertyConditionType());
 		boolean defaultFlow = false;
-		if (type.equals(constants.VALUE_DEFAULT)){ 
+		if (type == null  || type.equals(constants.getValueDefault())){ 
 			defaultFlow = true;
 		}
 		//check the control flow flow conditions and add the control flow
-		String expression = s.getProperty(constants.PROPERTY_CONDITION_EXPRESSION);
+		String expression = s.getProperty(constants.getPropertyConditionExpression());
 		BpmnControlFlow<FlowNode> flow = null;
-		if (expression != "") {
+		if (expression == null || expression != "") {
 			if (toNode.getValue() != null && toNode.getValue() == fromNode.getValue()){
 				flow = toNode.getValue().addControlFlow((FlowNode)fromNode.getKey(), (FlowNode) toNode.getKey(), expression, defaultFlow);
 			} else {
@@ -525,7 +527,6 @@ public class BpmnParser implements IParser {
 				}
 			}
 		}
-		if (flow != null) flow.setId(s.getResourceId());
 		this.controlflowIds.put(s.getResourceId(), flow);
 	}
 	
@@ -568,19 +569,21 @@ public class BpmnParser implements IParser {
 			return;
 		}
 		
-		Entry<Object, Subprocess> fromNode = nodeIds.get(in.getResourceId());
-		Entry<Object, Subprocess> toNode = nodeIds.get(out.getResourceId());
+		Entry<IVertex, Subprocess> fromNode = nodeIds.get(in.getResourceId());
+		Entry<IVertex, Subprocess> toNode = nodeIds.get(out.getResourceId());
 		//check if nodes are contained in subprocess
 		BpmnMessageFlow flow = null;
 		if (toNode.getValue() != null && toNode.getValue() == fromNode.getValue()){
-			flow = toNode.getValue().addMessageFlow((Object)fromNode.getKey(), (Object) toNode.getKey());
+			flow = toNode.getValue().addMessageFlow(fromNode.getKey(), toNode.getKey());
 			this.process.addMessageFlow(flow);
 		} else {
 			if (toNode.getValue() == null && fromNode.getValue() != null){
-				flow = this.process.addMessageFlow((Object)fromNode.getKey(), (Object) toNode.getKey());
+				flow = this.process.addMessageFlow(fromNode.getKey(), toNode.getKey());
 			}
 		}
-		if (flow != null) flow.setId(s.getResourceId());
+		if (flow != null) {
+			flow.setId(s.getResourceId());
+		}
 	}
 	
 	/**
@@ -673,9 +676,9 @@ public class BpmnParser implements IParser {
 	 */
 	public void checkInformationFlow(Shape s, FlowNode node, DataNode document){
 		String id = s. getStencilId();
-		if (id.contains(constants.VALUE_UNDIRECTED)){
+		if (id.contains(constants.getValueUndirected())){
 			node.addUnspecifiedDocument(document);
-		}else if (id.contains(constants.VALUE_UNIDIRECTED)){
+		}else if (id.contains(constants.getValueUnidirected())){
 			//FlowNode <-- Document is read 
 			Vertex outNode = (Vertex) nodeIds.get(s.getOutgoings().get(0).getResourceId()).getKey();
 			if (node == outNode){
@@ -698,9 +701,9 @@ public class BpmnParser implements IParser {
 	 */
 	public void addAsControlFlowAttribute(Shape s, BpmnControlFlow<FlowNode> flow, DataNode document){
 		String id = s. getResourceId();
-		if (id.contains(constants.VALUE_UNDIRECTED)){
+		if (id.contains(constants.getValueUndirected())){
 			flow.addUnspecifiedDocument(document);
-		}else if (id.contains(constants.VALUE_UNIDIRECTED)){
+		}else if (id.contains(constants.getValueUnidirected())){
 			//FlowNode <-- Document is read 
 			if (flow == controlflowIds.get(s.getOutgoings().get(0))){
 				flow.addReadDocument(document);
@@ -722,9 +725,9 @@ public class BpmnParser implements IParser {
 	 */
 	public void addAsMessageFlowAttribute(Shape s, BpmnMessageFlow flow, DataNode document){
 		String id = s. getStencilId();
-		if (id.contains(constants.VALUE_UNDIRECTED)){
+		if (id.contains(constants.getValueUndirected())){
 			flow.addUnspecifiedDocument(document);
-		}else if (id.contains(constants.VALUE_UNIDIRECTED)){
+		}else if (id.contains(constants.getValueUnidirected())){
 			//FlowNode <-- Document is read 
 			if (flow == messageflowIds.get(s.getOutgoings().get(0))){
 				flow.addReadDocument(document);
@@ -746,25 +749,25 @@ public class BpmnParser implements IParser {
 	 */
 	private void prepareActivity(Shape s, BpmnActivity activity){
 
-		String prop = s.getProperty(constants.PROPERTY_ISCOMPENSATION);
-		if (prop != null && prop.equals(constants.VALUE_TRUE)){ //this is a compensation activity
+		String prop = s.getProperty(constants.getPropertyIscompensation());
+		if (prop != null && prop.equals(constants.getValueTrue())){ //this is a compensation activity
 			activity.setCompensation(true);
 		}
 		
 		//check for looptype simple or multiple instance (parallel/sequential)
-		prop = s.getProperty(constants.PROPERTY_LOOPTYPE);
-		if (prop != null && prop.equals(constants.VALUE_STANDARD)){
+		prop = s.getProperty(constants.getPropertyLooptype());
+		if (prop != null && prop.equals(constants.getValueStandard())){
 			activity.setStandardLoop(true);
 			return;
 		}
-		if (prop != null && prop.equals(constants.VALUE_NONE)){//do nothing more
+		if (prop != null && prop.equals(constants.getValueNone())){//do nothing more
 			return;
 		} 
 		//prop value must have been "MultiInstance"
 		if (constants instanceof Bpmn1_1Constants){
-			prop = s.getProperty(constants.PROPERTY_MI_ORDER);
+			prop = s.getProperty(constants.getPropertyMiOrder());
 		}	
-		if ((prop != null) && (prop.equals(constants.VALUE_SEQUENTIAL))){
+		if ((prop != null) && (prop.equals(constants.getValueSequential()))){
 			activity.setSequentialMultiple(true);
 			return;
 		} else {
@@ -797,9 +800,9 @@ public class BpmnParser implements IParser {
 	private void checkForAttached(Shape s, BpmnEvent event){
 		//check for attached
 				for (Shape in : s.getIncomings()){//find a BPMN activity as incoming to detect attached event
-					if (in.getStencilId().contains(constants.ENTITY_TASK) || in.getStencilId().contains(constants.ENTITY_SUBPROCESS)){
+					if (in.getStencilId().contains(constants.getEntityTask()) || in.getStencilId().contains(constants.getEntitySubprocess())){
 						for (Shape out : s.getOutgoings()){//find the outgoing sequence flow to annotate event there
-							if (out.getStencilId().contains(constants.ENTITY_SEQUENCEFLOW)){
+							if (out.getStencilId().contains(constants.getEntitySequenceflow())){
 								attachedEvents.put(out.getResourceId(), event);
 							}
 						}
@@ -813,8 +816,8 @@ public class BpmnParser implements IParser {
 	 * @param node
 	 */
 	private void prepareNode(Shape s, Vertex node){
-		node.setName(s.getProperty(constants.PROPERTY_NAME));
-		node.setDescription(s.getProperty(constants.PROPERTY_DESCRIPTION));
+		node.setName(s.getProperty(constants.getPropertyName()));
+		node.setDescription(s.getProperty(constants.getPropertyDescription()));
 		node.setId(s.getResourceId());
 		int x = s.getUpperLeft().getX().intValue();
 		int y = s.getUpperLeft().getY().intValue();
@@ -822,7 +825,7 @@ public class BpmnParser implements IParser {
 		int height = new Double(s.getHeight()).intValue();
 		node.setLayout(x, y, width, height);
 		//add id to map		
-		this.nodeIds.put(s.getResourceId(), new AbstractMap.SimpleEntry<Object, Subprocess>(node, null));
+		this.nodeIds.put(s.getResourceId(), new AbstractMap.SimpleEntry<IVertex, Subprocess>(node, null));
 		
 	}
 

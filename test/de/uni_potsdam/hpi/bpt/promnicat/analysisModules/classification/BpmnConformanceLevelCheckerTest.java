@@ -36,8 +36,8 @@ public class BpmnConformanceLevelCheckerTest {
 	public void testDescriptiveModelConformance() {
 		BpmnConformanceLevelChecker modelChecker = new BpmnConformanceLevelChecker(TestModelBuilder.createDescriptiveConformBpmnModel());
 		assertTrue(modelChecker.isDescriptiveModelingConform());
-		assertTrue(modelChecker.isAnalyticModelingConform());
-		assertTrue(modelChecker.isCommonExecutableModelingConform());
+		assertFalse(modelChecker.isAnalyticModelingConform());
+		assertFalse(modelChecker.isCommonExecutableModelingConform());
 	}
 
 	@Test
@@ -45,7 +45,7 @@ public class BpmnConformanceLevelCheckerTest {
 		BpmnConformanceLevelChecker modelChecker = new BpmnConformanceLevelChecker(TestModelBuilder.getConnectedBpmnModel());
 		assertFalse(modelChecker.isDescriptiveModelingConform());
 		assertTrue(modelChecker.isAnalyticModelingConform());
-		assertTrue(modelChecker.isCommonExecutableModelingConform());
+		assertFalse(modelChecker.isCommonExecutableModelingConform());
 	}
 	
 	@Test

@@ -41,7 +41,7 @@ import de.uni_potsdam.hpi.bpt.ai.diagram.Shape;
 /**
  * Retrieves a Diagram instance (JSON format) of the EPC process model and maps it
  * on jBPT. 
- * @author Cindy Fähnrich
+ * @author Cindy Fähnrich, Tobias Hoppe
  *
  */
 public class EpcParser implements IParser {

@@ -38,13 +38,12 @@
 		<javac srcdir="${dir.jbpt}/src" destdir="${dir.build}/bin" includeantruntime="false" source="1.6" target="1.6" debug="on" nowarn="on">
 			<classpath>
 				<fileset dir="${dir.jbpt}/lib" includes="**/*.jar"/>
-				<fileset dir="${dir.lib}" includes="**/*.jar"/>
+				<fileset dir="${dir.lib}" includes="**/*.jar" excludes="bpmai.jar"/>
 			</classpath>
 		</javac>
 		<jar destfile="${dir.build}/jbpt.jar" basedir="${dir.build}/bin"></jar>
-		<delete>
-			<fileset dir="${dir.build}/bin" includes="*.class"/>
-		</delete>
+		<delete dir="${dir.build}/bin"/>
+		<mkdir dir="${dir.build}/bin"/>
 	</target>
 	
 	<!-- - - - - - - - - - - - - - - - - - 
@@ -58,9 +57,8 @@
 			</classpath>
 		</javac>
 		<jar destfile="${dir.build}/bpmai.jar" basedir="${dir.build}/bin"></jar>
-		<delete>
-			<fileset dir="${dir.build}/bin" includes="*.class"/>
-		</delete>
+		<delete dir="${dir.build}/bin"/>
+		<mkdir dir="${dir.build}/bin"/>
 	</target>
 	
 	<!-- - - - - - - - - - - - - - - - - - 

@@ -18,6 +18,7 @@
 package de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData;
 
 import org.jbpt.petri.PetriNet;
+import org.jbpt.petri.bevahior.LolaSoundnessCheckerResult;
 import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.bpmn.Bpmn;
 
@@ -41,6 +42,15 @@ public class UnitDataClassification<V extends Object> extends UnitDataJbpt<V> im
 	private boolean isDescriptiveModelingConform = false;
 	private boolean isAnalyticModelingConform = false;
 	private boolean isCommonExecutableModelingConform = false;
+	private LolaSoundnessCheckerResult soundnessResults = null;	
+	private boolean isCyclic = false;
+	private boolean isFreeChoice = false;
+	private boolean isExtendedFreeChoice = false;
+	private boolean isSNet = false;
+	private boolean isTnet = false;
+	private boolean isWorkflowNet = false;
+	private boolean isStructured = false;
+	private boolean canBeStructured = false;
 
 	/**
 	 * Creates an empty result with <code>null</code> elements.
@@ -117,7 +127,67 @@ public class UnitDataClassification<V extends Object> extends UnitDataJbpt<V> im
 	public void setModelPath(String modelPath) {
 		this.modelPath = modelPath;
 	}
+
+	@Override
+	public boolean isCyclic() {
+		return isCyclic;
+	}
+
+	@Override
+	public void setCyclic(boolean isCyclic) {
+		this.isCyclic = isCyclic;
+	}
 	
+	@Override
+	public boolean isFreeChoice() {
+		return isFreeChoice;
+	}
+
+	@Override
+	public void setFreeChoice(boolean isFreeChoice) {
+		this.isFreeChoice = isFreeChoice;
+	}
+
+	@Override
+	public boolean isExtendedFreeChoice() {
+		return isExtendedFreeChoice;
+	}
+
+	@Override
+	public void setExtendedFreeChoice(boolean isExtendedFreeChoice) {
+		this.isExtendedFreeChoice = isExtendedFreeChoice;
+	}
+
+	@Override
+	public boolean isSNet() {
+		return isSNet;
+	}
+
+	@Override
+	public void setSNet(boolean isSNet) {
+		this.isSNet = isSNet;
+	}
+
+	@Override
+	public boolean isTnet() {
+		return isTnet;
+	}
+
+	@Override
+	public void setTnet(boolean isTnet) {
+		this.isTnet = isTnet;
+	}
+
+	@Override
+	public boolean isWorkflowNet() {
+		return isWorkflowNet;
+	}
+
+	@Override
+	public void setWorkflowNet(boolean isWorkflowNet) {
+		this.isWorkflowNet = isWorkflowNet;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder(super.toString() + "\n");
@@ -127,37 +197,96 @@ public class UnitDataClassification<V extends Object> extends UnitDataJbpt<V> im
 		builder.append(this.isAnalyticModelingConform);
 		builder.append(", isCommonExecutableModelingConform=");
 		builder.append(this.isCommonExecutableModelingConform);
-		//TODO add further attributes here
+		if(this.soundnessResults != null) {
+			builder.append(this.soundnessResults.toString());
+		}
+		builder.append(", isCyclic=" + this.isCyclic);
+		builder.append(", isFreeChoice=" + this.isFreeChoice);
+		builder.append(", isExtendedFreeChoice=" + this.isExtendedFreeChoice);
+		builder.append(", isSNet=" + this.isSNet);
+		builder.append(", isTNet=" + this.isTnet);
+		builder.append(", isWorkFlowNet=" + this.isWorkflowNet);
+		builder.append(", isStructured=" + this.isStructured);
 		builder.append("]\n");
 		return builder.toString();
 	}
 
 	@Override
-	public String toCsv(String itemseparator) {
+	public String toCsv(String itemseparator, boolean printPetriNet) {
 		StringBuilder builder = new StringBuilder();
 		builder.append(this.modelPath + itemseparator);
 		builder.append(this.getDbId() + itemseparator);
-		if (this.isDescriptiveModelingConform) {
-			builder.append("1" + itemseparator);
-		} else {
-			builder.append("0" + itemseparator);
-		}
-		if (this.isAnalyticModelingConform) {
-			builder.append("1" + itemseparator);
-		} else {
-			builder.append("0" + itemseparator);
-		}
-		if (this.isCommonExecutableModelingConform) {
-			builder.append("1" + itemseparator);
-		} else {
-			builder.append("0" + itemseparator);
-		}
-		//TODO add further attributes here
-		if (this.petriNet != null) {
+		//add BPMN Conformance Level check results
+		builder.append(addCsvContentFor(this.isDescriptiveModelingConform) + itemseparator);
+		builder.append(addCsvContentFor(this.isAnalyticModelingConform) + itemseparator);
+		builder.append(addCsvContentFor(this.isCommonExecutableModelingConform) + itemseparator);
+		//add soundness check results
+		builder.append(addCsvContentFor(this.soundnessResults.isBounded()) + itemseparator);
+		builder.append(addCsvContentFor(this.soundnessResults.hasLiveness()) + itemseparator);
+		builder.append(addCsvContentFor(this.soundnessResults.hasQuasiLiveness()) + itemseparator);
+		builder.append(addCsvContentFor(this.soundnessResults.isRelaxedSound()) + itemseparator);
+		builder.append(addCsvContentFor(this.soundnessResults.isWeakSound()) + itemseparator);
+		builder.append(addCsvContentFor(this.soundnessResults.isClassicalSound()) + itemseparator);
+		builder.append(addCsvContentFor(this.soundnessResults.hasTransitioncover()) + itemseparator);
+		builder.append(this.soundnessResults.getDeadTransitions().toString() + itemseparator);
+		builder.append(this.soundnessResults.getUncoveredTransitions().toString() + itemseparator);
+		builder.append(this.soundnessResults.getUnboundedPlaces().toString() + itemseparator);
+		//add structural check results
+		builder.append(addCsvContentFor(this.isCyclic) + itemseparator);
+		builder.append(addCsvContentFor(this.isFreeChoice) + itemseparator);
+		builder.append(addCsvContentFor(this.isExtendedFreeChoice) + itemseparator);
+		builder.append(addCsvContentFor(this.isSNet) + itemseparator);
+		builder.append(addCsvContentFor(this.isTnet) + itemseparator);
+		builder.append(addCsvContentFor(this.isWorkflowNet) + itemseparator);
+		builder.append(addCsvContentFor(this.isStructured) + itemseparator);
+		//add Petri net if wanted
+		if (this.petriNet != null && printPetriNet) {
 			builder.append(this.petriNet.toDOT());		
 		}
 		builder.append("\n");
 		return builder.toString();
+	}
+
+	/**
+	 * @param value to check
+	 * @return "1" if value is <code>true</code>, otherwise "0".
+	 */
+	private String addCsvContentFor(boolean value) {
+		if(value) {
+			return "1";
+		} else {
+			return "0";
+		}
+	}
+
+	@Override
+	public LolaSoundnessCheckerResult getSoundnessResults() {
+		return soundnessResults;
+	}
+
+	 @Override
+	public void setSoundnessResults(LolaSoundnessCheckerResult soundnessResults) {
+		this.soundnessResults = soundnessResults;
+	}
+
+	@Override
+	public boolean isStructured() {
+		return isStructured;
+	}
+
+	@Override
+	public void setStructured(boolean isStructured) {
+		this.isStructured = isStructured;
+	}
+
+	@Override
+	public boolean canBeStructured() {
+		return canBeStructured;
+	}
+
+	@Override
+	public void setAsStructurable(boolean canBeStructured) {
+		this.canBeStructured = canBeStructured;
 	}
 
 }

@@ -29,11 +29,12 @@ import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.XorGateway;
 import org.jbpt.pm.bpmn.Bpmn;
 import org.jbpt.pm.bpmn.BpmnControlFlow;
+import org.jbpt.pm.bpmn.BpmnEventTypes.BPMN_EVENT_TYPES;
 import org.jbpt.pm.bpmn.EndEvent;
 import org.jbpt.pm.bpmn.StartEvent;
 import org.jbpt.pm.bpmn.Subprocess;
 import org.jbpt.pm.bpmn.Task;
-import org.jbpt.pm.bpmn.BpmnEventTypes.BPMN_EVENT_TYPES;
+import org.jbpt.pm.epc.Epc;
 
 
 /**
@@ -177,7 +178,6 @@ public class TestModelBuilder {
 		model.addControlFlow(t7, t6);
 		
 		return model;
-		
 	}
 	
 	/**
@@ -260,6 +260,81 @@ public class TestModelBuilder {
 		model.addControlFlow(t4, xor3);
 		model.addControlFlow(xor3, and2);
 		
+		return model;
+	}
+	
+	/**
+	 * @param type The type of model to create. Must be one of 
+	 * {@link ProcessModel}, {@link Bpmn}, or {@link Epc}.
+	 * @return the following single entry/single exit {@link ProcessModel}
+	 * without {@link OrGateway}s:
+	 * 
+	 * e1->t1->and1->t2->and2-->t3->xor1->t5->xor2->t6->e3
+	 * 			|		 |			 |		    |
+	 * 			|-->e2-->|			 |--->t4--->|
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 * 
+	 */
+	public static ProcessModel getModelWithoutOrGateway(Class<?> type) throws InstantiationException, IllegalAccessException {
+		ProcessModel model = (ProcessModel) type.newInstance();
+		
+		StartEvent e1 = new StartEvent("e1");
+		Activity t1 = new Activity("t1");
+		AndGateway and1 = new AndGateway("and1");
+		Activity t2 = new Activity("t2");
+		AndGateway and2 = new AndGateway("and2");
+		Event e2 = new Event("e2");
+		Activity t3 = new Activity("t3");
+		XorGateway xor1 = new XorGateway("xor1");
+		Activity t4 = new Activity("t4");
+		Activity t5 = new Activity("t5");
+		XorGateway xor2 = new XorGateway("xor2");
+		Activity t6 = new Activity("t6");
+		EndEvent e3 = new EndEvent("e3");
+		
+		model.addControlFlow(e1, t1);
+		model.addControlFlow(t1, and1);
+		model.addControlFlow(and1, e2);
+		model.addControlFlow(and1, t2);
+		model.addControlFlow(e2, and2);
+		model.addControlFlow(t2, and2);		
+		model.addControlFlow(and2, t3);
+		model.addControlFlow(t3, xor1);
+		model.addControlFlow(xor1, t4);
+		model.addControlFlow(xor1, t5);
+		model.addControlFlow(t4, xor2);
+		model.addControlFlow(t5, xor2);
+		model.addControlFlow(xor2, t6);
+		model.addControlFlow(t6, e3);
+		
+		return model;
+	}
+	
+	/** 
+	 * @param size the total number of {@link FlowNode}s of this sequence
+	 * @param type The type of model to create. Must be one of 
+	 * {@link ProcessModel}, {@link Bpmn}, or {@link Epc}.
+	 * @return a {@link ProcessModel} representing a sequence
+	 * of {@link Activity}s and {@link Event}s
+	 * @throws IllegalAccessException 
+	 * @throws InstantiationException 
+	 */
+	public static ProcessModel getSequence(int size, Class<?> type) throws InstantiationException, IllegalAccessException {
+		ProcessModel model = (ProcessModel) type.newInstance();
+		FlowNode lastNode = new Event("start");
+		model.addFlowNode(lastNode);
+		for(int i = 1; i < size; i++) {
+			FlowNode node = null;
+			if(i % 2 == 1) {
+				node = new Activity("a" + i);
+			} else {
+				node = new Event("e" + i);
+			}
+			model.addFlowNode(node);
+			model.addControlFlow(lastNode, node);
+			lastNode = node;
+		}
 		return model;
 	}
 }

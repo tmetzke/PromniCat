@@ -57,15 +57,14 @@ public class BpmnConformanceLevelCheckerUnitTest {
 	}
 	
 	@Test
-	public void testOneMetricCalculation() {
+	public void testConformanceLevelCalculation() {
 		IUnitData<Object> unitData = new UnitDataClassification<Object>(TestModelBuilder.getConnectedBpmnModel());
 		try{
 			IUnitDataClassification<Object> result = (IUnitDataClassification<Object>) unit.execute(unitData);
 			assertSame(unitData, result);
 			assertFalse(result.getDescriptiveModelingConformance());
 			assertTrue(result.getAnalyticModelingConformance());
-			assertTrue(result.getCommonExecutableModelingConformance());
-			//TODO check further properties later on
+			assertFalse(result.getCommonExecutableModelingConformance());
 		} catch (Exception e) {
 			fail("got unexpected error with message: " + e.getMessage() + "\n" + e.getStackTrace().toString());
 		}

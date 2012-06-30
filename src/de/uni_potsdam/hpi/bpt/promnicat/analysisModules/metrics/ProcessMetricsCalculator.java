@@ -21,14 +21,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import org.jbpt.algo.CombinationGenerator;
+import org.jbpt.algo.graph.GraphAlgorithms;
+import org.jbpt.algo.graph.TransitiveClosure;
 import org.jbpt.graph.abs.AbstractMultiGraphFragment;
-import org.jbpt.graph.algo.CombinationGenerator;
-import org.jbpt.graph.algo.GraphAlgorithms;
-import org.jbpt.graph.algo.TransitiveClosure;
+import org.jbpt.graph.abs.IGraph;
 import org.jbpt.hypergraph.abs.IVertex;
 import org.jbpt.pm.Activity;
 import org.jbpt.pm.AlternativGateway;
@@ -454,7 +456,6 @@ public class ProcessMetricsCalculator {
 	 */
 	public int getDiameter(ProcessModel model, boolean includeSubProcesses) {
 		int diameter = 0;
-		GraphAlgorithms<ControlFlow<FlowNode>, FlowNode> graphAlgorithms = new GraphAlgorithms<ControlFlow<FlowNode>, FlowNode>();
 		Collection<FlowNode> excludedNodes = new ArrayList<FlowNode>();
 		//add all single node model parts to exclusion list
 		for (FlowNode node : model.getVertices()) {
@@ -466,7 +467,7 @@ public class ProcessMetricsCalculator {
 		//calculate maximum diameter of each independent model part
 		while (true) {
 			//get next model part
-			AbstractMultiGraphFragment<ControlFlow<FlowNode>, FlowNode> fragment = graphAlgorithms.getConnectedFragment(model, excludedNodes);
+			AbstractMultiGraphFragment<ControlFlow<FlowNode>, FlowNode> fragment = this.getConnectedFragment(model, excludedNodes);
 			if (fragment.getVertices().isEmpty()){
 				break;
 			}
@@ -700,7 +701,7 @@ public class ProcessMetricsCalculator {
 	}
 
 	/**
-	 * TODO extend metric by information about the number of hand overs<br/>
+	 * TODO extend metric by information about the number of hand overs
 	 * and split up into calculation of #lanes and #pools?
 	 * 
 	 * @param model to analyze
@@ -1196,8 +1197,7 @@ public class ProcessMetricsCalculator {
 	 */
 	private int getNumberOfModelParts(ProcessModel model, Collection<FlowNode> excludedNodes, boolean includeSubProcesses) {
 		int modelParts = 1;
-		GraphAlgorithms<ControlFlow<FlowNode>, FlowNode> graphAlgorithms = new GraphAlgorithms<ControlFlow<FlowNode>, FlowNode>();		
-		AbstractMultiGraphFragment<ControlFlow<FlowNode>, FlowNode> fragment = graphAlgorithms.getConnectedFragment(model, excludedNodes);
+		AbstractMultiGraphFragment<ControlFlow<FlowNode>, FlowNode> fragment = this.getConnectedFragment(model, excludedNodes);
 
 		if (fragment.getVertices().isEmpty()) {
 			return 0;
@@ -1295,8 +1295,7 @@ public class ProcessMetricsCalculator {
 	private double getSeparabilitySum(ProcessModel model, Collection<FlowNode> excludedNodes, boolean includeSubProcesses) {
 		double separabilitySum = 0.0;
 
-		GraphAlgorithms<ControlFlow<FlowNode>, FlowNode> graphAlgorithms = new GraphAlgorithms<ControlFlow<FlowNode>, FlowNode>();		
-		AbstractMultiGraphFragment<ControlFlow<FlowNode>, FlowNode> fragment = graphAlgorithms.getConnectedFragment(model, excludedNodes);
+		AbstractMultiGraphFragment<ControlFlow<FlowNode>, FlowNode> fragment = this.getConnectedFragment(model, excludedNodes);
 
 		//if the model only consists of single not connected activities return with separability of zero and
 		// add the number of excluded nodes to the total number of model parts minus two
@@ -1451,5 +1450,46 @@ public class ProcessMetricsCalculator {
 			}
 		}
 		return numberOfTokens;
+	}
+	
+	/**
+	 * Get random connected fragment of the graph
+	 * Do not consider specified vertices
+	 * @param g Graph
+	 * @param vs Collection of vertices to not consider
+	 * @return Some connected fragment of a graph 
+	 */
+	private AbstractMultiGraphFragment<ControlFlow<FlowNode>,FlowNode> getConnectedFragment(IGraph<ControlFlow<FlowNode>,FlowNode> g, Collection<FlowNode> vs) {
+		AbstractMultiGraphFragment<ControlFlow<FlowNode>,FlowNode> result = new AbstractMultiGraphFragment<ControlFlow<FlowNode>,FlowNode>(g);
+		
+		Collection<FlowNode> vertices = g.getVertices();
+		vertices.removeAll(vs);
+		
+		if (vertices.size()==0) return result;
+		
+		FlowNode x = vertices.iterator().next(); 
+		Collection<FlowNode> L = new ArrayList<FlowNode>();
+		Collection<FlowNode> K = new ArrayList<FlowNode>();
+		L.add(x); K.add(x);
+		
+		while (K.size()>0) {
+			FlowNode y = K.iterator().next();
+			K.remove(y);
+
+			Iterator<FlowNode> j = g.getAdjacent(y).iterator();
+			while (j.hasNext()) {
+				FlowNode z = j.next();
+				if (!L.contains(z)) {
+					L.add(z);
+					if (!vs.contains(z)) K.add(z);
+				}
+				
+				if (result.getEdge(y, z)==null)
+					result.addEdge(y, z);
+				
+			}
+		}
+		
+		return result;
 	}
 }

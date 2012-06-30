@@ -25,6 +25,7 @@ import org.jbpt.pm.ControlFlow;
 import org.jbpt.pm.Event;
 import org.jbpt.pm.FlowNode;
 import org.jbpt.pm.OrGateway;
+import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.bpmn.Bpmn;
 import org.jbpt.pm.bpmn.BpmnActivity;
 import org.jbpt.pm.bpmn.BpmnControlFlow;
@@ -36,7 +37,10 @@ import org.jbpt.pm.bpmn.Subprocess;
 
 /**
  * This class checks a given {@link Bpmn} process model for conformance according to
- * the BPMN Conformance Levels defined in the BPMN specification.
+ * the BPMN Conformance Levels defined in the BPMN specification. In difference to the 
+ * definition of the specification this conformance level checker only find the 
+ * lowest level (descriptive modeling < analytic modeling < common executable modeling)
+ * and all upper levels are not marked as conform.
  * 
  * @author Tobias Hoppe
  */
@@ -71,6 +75,12 @@ public class BpmnConformanceLevelChecker {
 		if (this.isDescriptiveConform != null) {
 			return this.isDescriptiveConform;
 		}
+		//check for already calculated results
+		if((this.isAnalyticConform != null && this.isAnalyticConform)
+				|| (this.isExecutableConform != null && this.isExecutableConform)) {
+			this.isDescriptiveConform = false;
+			return this.isAnalyticConform;
+		}
 		
 		//or as well as event based xor gateways are not allowed
 		if (!this.model.filter(OrGateway.class).isEmpty() ||
@@ -97,7 +107,7 @@ public class BpmnConformanceLevelChecker {
 			}
 		}
 		
-		this.isDescriptiveConform = true;
+		this.setDescriptiveConform();
 		return this.isDescriptiveConform;
 	}
 
@@ -111,18 +121,25 @@ public class BpmnConformanceLevelChecker {
 		if (this.isAnalyticConform != null) {
 			return this.isAnalyticConform;
 		}
+		
+		//check for already calculated results
+		if(this.isDescriptiveModelingConform() || (this.isExecutableConform != null && this.isExecutableConform)) {
+			this.isAnalyticConform = false;
+			return this.isAnalyticConform;
+		}
+
 		@SuppressWarnings("unchecked")
 		Collection<Subprocess> subProcesses = (Collection<Subprocess>) this.model.filter(Subprocess.class);
 		for(Subprocess subProcess : subProcesses) {
 			if ((!subProcess.isCollapsed()) &&
 					(subProcess.isStandardLoop() || subProcess.isParallelMultiple() || subProcess.isSequentialMultiple())) {
-				this.isAnalyticConform = false;
-				return false;
+				this.setCommonExecutableConform();
+				return this.isAnalyticConform;
 			}
 		}
 		
 		//TODO check for further attributes
-		this.isAnalyticConform = true;
+		this.setAnalyticConform();
 		return this.isAnalyticConform;
 	}
 	
@@ -136,37 +153,14 @@ public class BpmnConformanceLevelChecker {
 		if (this.isExecutableConform != null) {
 			return this.isExecutableConform;
 		}
+		//check for already calculated results
+		if(this.isDescriptiveModelingConform() || this.isAnalyticModelingConform()) {
+			this.isAnalyticConform = false;
+			return this.isAnalyticConform;
+		}
 		
-		//TODO check for possible models not being conform
 		this.isExecutableConform = true;
 		return this.isExecutableConform;
-	}
-
-	/**
-	 * @return <code>false</code> if the model contains any loop, multiple instance, send, or receive tasks.
-	 * <br/><code>true</code> otherwise.
-	 */
-	private boolean filterByTasks() {
-		//loop and multiple instance tasks are not allowed
-		for(Activity activity : this.model.getActivities()) {
-			if(activity instanceof BpmnActivity) {
-				if (((BpmnActivity) activity).isSequentialMultiple() ||
-						((BpmnActivity) activity).isParallelMultiple() ||
-						((BpmnActivity) activity).isStandardLoop()) {
-					return false;
-				}
-			}
-			
-		}
-		
-		//send and receive tasks are not allowed
-		for(BpmnMessageFlow msgFlowEdge : this.model.getMessageflows()) {
-			if(msgFlowEdge.getSource() instanceof Activity ||
-					msgFlowEdge.getTarget() instanceof Activity) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	/**
@@ -209,5 +203,59 @@ public class BpmnConformanceLevelChecker {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * @return <code>false</code> if the model contains any loop, multiple instance, send, or receive tasks.
+	 * <br/><code>true</code> otherwise.
+	 */
+	private boolean filterByTasks() {
+		//loop and multiple instance tasks are not allowed
+		for(Activity activity : this.model.getActivities()) {
+			if(activity instanceof BpmnActivity) {
+				if (((BpmnActivity) activity).isSequentialMultiple() ||
+						((BpmnActivity) activity).isParallelMultiple() ||
+						((BpmnActivity) activity).isStandardLoop()) {
+					return false;
+				}
+			}
+			
+		}
+		
+		//send and receive tasks are not allowed
+		for(BpmnMessageFlow msgFlowEdge : this.model.getMessageflows()) {
+			if(msgFlowEdge.getSource() instanceof Activity ||
+					msgFlowEdge.getTarget() instanceof Activity) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * set current {@link ProcessModel} as analytic conform
+	 */
+	private void setAnalyticConform() {
+		this.isAnalyticConform = true;
+		this.isDescriptiveConform = false;
+		this.isExecutableConform = false;
+	}
+	
+	/**
+	 * set current {@link ProcessModel} as descriptive conform
+	 */
+	private void setDescriptiveConform() {
+		this.isAnalyticConform = false;
+		this.isDescriptiveConform = true;
+		this.isExecutableConform = false;
+	}
+	
+	/**
+	 * set current {@link ProcessModel} as common executable conform
+	 */
+	private void setCommonExecutableConform() {
+		this.isAnalyticConform = false;
+		this.isDescriptiveConform = false;
+		this.isExecutableConform = true;
 	}
 }

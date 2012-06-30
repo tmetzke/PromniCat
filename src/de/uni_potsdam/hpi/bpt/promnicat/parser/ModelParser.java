@@ -49,12 +49,7 @@ public class ModelParser implements IParser {
 		delegates.put("epc#", new EpcParser(new EpcConstants(), strictness));
 	}
 
-	/**
-	 * Parses the stencil set out of the diagram and creates the corresponding process model in jBPT
-	 * by delegating the diagram to the corresponding parser
-	 * @param process to transform into jbpt representation
-	 * @return the corresponding process model
-	 */
+	@Override
 	public ProcessModel transformProcess(Diagram process){
 
 		String namespace = process.getStencilset().getNamespace();

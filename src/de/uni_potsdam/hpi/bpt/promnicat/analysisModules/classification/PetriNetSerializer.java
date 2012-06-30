@@ -1,6 +1,6 @@
 /**
  * PromniCAT - Collection and Analysis of Business Process Models
- * Copyright (C) 2012 Cindy Fähnrich, Tobias Hoppe, Andrina Mascher
+ * Copyright (C) 2012 Cindy Fï¿½hnrich, Tobias Hoppe, Andrina Mascher
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,23 +17,63 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.analysisModules.classification;
 
-import java.io.File;
+import java.util.logging.Logger;
 
+import org.jbpt.petri.Flow;
+import org.jbpt.petri.NetSystem;
 import org.jbpt.petri.PetriNet;
+import org.jbpt.petri.io.PNMLSerializer;
 
 /**
+ * This class provides methods to serialize/unserialize {@link PetriNet}s into/from PNML.
  * @author Tobias Hoppe
  *
  */
 public class PetriNetSerializer {
+	
+	private static final Logger logger = Logger.getLogger(PetriNetSerializer.class.getName());
 
-	public static File serialize(PetriNet petriNet) {
-		//TODO implement using PNMLSerializer
+	/**
+	 * @param petriNet {@link PetriNet} to serialize
+	 * @return a byte array representing the PNML-Serialization of the given {@link PetriNet}.
+	 */
+	public static byte[] serialize(PetriNet petriNet) {
+		try {
+			return PNMLSerializer.serializePetriNet(transformToNetSystem(petriNet), PNMLSerializer.LOLA).getBytes("UTF-8");
+		} catch (Exception e) {
+			logger.warning("Petri Net could not be serialized due to the following error:\n" + e.getMessage());
+		}
 		return null;
 	}
 	
-	public static PetriNet parsePetriNet(String pathToPetriNetFile) {
-		//TODO implement using PNMLSerializer
-		return null;
+	/**
+	 * Transforms the given {@link PetriNet} into a {@link NetSystem} and adds the natural
+	 * markings(all source nodes are filled with one marking).
+	 * @param petriNet {@link PetriNet} to transform
+	 * @return The {@link NetSystem} of the given {@link PetriNet}.
+	 */
+	private static NetSystem transformToNetSystem(PetriNet petriNet) {
+		NetSystem netSystem = new NetSystem();
+		netSystem.addNodes(petriNet.getNodes());
+		for(Flow edge : petriNet.getEdges()) {
+			netSystem.addFlow(edge.getSource(), edge.getTarget());
+		}
+		netSystem.loadNaturalMarking();
+		return netSystem;
+	}
+
+	/**
+	 * @param pnmlContent the PNML-content to unserialize
+	 * @return The {@link PetriNet} unserialzed from the given PNML-content.
+	 */
+	public static PetriNet parsePetriNet(byte[] pnmlContent) {
+		NetSystem netSystem = new PNMLSerializer().parse(pnmlContent);
+		//transform net system to PetriNet
+		PetriNet pn = new PetriNet();
+		pn.addNodes(netSystem.getNodes());
+		for(Flow edge : netSystem.getEdges()) {
+			pn.addFlow(edge.getSource(), edge.getTarget());
+		}
+		return pn;
 	}
 }

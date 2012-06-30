@@ -203,6 +203,13 @@ public interface IUnitChainBuilder {
 	public void createMetaDataFilterUnit(Pattern keyToFilter, Pattern valueToFilter) throws IllegalTypeException;
 	
 	/**
+	 * Add a {@link IUnit} to the internal {@link IUnitChain}, that is used to evaluate,
+	 * whether a given {@link ProcessModel} can be structured or even is structured, using bpstruct. 
+	 * @throws IllegalTypeException if the unit's input and output value classes are not compatible.
+	 */
+	public void createModelStructuringUnit() throws IllegalTypeException;
+	
+	/**
 	 * Add a {@link IUnit} to the internal {@link IUnitChain}, that is used to filter out
 	 * the given model element type and all of it's sub-types from a jBPT {@link ProcessModel}.
 	 * 
@@ -220,6 +227,13 @@ public interface IUnitChainBuilder {
 	 */
 	public void createElementExtractorUnit(Collection<Class<?>> classesToFilter) throws IllegalTypeException;
 	
+	/**
+	 * Add a {@link IUnit} to the internal {@link IUnitChain}, that is used to analyze the formerly
+	 * created {@link PetriNet} regarding soundness, free choice, S/T-Net, workflow net, ...
+	 * @throws IllegalTypeException if the unit's input and output value classes are not compatible.
+	 */
+	public void createPetriNetAnalyzerUnit() throws IllegalTypeException;
+
 	/**
 	 * Add a {@link IUnit} to the internal {@link IUnitChain}, that holds the result of the 
 	 * {@link IUnitChain} execution. The result is created by simply collecting

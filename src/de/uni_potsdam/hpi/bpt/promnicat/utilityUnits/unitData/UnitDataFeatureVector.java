@@ -98,8 +98,10 @@ public class UnitDataFeatureVector<V extends Object> extends UnitData<V> impleme
 	
 	@Override
 	public String toString(){
-		StringBuilder builder = new StringBuilder();
-		//TODO add something here to Stringbuilder: feature vector and process model name?
+		StringBuilder builder = new StringBuilder(super.toString());
+		builder.append("\nfeature vector: ");
+		builder.append(featureVector.toString());
+		builder.append("\n");		
 		return builder.toString();
 	}
 
