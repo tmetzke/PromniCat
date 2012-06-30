@@ -139,7 +139,7 @@ public class IndividualProcessMetrics {
 
 	@SuppressWarnings("unused")
 	private static void clusterModels(Map<String, AnalysisProcessModel> models) {
-		ProcessInstances instances = new ProcessInstances("", numericAttributes, models.values().size());
+		ProcessInstances instances = new ProcessInstances("", numericAttributes, null, models.values().size());
 		
 		for (AnalysisProcessModel model : models.values()){
 			double[] values = {model.getCMRIterations()};

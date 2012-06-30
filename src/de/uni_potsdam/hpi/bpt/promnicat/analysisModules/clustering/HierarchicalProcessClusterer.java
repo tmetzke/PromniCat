@@ -29,8 +29,6 @@ import weka.clusterers.HierarchicalClusterer;
 import weka.core.CapabilitiesHandler;
 import weka.core.DistanceFunction;
 import weka.core.Drawable;
-import weka.core.EditDistance;
-import weka.core.EuclideanDistance;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.OptionHandler;
@@ -72,6 +70,18 @@ public class HierarchicalProcessClusterer extends HierarchicalClusterer
 
 	/** number of clusters desired in clustering **/
 	int m_nNumClusters = 2;
+	
+	public HierarchicalProcessClusterer() {
+		super();
+	}
+	
+	/**
+	 * constructor that sets the numeric distance function.
+	 * To set the string distance function as well, use {@link #setStringDistanceFunction(DistanceFunction)}.
+	 */
+	public HierarchicalProcessClusterer(DistanceFunction distanceFunction) {
+		setNumericDistanceFunction(distanceFunction);
+	}
 
 	/**
 	 * Sets the number of clusters for the result to have
@@ -94,10 +104,10 @@ public class HierarchicalProcessClusterer extends HierarchicalClusterer
 	}
 
 	/** distance function used for comparing NUMERIC attributes of members of a cluster**/
-	protected DistanceFunction m_DistanceFunction = new EuclideanDistance();
+	protected DistanceFunction m_DistanceFunction;
 
 	/** distance function used for comparing STRING attributes of members of a cluster **/
-	protected DistanceFunction m_StringDistanceFunction = new EditDistance();
+	protected DistanceFunction m_StringDistanceFunction;
 	
 	/** boolean indicating whether to use clustering ONLY of string members or not
 	 * if value is set to null, both string and numeric values shall be clustered
@@ -175,6 +185,7 @@ public class HierarchicalProcessClusterer extends HierarchicalClusterer
 		
 		if (useStrings == null){//calc both
 			double result1 = m_StringDistanceFunction.distance(instance1, instance2);
+
 			double result2 = m_DistanceFunction.distance(instance1, instance2);
 			
 			return (result1 + result2)/2;	
@@ -182,6 +193,7 @@ public class HierarchicalProcessClusterer extends HierarchicalClusterer
 		if (useStrings.booleanValue()){
 			double result = m_StringDistanceFunction.distance(instance1, instance2);
 			
+
 			return result;
 		} else {
 			double result =  m_DistanceFunction.distance(instance1, instance2);
@@ -189,7 +201,6 @@ public class HierarchicalProcessClusterer extends HierarchicalClusterer
 			return result;
 		}
 	}
-	
 
 	/**
 	 * used for priority queue for efficient retrieval of pair of clusters to
@@ -506,7 +517,7 @@ public class HierarchicalProcessClusterer extends HierarchicalClusterer
 				root.addChild(cluster);
 			}
 		}
-		tree.assignNamesToClusters();
+		//tree.assignNamesToClusters();
 		return tree;
 	}
 
