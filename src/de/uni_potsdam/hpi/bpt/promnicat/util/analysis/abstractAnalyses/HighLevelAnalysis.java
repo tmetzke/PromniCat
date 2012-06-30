@@ -48,12 +48,17 @@ public class HighLevelAnalysis extends AbstractAnalysis {
 	@Override
 	protected void performAnalysis() {
 		
-		Collections.addAll(analyses, 
-				new ModelGrowthAnalysis(modelsToAnalyze),
-				new HighLowSameAnalysis(modelsToAnalyze, AnalysisHelper.getProcessModelMetrics()),
-				new LazyRevisionsAnalysis(modelsToAnalyze, includeSubprocesses, AnalysisHelper.getIndividualMetrics()),
-				new ModelLanguageUsageAnalysis(modelsToAnalyze, AnalysisHelper.getModelLanguageMetrics()),
-				new CMRAnalysis(modelsToAnalyze));
+		IAnalysis modelGrowth = new ModelGrowthAnalysis(modelsToAnalyze);
+		analyzedModels = modelGrowth.getAnalyzedModels();
+		IAnalysis highLowSame = new HighLowSameAnalysis(modelsToAnalyze, analyzedModels, AnalysisHelper.getProcessModelMetrics());
+		analyzedModels = highLowSame.getAnalyzedModels();
+		IAnalysis lazyRevisions = new LazyRevisionsAnalysis(modelsToAnalyze, analyzedModels, includeSubprocesses, AnalysisHelper.getIndividualMetrics());
+		analyzedModels = lazyRevisions.getAnalyzedModels();
+		IAnalysis modellanguage = new ModelLanguageUsageAnalysis(modelsToAnalyze, analyzedModels, AnalysisHelper.getModelLanguageMetrics());
+		analyzedModels = modellanguage.getAnalyzedModels();
+		IAnalysis cmr = new CMRAnalysis(modelsToAnalyze, analyzedModels);
+		analyzedModels = cmr.getAnalyzedModels();
+		Collections.addAll(analyses, modelGrowth, highLowSame, lazyRevisions, modellanguage, cmr);
 	}
 
 	@Override

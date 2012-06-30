@@ -40,6 +40,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessEvolutionConstants;
+import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessEvolutionConstants.PROCESS_EVOLUTION;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisHelper;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
@@ -130,55 +131,12 @@ public class IndividualProcessMetrics {
 		
 		Map<String,AnalysisProcessModel> models = buildUpInternalDataStructure(result);
 
-//		models = performAnalyses(models);
+		models = performAnalyses(models);
 		setupClusterer();
 		clusterModels(models);
 		long time = System.currentTimeMillis() - startTime;
 		logger.info("Finished Analysis in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
 	}
-
-	@SuppressWarnings("unused")
-	private static void clusterModels(Map<String, AnalysisProcessModel> models) {
-		ProcessInstances instances = new ProcessInstances("", numericAttributes, null, models.values().size());
-		
-		for (AnalysisProcessModel model : models.values()){
-			double[] values = {model.getCMRIterations()};
-			ProcessInstance inst = new ProcessInstance(1, values);
-			inst.process = model;
-			instances.add(inst);
-		}
-			
-		try {//cluster the results
-			clusterer.buildClusterer(instances);
-			ClusterTree<ProcessInstances> clusters = clusterer.getClusters();
-			FastVector firstInstances = clusters.getRootElement().getChildren().get(0).getChildren().get(0).getData().getInstances();
-			FastVector secondInstances = clusters.getRootElement().getChildren().get(0).getChildren().get(1).getData().getInstances();
-			firstInstances.appendElements(secondInstances);
-			for (Object instance : firstInstances.toArray())
-				if(instance instanceof ProcessInstance)
-					System.out.println("Yay: " + ((ProcessInstance)instance).process.getName());
-			ClusterTree<ProcessInstances> newCluster = clusters.getSubtreeWithMinClusterSize(2);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Create hierarchical clusterer with his attributes
-	 */
-	private static void setupClusterer(){
-		numericAttributes = new FastVector();
-		Attribute att = new Attribute(ProcessEvolutionConstants.PROCESS_EVOLUTION.NUM_ITERATIONS.name());
-		att.setWeight(3);
-		numericAttributes.addElement(att);
-		
-		clusterer = new HierarchicalProcessClusterer(new EuclideanDistance());
-		clusterer.setLinkType("CENTROID");
-		clusterer.setNumClusters(1);
-		clusterer.setDebug(true);
-		clusterer.setAttributes(numericAttributes);
-	}
-	
 
 	/**
 	 * Create an new unit chain builder and builds up
@@ -324,5 +282,50 @@ public class IndividualProcessMetrics {
 		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH + "\n");
 		
 		return highLevel.getAnalyzedModels();
+	}
+
+	/**
+	 * Create hierarchical clusterer with his attributes
+	 */
+	private static void setupClusterer(){
+		numericAttributes = new FastVector();
+		Attribute att = new Attribute(ProcessEvolutionConstants.PROCESS_EVOLUTION.NUM_ITERATIONS.name());
+		att.setWeight(3);
+		numericAttributes.addElement(att);
+		
+		clusterer = new HierarchicalProcessClusterer(new EuclideanDistance());
+		clusterer.setLinkType("CENTROID");
+		clusterer.setNumClusters(1);
+		clusterer.setDebug(true);
+		clusterer.setAttributes(numericAttributes);
+	}
+
+	@SuppressWarnings("unused")
+	private static void clusterModels(Map<String, AnalysisProcessModel> models) {
+		ProcessInstances instances = new ProcessInstances("", numericAttributes, null, models.values().size());
+		for (AnalysisProcessModel model : models.values()){
+			double[] values = new double[numericAttributes.size()];
+			int i = 0;
+			for (Object evolution : numericAttributes.toArray())
+				if (evolution instanceof PROCESS_EVOLUTION)
+					values[i++] = (((PROCESS_EVOLUTION) evolution).getAttribute(model));
+			ProcessInstance inst = new ProcessInstance(1, values);
+			inst.process = model;
+			instances.add(inst);
+		}
+			
+		try {//cluster the results
+			clusterer.buildClusterer(instances);
+			ClusterTree<ProcessInstances> clusters = clusterer.getClusters();
+			FastVector firstInstances = clusters.getRootElement().getChildren().get(0).getChildren().get(0).getData().getInstances();
+			FastVector secondInstances = clusters.getRootElement().getChildren().get(0).getChildren().get(1).getData().getInstances();
+			firstInstances.appendElements(secondInstances);
+			for (Object instance : firstInstances.toArray())
+				if(instance instanceof ProcessInstance)
+					System.out.println("Yay: " + ((AnalysisProcessModel)((ProcessInstance)instance).process).getName());
+			ClusterTree<ProcessInstances> newCluster = clusters.getSubtreeWithMinClusterSize(2);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -31,13 +31,13 @@ public class ProcessEvolutionConstants {
 	public enum PROCESS_EVOLUTION{
 		IS_GROWING(ProcessEvolutionConstants.IS_GROWING){
 			/** returns true if the model is always growing */
-			public int getAttribute(AnalysisProcessModel input){
+			public double getAttribute(AnalysisProcessModel input){
 				return input.isGrowing() ? 1 : 0;
 			}
 		},
 		NUM_ITERATIONS(ProcessEvolutionConstants.NUM_ITERATIONS){
 			/** returns the number of CMR iterations the model went through */
-			public int getAttribute(AnalysisProcessModel input){
+			public double getAttribute(AnalysisProcessModel input){
 				return input.getCMRIterations();
 			}
 		};
@@ -51,6 +51,6 @@ public class ProcessEvolutionConstants {
 		public String toString() {
 			return description;
 		}
-		public abstract int getAttribute(AnalysisProcessModel input);
+		public abstract double getAttribute(AnalysisProcessModel input);
 	};
 }

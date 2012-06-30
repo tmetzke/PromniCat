@@ -65,15 +65,20 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 		for (AnalysisProcessModel model : modelsToAnalyze.values()) {
 			AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
 			Map<String, List<String>> oldElements = new HashMap<>();
+			int additions = 0, deletions = 0;
 			for (AnalysisModelRevision revision : model.getRevisions().values()) {
 				AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
 				// check adds and deletes for every class like Activities, Gateways, Edges etc.
 				for (AnalysisConstant classToAnalyze : metrics) {
 					Map<AnalysisConstant, Integer> addsAndDeletes = analyzeAddsAndDeletesFor(classToAnalyze, oldElements, revision, includeSubprocesses);
-					newRevision.add(classToAnalyze.getDescription() + AnalysisConstant.ADDITIONS.getDescription(), addsAndDeletes.get(AnalysisConstant.ADDITIONS));
-					newRevision.add(classToAnalyze.getDescription() + AnalysisConstant.DELETIONS.getDescription(), addsAndDeletes.get(AnalysisConstant.DELETIONS));
+					additions += addsAndDeletes.get(AnalysisConstant.ADDITIONS);
+					deletions += addsAndDeletes.get(AnalysisConstant.DELETIONS);
+					newRevision.add(classToAnalyze.getDescription() + AnalysisConstant.ADDITIONS.getDescription(), additions);
+					newRevision.add(classToAnalyze.getDescription() + AnalysisConstant.DELETIONS.getDescription(), deletions);
 				}
 				newModel.add(newRevision);
+				newModel.setNumberOfAdditions(additions);
+				newModel.setNumberOfDeletions(deletions);
 			}
 			analyzedModels.put(model.getName(), newModel);
 		}

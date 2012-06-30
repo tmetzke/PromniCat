@@ -59,20 +59,20 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 
 	@Override
 	protected void performAnalysis() {
-		Map<String, AnalysisProcessModel> alteringRevisions = new HashMap<String, AnalysisProcessModel>();
+		Map<String, AnalysisProcessModel> modelsWithAlteringRevisions = new HashMap<String, AnalysisProcessModel>();
 
 		// analyze additions and deletions and find altering revisions
 		IAnalysis addsDeletes = AnalysisHelper.analyzeAdditionsAndDeletions(modelsToAnalyze, includeSubprocesses);
-		Map<String, AnalysisProcessModel> addDeleteAnalyzedModels = addsDeletes.getAnalyzedModels();
-		for (AnalysisProcessModel model : addDeleteAnalyzedModels.values()) {
+		analyzedModels = addsDeletes.getAnalyzedModels();
+		for (AnalysisProcessModel model : analyzedModels.values()) {
 			numberOfRevisions += model.getRevisions().size();
 			for (AnalysisModelRevision revision : model.getRevisions().values())
 				for (AnalysisConstant metric : metrics)
 					if (!revision.get(metric.getDescription() + AnalysisConstant.ADDITIONS.getDescription()).equals(new Double(0))
 							|| !revision.get(metric.getDescription() + AnalysisConstant.ADDITIONS.getDescription()).equals(new Double(0))) {
-						if (!alteringRevisions.containsKey(model.getName()))
-							alteringRevisions.put(model.getName(), new AnalysisProcessModel(model.getName()));
-						alteringRevisions.get(model.getName()).add(revision);
+						if (!modelsWithAlteringRevisions.containsKey(model.getName()))
+							modelsWithAlteringRevisions.put(model.getName(), new AnalysisProcessModel(model.getName()));
+						modelsWithAlteringRevisions.get(model.getName()).add(revision);
 						break;
 					}
 		}
@@ -83,13 +83,18 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 		Map<String, AnalysisProcessModel> newLayoutModels = layoutChanges.getAnalyzedModels();
 		for (AnalysisProcessModel model : newLayoutModels.values())
 			for (AnalysisModelRevision revision : model.getRevisions().values())
-				if (alteringRevisions.containsKey(model.getName()))
-					if (!alteringRevisions.get(model.getName()).getRevisions().containsKey(revision.getRevisionNumber()))
+				if (modelsWithAlteringRevisions.containsKey(model.getName()))
+					if (!modelsWithAlteringRevisions.get(model.getName()).getRevisions().containsKey(revision.getRevisionNumber()))
 						if (!revision.get(AnalysisConstant.NEW_LAYOUT.getDescription()).equals(new Double(0)))
-							alteringRevisions.get(model.getName()).add(revision);
+							modelsWithAlteringRevisions.get(model.getName()).add(revision);
 		
-		for (AnalysisProcessModel model : alteringRevisions.values())
+		for (AnalysisProcessModel model : modelsWithAlteringRevisions.values()) {
+			AnalysisProcessModel analyzedModel = analyzedModels.get(model.getName());
+			if (analyzedModel != null) {
+					analyzedModel.setNumberOfAlteringRevisions(model.getRevisions().size());
+			}
 			numberOfAlteringRevisions += model.getRevisions().size();
+		}
 	}
 
 	@Override

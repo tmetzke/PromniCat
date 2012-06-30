@@ -51,7 +51,8 @@ public class CMRAnalysis extends AbstractAnalysis {
 	@Override
 	protected void performAnalysis() {
 		IAnalysis iterationsAnalysis = new CMRIterationsAnalysis(modelsToAnalyze);
-		for (AnalysisProcessModel model : iterationsAnalysis.getAnalyzedModels().values()) {
+		analyzedModels = iterationsAnalysis.getAnalyzedModels();
+		for (AnalysisProcessModel model : analyzedModels.values()) {
 			int iterations = model.getCMRIterations();
 			if (iterations <= LOW)
 				numberOfLowIterationNumbers++;

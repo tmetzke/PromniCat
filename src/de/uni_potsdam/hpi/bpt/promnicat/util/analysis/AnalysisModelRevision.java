@@ -18,6 +18,8 @@
 package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
 
 import java.util.HashMap;
+import java.util.Set;
+import java.util.logging.Logger;
 
 import org.jbpt.pm.ProcessModel;
 
@@ -30,6 +32,12 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
  */
 public class AnalysisModelRevision {
 
+	private static final Logger logger = Logger.getLogger(AnalysisModelRevision.class.getName());
+	
+	private static final String REVISIONS_NOT_EQUAL_EXCEPTION_MESSAGE = "Revisions do not have the same revision number and are therefore not equal, can not be merged.\n";
+
+	private static final String OVERWRITE_METRIC_MESSAGE = "Overwriting metric: ";
+
 	private HashMap<String, Double> metrics = new HashMap<>();
 	
 	private int revisionNumber;
@@ -39,12 +47,32 @@ public class AnalysisModelRevision {
 		setRevisionNumber(revisionNumber);
 	}
 
+	public AnalysisModelRevision(AnalysisModelRevision revision1,
+			AnalysisModelRevision revision2) {
+		if (revision1.getRevisionNumber() != revision2.getRevisionNumber())
+			throw new RuntimeException(REVISIONS_NOT_EQUAL_EXCEPTION_MESSAGE);
+		else {
+			for (String metricKey : revision1.getMetricKeys())
+				add(metricKey, revision1.get(metricKey));
+			for (String metricKey : revision2.getMetricKeys())
+				add(metricKey, revision2.get(metricKey));
+		}
+	}
+
 	public void add(METRICS metric, double metricValue) {
+		if (metrics.containsKey(metric.name()))
+			logger.warning(OVERWRITE_METRIC_MESSAGE + metric.name());
 		metrics.put(metric.name(), metricValue);
 	}
 	
 	public void add(String metricKey, double metricValue) {
+		if (metrics.containsKey(metricKey))
+				logger.warning(OVERWRITE_METRIC_MESSAGE + metricKey);
 		metrics.put(metricKey, metricValue);
+	}
+	
+	public Set<String> getMetricKeys() {
+		return metrics.keySet();
 	}
 
 	/**

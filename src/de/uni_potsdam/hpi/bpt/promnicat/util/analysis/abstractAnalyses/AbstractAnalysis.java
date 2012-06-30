@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
 
@@ -70,19 +69,26 @@ public abstract class AbstractAnalysis implements IAnalysis {
 	}
 	
 
-	private Map<String, AnalysisProcessModel> merge(
-			Map<String, AnalysisProcessModel> firstModelMap,
+	private Map<String, AnalysisProcessModel> merge(Map<String, AnalysisProcessModel> firstModelMap,
 			Map<String, AnalysisProcessModel> secondModelMap) {
 		Map<String, AnalysisProcessModel> newModelMap = new HashMap<>(secondModelMap);
-		for (AnalysisProcessModel model : firstModelMap.values()) {
-			if (newModelMap.containsKey(model.getName()))
-				for(AnalysisModelRevision revision : model.getRevisions().values()) {
-					AnalysisModelRevision secondRevision = newModelMap.get(model.getName()).getRevisions().get(revision.getRevisionNumber());
-					for (String metricKey : revision.getMetrics().keySet())
-						secondRevision.add(metricKey, revision.get(metricKey));
-				}
+		// add models of first collection to a new collection,
+		// merge with models of second collection if necessary
+		for (AnalysisProcessModel firstModel : firstModelMap.values()) {
+			AnalysisProcessModel secondModel = secondModelMap.get(firstModel.getName());
+			AnalysisProcessModel newModel;
+			if (secondModel != null)
+				newModel = new AnalysisProcessModel(firstModel, secondModel);
 			else
-				newModelMap.put(model.getName(), model);
+				newModel = firstModel;
+			newModelMap.put(newModel.getName(), newModel);
+		}
+		// add models of second collection
+		// that haven't already been added before
+		for (AnalysisProcessModel secondModel : secondModelMap.values()) {
+			if (!newModelMap.containsKey(secondModel.getName())) {
+				newModelMap.put(secondModel.getName(), secondModel);
+			}
 		}
 		return newModelMap;
 	}

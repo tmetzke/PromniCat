@@ -20,21 +20,43 @@ package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.jbpt.pm.ProcessModel;
-
 /**
  * @author Tobias Metzke
  *
  */
-public class AnalysisProcessModel extends ProcessModel {
+public class AnalysisProcessModel {
 
+	private static final String MODELS_NOT_EQUAL_EXCEPTION_MESSAGE = "Models do not have the same name and are therefore not equal, can not be merged.\n";
 	private SortedMap<Integer, AnalysisModelRevision> revisions = new TreeMap<>();
 	private String name;
 	private boolean growing = true;
 	private int numberOfCMRIterations = 0;
+	private int numberOfAlteringRevisions = 0;
+	private int numberOfAdditions = 0;
+	private int numberOfDeletions = 0;
 
 	public AnalysisProcessModel(String name) {
 		setName(name);
+	}
+	
+	/**
+	 * merge constructor that combines two models into one
+	 * @param model1
+	 * @param model2
+	 */
+	public AnalysisProcessModel(AnalysisProcessModel model1, AnalysisProcessModel model2) {
+		if (model1.getName() != model2.getName())
+			throw new RuntimeException(MODELS_NOT_EQUAL_EXCEPTION_MESSAGE + "Model 1: " + model1.getName() + ", " + "Model 2: " + model2.getName());
+		else {
+			setName(model1.getName());
+			setGrowing(model1.isGrowing() && model2.isGrowing());
+			setNumberOfAdditions(Math.max(model1.getNumberOfAdditions(),model2.getNumberOfAdditions()));
+			setNumberOfAlteringRevisions(Math.max(model1.getNumberOfAlteringRevisions(), model2.getNumberOfAlteringRevisions()));
+			setCMRIterations(Math.max(model1.getCMRIterations(), model2.getCMRIterations()));
+			setNumberOfDeletions(Math.max(model1.getNumberOfDeletions(), model2.getNumberOfDeletions()));
+			mergeRevisions(model1.getRevisions(), model2.getRevisions());
+		}
+		
 	}
 	
 	/**
@@ -73,5 +95,49 @@ public class AnalysisProcessModel extends ProcessModel {
 	
 	public void setCMRIterations(int iterations) {
 		this.numberOfCMRIterations = iterations;
+	}
+
+	public int getNumberOfAlteringRevisions() {
+		return numberOfAlteringRevisions;
+	}
+
+	public void setNumberOfAlteringRevisions(int size) {
+		this.numberOfAlteringRevisions  = size;
+	}
+
+	public int getNumberOfLazyRevisions() {
+		return revisions.size() - getNumberOfAlteringRevisions();
+	}
+
+	public int getNumberOfAdditions() {
+		return numberOfAdditions;
+	}
+
+	public void setNumberOfAdditions(int numberOfAdditions) {
+		this.numberOfAdditions = numberOfAdditions;
+	}
+
+	public int getNumberOfDeletions() {
+		return numberOfDeletions;
+	}
+
+	public void setNumberOfDeletions(int numberOfDeletions) {
+		this.numberOfDeletions = numberOfDeletions;
+	}
+
+	private void mergeRevisions(
+			SortedMap<Integer, AnalysisModelRevision> revisions1, SortedMap<Integer, AnalysisModelRevision> revisions2) {
+		for (AnalysisModelRevision revision1 : revisions1.values()) {
+			AnalysisModelRevision newRevision;
+			AnalysisModelRevision revision2 = revisions2.get(revision1.getRevisionNumber());
+			if (revision2 != null)
+				newRevision = new AnalysisModelRevision(revision1, revision2);
+			else
+				newRevision = revision1;
+			add(newRevision);
+		}
+		for (AnalysisModelRevision revision2 : revisions2.values())
+			if (!getRevisions().containsKey(revision2.getRevisionNumber()))
+				add(revision2);
 	}
 }

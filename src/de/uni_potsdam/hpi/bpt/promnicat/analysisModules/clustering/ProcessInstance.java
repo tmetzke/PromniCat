@@ -35,7 +35,7 @@ public class ProcessInstance extends Instance {
 	static final long serialVersionUID = 4L;
 
 	/** process model that is clustered */
-	public ProcessModel process;
+	public Object process;
 	
 	 /** The instance's string attribute values. */
 	  protected /*@spec_public non_null@*/ String[] m_StringAttValues;
