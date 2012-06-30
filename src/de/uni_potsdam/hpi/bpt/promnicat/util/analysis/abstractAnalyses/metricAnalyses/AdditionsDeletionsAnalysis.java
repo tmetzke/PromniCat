@@ -154,7 +154,8 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 
 	private static List<String> getResourceIDs(ProcessModel actualModel,
 			boolean includeSubprocesses) {
-		Collection<Resource> resources = actualModel.getResources();
+		@SuppressWarnings("unchecked")
+		Collection<Resource> resources = (Collection<Resource>) actualModel.filter(Resource.class);
 		List<String> ids = new ArrayList<>();
 		for (Resource resource : resources)
 			ids.add(resource.getId());

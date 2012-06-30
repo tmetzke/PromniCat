@@ -709,7 +709,8 @@ public class ProcessMetricsCalculator {
 	 * @return the number of all roles (e.g. pools, lanes) of the given {@link ProcessModel}.
 	 */
 	public int getNumberOfRoles(ProcessModel model, boolean includeSubProcesses) {
-		Collection<Resource> roles = model.getResources();
+		@SuppressWarnings("unchecked")
+		Collection<Resource> roles = (Collection<Resource>) model.filter(Resource.class);
 		int result = roles.size();
 		if (includeSubProcesses)
 			for (FlowNode node : model.getVertices())
