@@ -36,7 +36,12 @@ public class HighLevelAnalysis extends AbstractAnalysis {
 	private boolean includeSubprocesses;
 	
 	public HighLevelAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, boolean includeSubprocesses) {
-		super(modelsToAnalyze);
+		this(modelsToAnalyze, null, includeSubprocesses);
+	}
+
+	public HighLevelAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze,
+			Map<String, AnalysisProcessModel> analyzedModels, boolean includeSubprocesses) {
+		super(modelsToAnalyze, analyzedModels);
 		this.includeSubprocesses = includeSubprocesses;
 	}
 

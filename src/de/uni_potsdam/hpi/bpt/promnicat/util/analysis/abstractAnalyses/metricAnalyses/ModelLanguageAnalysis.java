@@ -30,6 +30,12 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
  */
 public class ModelLanguageAnalysis extends AbstractMetricsAnalysis {
 
+	public ModelLanguageAnalysis(
+			Map<String, AnalysisProcessModel> modelsToAnalyze,
+			Map<String, AnalysisProcessModel> analyzedModels) {
+		super(modelsToAnalyze, analyzedModels);
+	}
+
 	public ModelLanguageAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze) {
 		super(modelsToAnalyze);
 	}

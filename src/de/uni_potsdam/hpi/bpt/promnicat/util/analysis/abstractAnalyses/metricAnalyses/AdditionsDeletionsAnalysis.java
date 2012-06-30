@@ -50,7 +50,12 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 	
 	public AdditionsDeletionsAnalysis(
 			Map<String, AnalysisProcessModel> modelsToAnalyze, Collection<AnalysisConstant> metrics, boolean includeSubprocesses) {
-		super(modelsToAnalyze);
+		this(modelsToAnalyze, null, metrics, includeSubprocesses);
+	}
+	
+	public AdditionsDeletionsAnalysis(
+			Map<String, AnalysisProcessModel> modelsToAnalyze, Map<String, AnalysisProcessModel> analyzedModels, Collection<AnalysisConstant> metrics, boolean includeSubprocesses) {
+		super(modelsToAnalyze,analyzedModels);
 		this.metrics = metrics;
 		this.includeSubprocesses = includeSubprocesses;
 	}

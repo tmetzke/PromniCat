@@ -37,6 +37,12 @@ public class ModelGrowthAnalysis extends AbstractAnalysis {
 		super(modelsToAnalyze);
 	}
 
+	public ModelGrowthAnalysis(
+			Map<String, AnalysisProcessModel> modelsToAnalyze,
+			Map<String, AnalysisProcessModel> analyzedModels) {
+		super(modelsToAnalyze, analyzedModels);
+	}
+
 	@Override
 	protected void performAnalysis() {
 		IAnalysis differenceAnalysis = AnalysisHelper.analyzeDifferencesInMetrics(modelsToAnalyze, false);

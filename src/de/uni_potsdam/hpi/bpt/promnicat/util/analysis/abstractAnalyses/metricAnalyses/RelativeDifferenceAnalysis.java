@@ -29,6 +29,13 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
  */
 public class RelativeDifferenceAnalysis extends DifferenceAnalysis {
 
+	public RelativeDifferenceAnalysis(
+			Map<String, AnalysisProcessModel> modelsToAnalyze,
+			Map<String, AnalysisProcessModel> analyzedModels,
+			Collection<METRICS> metrics) {
+		super(modelsToAnalyze, analyzedModels, metrics);
+	}
+
 	public RelativeDifferenceAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Collection<METRICS> metrics) {
 		super(modelsToAnalyze, metrics);
 	}

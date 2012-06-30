@@ -34,13 +34,18 @@ public class CMRAnalysis extends AbstractAnalysis {
 	
 	private int numberOfHighIterationNumbers, numberOfMiddleIterationNumbers, numberOfLowIterationNumbers;
 	
+	public CMRAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze,
+			Map<String, AnalysisProcessModel> analyzedModels) {
+		super(modelsToAnalyze, analyzedModels);
+		numberOfHighIterationNumbers = numberOfLowIterationNumbers = numberOfMiddleIterationNumbers = 0;
+	}
+
 	/**
 	 * @param modelsToAnalyze
 	 */
 	public CMRAnalysis(
 			Map<String, AnalysisProcessModel> modelsToAnalyze) {
-		super(modelsToAnalyze);
-		numberOfHighIterationNumbers = numberOfLowIterationNumbers = numberOfMiddleIterationNumbers = 0;
+		this(modelsToAnalyze, null);
 	}
 
 	@Override

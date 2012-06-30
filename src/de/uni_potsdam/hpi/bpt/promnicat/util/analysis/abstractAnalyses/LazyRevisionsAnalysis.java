@@ -43,10 +43,18 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 	 * @param collection 
 	 */
 	public LazyRevisionsAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze, boolean includeSubpreocesses, Collection<AnalysisConstant> metrics) {
-		super(modelsToAnalyze);
+			Map<String, AnalysisProcessModel> modelsToAnalyze, 
+			Map<String, AnalysisProcessModel> analyzedModels,
+			boolean includeSubpreocesses, Collection<AnalysisConstant> metrics) {
+		super(modelsToAnalyze, analyzedModels);
 		this.includeSubprocesses = includeSubpreocesses;
 		this.metrics = metrics;
+	}
+	
+	public LazyRevisionsAnalysis(
+			Map<String, AnalysisProcessModel> modelsToAnalyze, 
+			boolean includeSubpreocesses, Collection<AnalysisConstant> metrics) {
+		this(modelsToAnalyze, null, includeSubpreocesses, metrics);
 	}
 
 	@Override

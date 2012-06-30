@@ -33,5 +33,9 @@ public interface IAnalysis {
 	 */
 	public String toResultCSVString();
 	
+	/**
+	 * delivers the analyzed models in a map
+	 * @return map of analyzed models
+	 */
 	public Map<String, AnalysisProcessModel> getAnalyzedModels();
 }

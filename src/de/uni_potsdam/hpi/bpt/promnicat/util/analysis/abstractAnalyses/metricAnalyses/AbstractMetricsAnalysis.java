@@ -29,6 +29,12 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.AbstractA
  */
 public abstract class AbstractMetricsAnalysis extends AbstractAnalysis{
 
+	public AbstractMetricsAnalysis(
+			Map<String, AnalysisProcessModel> modelsToAnalyze,
+			Map<String, AnalysisProcessModel> analyzedModels) {
+		super(modelsToAnalyze, analyzedModels);
+	}
+
 	public AbstractMetricsAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze) {
 		super(modelsToAnalyze);
 	}

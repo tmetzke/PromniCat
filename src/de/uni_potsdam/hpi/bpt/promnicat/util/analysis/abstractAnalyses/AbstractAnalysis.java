@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
 
@@ -35,24 +36,56 @@ public abstract class AbstractAnalysis implements IAnalysis {
 	
 	protected final String CSV_ITEMSEPARATOR = AnalysisConstant.ITEMSEPARATOR.getDescription();
 	
-	protected Map<String, AnalysisProcessModel> analyzedModels = new HashMap<String, AnalysisProcessModel>();
+	protected Map<String, AnalysisProcessModel> alreadyAnalyzedModels;
+	
+	protected Map<String, AnalysisProcessModel> analyzedModels;
 
 	public AbstractAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze) {
+		this(modelsToAnalyze, null);
+	}
+	
+	public AbstractAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Map<String, AnalysisProcessModel> analyzedModels) {
 		this.modelsToAnalyze = modelsToAnalyze;
+		this.alreadyAnalyzedModels = analyzedModels;
 	}
 	
 	@Override
 	public String toResultCSVString() {
-		performAnalysis();
+		if(analyzedModels == null) {
+			analyzedModels = new HashMap<String, AnalysisProcessModel>();
+			performAnalysis();
+		}
 		return getResultCSVString();
 	}
 	
 	@Override
 	public Map<String, AnalysisProcessModel> getAnalyzedModels() {
-		performAnalysis();
+		if(analyzedModels == null) {
+			analyzedModels = new HashMap<String, AnalysisProcessModel>();
+			performAnalysis();
+		}
+		if(alreadyAnalyzedModels != null)
+			return merge(analyzedModels,alreadyAnalyzedModels);
 		return analyzedModels;
 	}
 	
+
+	private Map<String, AnalysisProcessModel> merge(
+			Map<String, AnalysisProcessModel> firstModelMap,
+			Map<String, AnalysisProcessModel> secondModelMap) {
+		Map<String, AnalysisProcessModel> newModelMap = new HashMap<>(secondModelMap);
+		for (AnalysisProcessModel model : firstModelMap.values()) {
+			if (newModelMap.containsKey(model.getName()))
+				for(AnalysisModelRevision revision : model.getRevisions().values()) {
+					AnalysisModelRevision secondRevision = newModelMap.get(model.getName()).getRevisions().get(revision.getRevisionNumber());
+					for (String metricKey : revision.getMetrics().keySet())
+						secondRevision.add(metricKey, revision.get(metricKey));
+				}
+			else
+				newModelMap.put(model.getName(), model);
+		}
+		return newModelMap;
+	}
 
 	/**
 	 * executes the analysis method every subclass defines itself

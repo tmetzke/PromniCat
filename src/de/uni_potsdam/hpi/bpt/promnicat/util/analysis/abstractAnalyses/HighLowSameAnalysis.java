@@ -44,9 +44,13 @@ public class HighLowSameAnalysis extends AbstractAnalysis {
 	/**
 	 * @param modelsToAnalyze
 	 */
-	public HighLowSameAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Collection<METRICS> metrics) {
-		super(modelsToAnalyze);
+	public HighLowSameAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Map<String, AnalysisProcessModel> analyzedModels, Collection<METRICS> metrics) {
+		super(modelsToAnalyze, analyzedModels);
 		this.metrics = metrics;
+	}
+	
+	public HighLowSameAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Collection<METRICS> metrics) {
+		this(modelsToAnalyze, null, metrics);
 	}
 
 	@Override

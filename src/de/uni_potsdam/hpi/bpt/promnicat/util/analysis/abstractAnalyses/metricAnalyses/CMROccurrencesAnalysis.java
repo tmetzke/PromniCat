@@ -32,6 +32,13 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
  */
 public class CMROccurrencesAnalysis extends AbstractMetricsAnalysis {
 
+	public CMROccurrencesAnalysis(
+			Map<String, AnalysisProcessModel> modelsToAnalyze,
+			Map<String, AnalysisProcessModel> analyzedModels) {
+		super(modelsToAnalyze, analyzedModels);
+	}
+	
+
 	/**
 	 * @param modelsToAnalyze
 	 */

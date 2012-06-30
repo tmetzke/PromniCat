@@ -35,8 +35,14 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
  */
 public class MovedElementsAnalysis extends AbstractMetricsAnalysis implements
 		IAnalysis {
-
+	
 	private static final String NEW_LAYOUT = AnalysisConstant.NEW_LAYOUT.getDescription();
+
+	public MovedElementsAnalysis(
+			Map<String, AnalysisProcessModel> modelsToAnalyze,
+			Map<String, AnalysisProcessModel> analyzedModels) {
+		super(modelsToAnalyze, analyzedModels);
+	}
 
 	public MovedElementsAnalysis(
 			Map<String, AnalysisProcessModel> modelsToAnalyze) {

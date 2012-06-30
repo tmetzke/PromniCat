@@ -39,9 +39,13 @@ public class ModelLanguageUsageAnalysis extends AbstractAnalysis {
 	/**
 	 * @param modelsToAnalyze
 	 */
-	public ModelLanguageUsageAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Collection<AnalysisConstant> metrics) {
-		super(modelsToAnalyze);
+	public ModelLanguageUsageAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Map<String, AnalysisProcessModel> analyzedModels, Collection<AnalysisConstant> metrics) {
+		super(modelsToAnalyze, analyzedModels);
 		this.metrics = metrics;
+	}
+	
+	public ModelLanguageUsageAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Collection<AnalysisConstant> metrics) {
+		this(modelsToAnalyze, null, metrics);
 	}
 
 	@Override
