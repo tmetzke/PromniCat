@@ -15,35 +15,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.metrics.ProcessMetrics;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.AbstractAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IMetricsAnalysis;
 
 /**
  * @author Tobias Metzke
  * 
  */
-public abstract class AbstractMetricsAnalysis extends AbstractAnalysis implements IMetricsAnalysis{
-
-	protected Map<String, AnalysisProcessModel> analyzedModels = new HashMap<String, AnalysisProcessModel>();
+public abstract class AbstractMetricsAnalysis extends AbstractAnalysis{
 
 	public AbstractMetricsAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze) {
 		super(modelsToAnalyze);
 	}
-
-	@Override
-	public Map<String, AnalysisProcessModel> getAnalyzedModels() {
-		performAnalysis();
-		return analyzedModels;
-	}
 	
-
 	@Override
 	protected String getResultCSVString() {
 		StringBuilder resultStringBuilder = new StringBuilder(addCSVHeader());

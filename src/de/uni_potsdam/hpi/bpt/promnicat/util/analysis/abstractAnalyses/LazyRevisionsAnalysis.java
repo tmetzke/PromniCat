@@ -25,7 +25,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisHelper;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IMetricsAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
 
 /**
  * @author Tobias Metzke
@@ -54,7 +54,7 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 		Map<String, AnalysisProcessModel> alteringRevisions = new HashMap<String, AnalysisProcessModel>();
 
 		// analyze additions and deletions and find altering revisions
-		IMetricsAnalysis addsDeletes = AnalysisHelper.analyzeAdditionsAndDeletions(modelsToAnalyze, includeSubprocesses);
+		IAnalysis addsDeletes = AnalysisHelper.analyzeAdditionsAndDeletions(modelsToAnalyze, includeSubprocesses);
 		Map<String, AnalysisProcessModel> addDeleteAnalyzedModels = addsDeletes.getAnalyzedModels();
 		for (AnalysisProcessModel model : addDeleteAnalyzedModels.values()) {
 			numberOfRevisions += model.getRevisions().size();
@@ -71,7 +71,7 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 		
 		// if revision not already present as altering revision,
 		// add it to altering revision if it is one concerning layout changes
-		IMetricsAnalysis layoutChanges = AnalysisHelper.analyzeElementMovements(modelsToAnalyze);
+		IAnalysis layoutChanges = AnalysisHelper.analyzeElementMovements(modelsToAnalyze);
 		Map<String, AnalysisProcessModel> newLayoutModels = layoutChanges.getAnalyzedModels();
 		for (AnalysisProcessModel model : newLayoutModels.values())
 			for (AnalysisModelRevision revision : model.getRevisions().values())
@@ -87,7 +87,6 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 	@Override
 	protected String getResultCSVString() {
 		return new StringBuilder()
-			.append("\n\n")
 			.append(AnalysisConstant.NUM_REVISIONS.getDescription() + CSV_ITEMSEPARATOR)
 			.append(AnalysisConstant.ALTERING_REVISIONS.getDescription() + CSV_ITEMSEPARATOR)
 			.append(AnalysisConstant.UNALTERING_REVISIONS.getDescription() +CSV_ITEMSEPARATOR)

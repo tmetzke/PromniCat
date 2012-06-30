@@ -25,13 +25,12 @@ import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.HighLevelAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses.AdditionsDeletionsAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses.DifferenceAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses.ModelLanguageAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses.MovedElementsAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses.RelativeDifferenceAnalysis;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IMetricsAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses.AdditionsDeletionsAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses.DifferenceAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses.ModelLanguageAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses.MovedElementsAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses.RelativeDifferenceAnalysis;
 
 /**
  * @author Tobias Metzke
@@ -46,22 +45,22 @@ public class AnalysisHelper {
 	 * to the absolute old number (<code>true</code>) or absolute (<code>false</code>)
 	 * @return the analyzed models, their revisions and their values
 	 */
-	public static IMetricsAnalysis analyzeDifferencesInMetrics(Map<String, AnalysisProcessModel> models, boolean relative) {
-		IMetricsAnalysis differenceAnalysis = relative ? 
+	public static IAnalysis analyzeDifferencesInMetrics(Map<String, AnalysisProcessModel> models, boolean relative) {
+		IAnalysis differenceAnalysis = relative ? 
 				new RelativeDifferenceAnalysis(models, getProcessModelMetrics()) :
 				new DifferenceAnalysis(models, getProcessModelMetrics());
 		return differenceAnalysis;
 	}
 
-	public static IMetricsAnalysis analyzeAdditionsAndDeletions(Map<String, AnalysisProcessModel> models, boolean includeSubprocesses) {
+	public static IAnalysis analyzeAdditionsAndDeletions(Map<String, AnalysisProcessModel> models, boolean includeSubprocesses) {
 		return new AdditionsDeletionsAnalysis(models, getIndividualMetrics(), includeSubprocesses);
 	}
 	
-	public static IMetricsAnalysis modelLanguageAnalysis(Map<String, AnalysisProcessModel> models) {
+	public static IAnalysis modelLanguageAnalysis(Map<String, AnalysisProcessModel> models) {
 		return new ModelLanguageAnalysis(models);
 	}
 
-	public static IMetricsAnalysis analyzeElementMovements(
+	public static IAnalysis analyzeElementMovements(
 			Map<String, AnalysisProcessModel> modelsToBeAnalyzed) {
 		return new MovedElementsAnalysis(modelsToBeAnalyzed);
 	}

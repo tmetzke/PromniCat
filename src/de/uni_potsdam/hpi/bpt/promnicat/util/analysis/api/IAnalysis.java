@@ -17,6 +17,10 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api;
 
+import java.util.Map;
+
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
+
 /**
  * @author Tobias Metzke
  *
@@ -28,4 +32,6 @@ public interface IAnalysis {
 	 * @return the formatted results as a string
 	 */
 	public String toResultCSVString();
+	
+	public Map<String, AnalysisProcessModel> getAnalyzedModels();
 }

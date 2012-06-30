@@ -17,6 +17,7 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
@@ -33,6 +34,8 @@ public abstract class AbstractAnalysis implements IAnalysis {
 	protected Map<String, AnalysisProcessModel> modelsToAnalyze;
 	
 	protected final String CSV_ITEMSEPARATOR = AnalysisConstant.ITEMSEPARATOR.getDescription();
+	
+	protected Map<String, AnalysisProcessModel> analyzedModels = new HashMap<String, AnalysisProcessModel>();
 
 	public AbstractAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze) {
 		this.modelsToAnalyze = modelsToAnalyze;
@@ -42,6 +45,12 @@ public abstract class AbstractAnalysis implements IAnalysis {
 	public String toResultCSVString() {
 		performAnalysis();
 		return getResultCSVString();
+	}
+	
+	@Override
+	public Map<String, AnalysisProcessModel> getAnalyzedModels() {
+		performAnalysis();
+		return analyzedModels;
 	}
 	
 

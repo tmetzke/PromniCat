@@ -47,7 +47,8 @@ public class HighLevelAnalysis extends AbstractAnalysis {
 				new ModelGrowthAnalysis(modelsToAnalyze),
 				new HighLowSameAnalysis(modelsToAnalyze, AnalysisHelper.getProcessModelMetrics()),
 				new LazyRevisionsAnalysis(modelsToAnalyze, includeSubprocesses, AnalysisHelper.getIndividualMetrics()),
-				new ModelLanguageUsageAnalysis(modelsToAnalyze, AnalysisHelper.getModelLanguageMetrics()));
+				new ModelLanguageUsageAnalysis(modelsToAnalyze, AnalysisHelper.getModelLanguageMetrics()),
+				new CMRAnalysis(modelsToAnalyze));
 	}
 
 	@Override

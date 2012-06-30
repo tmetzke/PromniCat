@@ -102,7 +102,11 @@ public enum AnalysisConstant {
 	
 	ITEMSEPARATOR (";"), 
 	
-	NEW_LAYOUT ("newLayout");
+	NEW_LAYOUT ("newLayout"), 
+	
+	MODELING ("modeling"),
+	
+	RECONCILIATION ("reconciliation");
 	
 	private String stringRepresentation;
 	

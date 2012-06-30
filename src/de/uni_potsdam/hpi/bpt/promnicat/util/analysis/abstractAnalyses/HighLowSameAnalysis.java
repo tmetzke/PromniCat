@@ -26,7 +26,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisHelper;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IMetricsAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
 
 /**
  * @author Tobias Metzke
@@ -51,7 +51,7 @@ public class HighLowSameAnalysis extends AbstractAnalysis {
 
 	@Override
 	protected void performAnalysis() {
-		IMetricsAnalysis differenceAnalysis = AnalysisHelper.analyzeDifferencesInMetrics(modelsToAnalyze, false);
+		IAnalysis differenceAnalysis = AnalysisHelper.analyzeDifferencesInMetrics(modelsToAnalyze, false);
 		Map<String, AnalysisProcessModel> differenceAnalyzedModels = differenceAnalysis.getAnalyzedModels();
 		for (METRICS metric : metrics) {
 			int higherValues = 0;

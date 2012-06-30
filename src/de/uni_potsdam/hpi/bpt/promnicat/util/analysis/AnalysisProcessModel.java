@@ -20,15 +20,18 @@ package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.jbpt.pm.ProcessModel;
+
 /**
  * @author Tobias Metzke
  *
  */
-public class AnalysisProcessModel {
+public class AnalysisProcessModel extends ProcessModel {
 
 	private SortedMap<Integer, AnalysisModelRevision> revisions = new TreeMap<>();
 	private String name;
 	private boolean growing = true;
+	private int numberOfCMRIterations = 0;
 
 	public AnalysisProcessModel(String name) {
 		setName(name);
@@ -62,5 +65,13 @@ public class AnalysisProcessModel {
 
 	public void setGrowing(boolean growing) {
 		this.growing = growing;
+	}
+
+	public int getCMRIterations() {
+		return numberOfCMRIterations;
+	}
+	
+	public void setCMRIterations(int iterations) {
+		this.numberOfCMRIterations = iterations;
 	}
 }

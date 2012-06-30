@@ -15,38 +15,63 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
+import org.jbpt.hypergraph.abs.Vertex;
+
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
 
 /**
  * @author Tobias Metzke
  *
  */
-public class ModelLanguageAnalysis extends AbstractMetricsAnalysis {
+public class MovedElementsAnalysis extends AbstractMetricsAnalysis implements
+		IAnalysis {
 
-	public ModelLanguageAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze) {
+	private static final String NEW_LAYOUT = AnalysisConstant.NEW_LAYOUT.getDescription();
+
+	public MovedElementsAnalysis(
+			Map<String, AnalysisProcessModel> modelsToAnalyze) {
 		super(modelsToAnalyze);
 	}
 
+	private List<Vertex> oldNodes = new ArrayList<>();
+	
 	@Override
 	protected void performAnalysis() {
 		for (AnalysisProcessModel model : modelsToAnalyze.values()) {
+			oldNodes.clear();
 			AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
 			for (AnalysisModelRevision revision : model.getRevisions().values()) {
 				AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
-				if (revision.get(METRICS.NUM_NODES) > 0 || revision.get(METRICS.NUM_EDGES) > 0)
-					newRevision.add(AnalysisConstant.CONTROL_FLOW.getDescription(), 1);
-				if (revision.get(METRICS.NUM_DATA_NODES) > 0)
-					newRevision.add(AnalysisConstant.DATA_FLOW.getDescription(), 1);
-				if (revision.get(METRICS.NUM_ROLES) > 0)
-					newRevision.add(AnalysisConstant.ORGANISATION.getDescription(), 1);
+				int alteredNodes = 0;
+				// look for changes to previous revision in x,y,width,height for every node
+				Collection<Vertex> actualNodes = new ArrayList<>();
+				actualNodes.addAll(revision.getProcessModel().getFlowNodes());
+				actualNodes.addAll(revision.getProcessModel().getNonFlowNodes());
+				for (Vertex node : actualNodes)
+					if (oldNodes.contains(node)) {
+						Vertex oldNode = oldNodes.get(oldNodes.indexOf(node));
+						if (node.getX() != oldNode.getX()
+							|| node.getY() != oldNode.getY()
+							|| node.getHeight() != oldNode.getHeight()
+							|| node.getWidth() != oldNode.getWidth())
+							alteredNodes++;
+					}
+				newRevision.add(NEW_LAYOUT, new Double(alteredNodes));
 				newModel.add(newRevision);
+				// add actual nodes as back reference for next revision
+				oldNodes.clear();
+				oldNodes.addAll(revision.getProcessModel().getFlowNodes());
+				oldNodes.addAll(revision.getProcessModel().getNonFlowNodes());
 			}
 			analyzedModels.put(model.getName(), newModel);
 		}
@@ -54,32 +79,23 @@ public class ModelLanguageAnalysis extends AbstractMetricsAnalysis {
 
 	@Override
 	protected String addCSVHeader() {
-		StringBuilder resultBuilder = new StringBuilder()
+		return new StringBuilder()
 			.append("Process Model" + CSV_ITEMSEPARATOR)
 			.append("Revision" + CSV_ITEMSEPARATOR)
-			.append("Model Language");
-		return resultBuilder.toString();
+			.append(NEW_LAYOUT)
+			.toString();
 	}
 
 	@Override
 	protected String toCsvString(AnalysisProcessModel model) {
-		StringBuilder resultBuilder = new StringBuilder();
-		// language elements for every revision
+		StringBuilder builder = new StringBuilder();
 		for (AnalysisModelRevision revision : model.getRevisions().values()) {
-			resultBuilder
+			builder
 				.append("\n")
 				.append(model.getName())
-				.append(CSV_ITEMSEPARATOR + revision.getRevisionNumber());
-			int count = 0;
-			for (String languageElement : revision.getMetrics().keySet()) {
-				if (count > 0)
-					resultBuilder.append(",");
-				else
-					resultBuilder.append(CSV_ITEMSEPARATOR);
-				resultBuilder.append(languageElement);
-				count++;
-			}
+				.append(CSV_ITEMSEPARATOR + revision.getRevisionNumber())
+				.append(CSV_ITEMSEPARATOR + revision.get(NEW_LAYOUT).intValue());
 		}
-		return resultBuilder.toString();
+		return builder.toString();
 	}
 }

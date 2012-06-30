@@ -27,11 +27,19 @@ import java.util.logging.Logger;
 
 import org.jbpt.pm.ProcessModel;
 
+import weka.core.Attribute;
+import weka.core.EuclideanDistance;
+import weka.core.FastVector;
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ClusterTree;
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.HierarchicalProcessClusterer;
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ProcessInstance;
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ProcessInstances;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.BpmnParser;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.EpcParser;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
+import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessEvolutionConstants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisHelper;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
@@ -62,44 +70,48 @@ public class IndividualProcessMetrics {
 //	private static final String MODEL_RESULT_FILE_PATH = 
 //			new File("").getAbsolutePath() + "/resources/analysis/new.model_results.csv";
 	
-	/**
-	 * path of the metrics analysis result file, that analyzes the model metrics results
-	 */
-	private static final String METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new.model_results_absolute_analyzed.csv";
-	
-	/**
-	 * path of the metrics analysis result file, that analyzes the model metrics results
-	 */
-	private static final String METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new.model_results_relative_analyzed.csv";
-	
+//	/**
+//	 * path of the metrics analysis result file, that analyzes the model metrics results
+//	 */
+//	private static final String METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH = 
+//			new File("").getAbsolutePath() + "/resources/analysis/new.model_results_absolute_analyzed.csv";
+//	
+//	/**
+//	 * path of the metrics analysis result file, that analyzes the model metrics results
+//	 */
+//	private static final String METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH = 
+//			new File("").getAbsolutePath() + "/resources/analysis/new.model_results_relative_analyzed.csv";
+//	
 	/**
 	 * path of the metrics analysis analysis result file, that analyzes the metrics analysis
 	 */
 	private static final String ANALYSIS_ANALYSIS_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/new.analysis_results_analyzed.csv";
 	
-	private static final String ADD_DELETE_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new.add_delete_results.csv";
-	
-	private static final String MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new.layout_changes_results.csv";
-	
-	private static final String MODEL_LANGUAGE_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new.model_language_results.csv";
+//	private static final String ADD_DELETE_RESULT_FILE_PATH = 
+//			new File("").getAbsolutePath() + "/resources/analysis/new.add_delete_results.csv";
+//	
+//	private static final String MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH = 
+//			new File("").getAbsolutePath() + "/resources/analysis/new.layout_changes_results.csv";
+//	
+//	private static final String MODEL_LANGUAGE_RESULT_FILE_PATH = 
+//			new File("").getAbsolutePath() + "/resources/analysis/new.model_language_results.csv";
 	
 	private static final Logger logger = Logger.getLogger(IndividualProcessMetrics.class.getName());
 	
 	/**
 	 * flag to decide whether to use the full database or just a small test subset
 	 */
-	private static final boolean useFullDB = true;
+	private static final boolean useFullDB = false;
 
 	/**
 	 * the collection of metrics all model revisions will be analyzed by
 	 */
 	private static Collection<METRICS> processModelMetrics;
+	
+	public static HierarchicalProcessClusterer clusterer;
+	
+	public static FastVector numericAttributes;
 	
 	/**
 	 * @param args
@@ -118,10 +130,55 @@ public class IndividualProcessMetrics {
 		
 		Map<String,AnalysisProcessModel> models = buildUpInternalDataStructure(result);
 
-		performAnalyses(models);
+//		models = performAnalyses(models);
+		setupClusterer();
+		clusterModels(models);
 		long time = System.currentTimeMillis() - startTime;
 		logger.info("Finished Analysis in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
 	}
+
+	@SuppressWarnings("unused")
+	private static void clusterModels(Map<String, AnalysisProcessModel> models) {
+		ProcessInstances instances = new ProcessInstances("", numericAttributes, models.values().size());
+		
+		for (AnalysisProcessModel model : models.values()){
+			double[] values = {model.getCMRIterations()};
+			ProcessInstance inst = new ProcessInstance(1, values);
+			inst.process = model;
+			instances.add(inst);
+		}
+			
+		try {//cluster the results
+			clusterer.buildClusterer(instances);
+			ClusterTree<ProcessInstances> clusters = clusterer.getClusters();
+			FastVector firstInstances = clusters.getRootElement().getChildren().get(0).getChildren().get(0).getData().getInstances();
+			FastVector secondInstances = clusters.getRootElement().getChildren().get(0).getChildren().get(1).getData().getInstances();
+			firstInstances.appendElements(secondInstances);
+			for (Object instance : firstInstances.toArray())
+				if(instance instanceof ProcessInstance)
+					System.out.println("Yay: " + ((ProcessInstance)instance).process.getName());
+			ClusterTree<ProcessInstances> newCluster = clusters.getSubtreeWithMinClusterSize(2);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * Create hierarchical clusterer with his attributes
+	 */
+	private static void setupClusterer(){
+		numericAttributes = new FastVector();
+		Attribute att = new Attribute(ProcessEvolutionConstants.PROCESS_EVOLUTION.NUM_ITERATIONS.name());
+		att.setWeight(3);
+		numericAttributes.addElement(att);
+		
+		clusterer = new HierarchicalProcessClusterer(new EuclideanDistance());
+		clusterer.setLinkType("CENTROID");
+		clusterer.setNumClusters(1);
+		clusterer.setDebug(true);
+		clusterer.setAttributes(numericAttributes);
+	}
+	
 
 	/**
 	 * Create an new unit chain builder and builds up
@@ -230,40 +287,42 @@ public class IndividualProcessMetrics {
 	 * @param models
 	 * @throws IOException
 	 */
-	private static void performAnalyses(Map<String, AnalysisProcessModel> models)
+	private static Map<String, AnalysisProcessModel> performAnalyses(Map<String, AnalysisProcessModel> models)
 			throws IOException {
 //		// metrics results
 //		WriterHelper.writeToFile(MODEL_RESULT_FILE_PATH, models);
 //		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
-		
-		// difference analysis with relative differences
-		IAnalysis relativeDifference = AnalysisHelper.analyzeDifferencesInMetrics(models, true);
-		WriterHelper.writeToCSVFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, relativeDifference);
-		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
-		
-		// additions/deletions analysis with absolute numbers
-		IAnalysis addsDeletes = AnalysisHelper.analyzeAdditionsAndDeletions(models, HANDLE_SUB_PROCESSES);
-		WriterHelper.writeToCSVFile(ADD_DELETE_RESULT_FILE_PATH, addsDeletes);
-		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
-		
-		// difference analysis with absolute differences
-		IAnalysis difference = AnalysisHelper.analyzeDifferencesInMetrics(models, false);
-		WriterHelper.writeToCSVFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, difference);
-		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
-		
-		// model language analysis
-		IAnalysis modelLanguage = AnalysisHelper.modelLanguageAnalysis(models);
-		WriterHelper.writeToCSVFile(MODEL_LANGUAGE_RESULT_FILE_PATH, modelLanguage);
-		logger.info("Wrote analysis of model language to " + MODEL_LANGUAGE_RESULT_FILE_PATH + "\n");
-		
-		// number of changed elements according to their position in the model
-		IAnalysis layoutChanges = AnalysisHelper.analyzeElementMovements(models);
-		WriterHelper.writeToCSVFile(MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH, layoutChanges);
-		logger.info("Wrote analysis of moved elements to " + MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH + "\n");
-		
+//		
+//		// difference analysis with relative differences
+//		IAnalysis relativeDifference = AnalysisHelper.analyzeDifferencesInMetrics(models, true);
+//		WriterHelper.writeToCSVFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, relativeDifference);
+//		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
+//		
+//		// additions/deletions analysis with absolute numbers
+//		IAnalysis addsDeletes = AnalysisHelper.analyzeAdditionsAndDeletions(models, HANDLE_SUB_PROCESSES);
+//		WriterHelper.writeToCSVFile(ADD_DELETE_RESULT_FILE_PATH, addsDeletes);
+//		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
+//		
+//		// difference analysis with absolute differences
+//		IAnalysis difference = AnalysisHelper.analyzeDifferencesInMetrics(models, false);
+//		WriterHelper.writeToCSVFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, difference);
+//		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
+//		
+//		// model language analysis
+//		IAnalysis modelLanguage = AnalysisHelper.modelLanguageAnalysis(models);
+//		WriterHelper.writeToCSVFile(MODEL_LANGUAGE_RESULT_FILE_PATH, modelLanguage);
+//		logger.info("Wrote analysis of model language to " + MODEL_LANGUAGE_RESULT_FILE_PATH + "\n");
+//		
+//		// number of changed elements according to their position in the model
+//		IAnalysis layoutChanges = AnalysisHelper.analyzeElementMovements(models);
+//		WriterHelper.writeToCSVFile(MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH, layoutChanges);
+//		logger.info("Wrote analysis of moved elements to " + MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH + "\n");
+//		
 		// high level analysis of model metrics
 		IAnalysis highLevel = AnalysisHelper.highLevelAnalysis(models, HANDLE_SUB_PROCESSES);
 		WriterHelper.writeToCSVFile(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, highLevel);
 		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH + "\n");
+		
+		return highLevel.getAnalyzedModels();
 	}
 }

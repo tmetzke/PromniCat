@@ -25,7 +25,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisHelper;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IMetricsAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
 
 /**
  * @author Tobias Metzke
@@ -46,7 +46,7 @@ public class ModelLanguageUsageAnalysis extends AbstractAnalysis {
 
 	@Override
 	protected void performAnalysis() {
-		IMetricsAnalysis modelLanguage = AnalysisHelper.modelLanguageAnalysis(modelsToAnalyze);
+		IAnalysis modelLanguage = AnalysisHelper.modelLanguageAnalysis(modelsToAnalyze);
 		Map<String, AnalysisProcessModel> languageAnalyzedModels = modelLanguage.getAnalyzedModels();
 		for (AnalysisProcessModel model : languageAnalyzedModels.values()) {
 			AnalysisConstant behavior = AnalysisConstant.NONE;
@@ -153,7 +153,7 @@ public class ModelLanguageUsageAnalysis extends AbstractAnalysis {
 		builder.append("\n\n");
 		for (AnalysisConstant languageConstant : metrics)
 			if (results.containsKey(languageConstant.getDescription()))
-					builder.append(languageConstant.getDescription() + CSV_ITEMSEPARATOR);
+				builder.append(languageConstant.getDescription() + CSV_ITEMSEPARATOR);
 		builder.append("\n");
 		for (AnalysisConstant languageConstant : metrics)
 			if (results.containsKey(languageConstant.getDescription()))
