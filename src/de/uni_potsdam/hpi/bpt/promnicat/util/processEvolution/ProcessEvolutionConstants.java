@@ -27,7 +27,7 @@ public class ProcessEvolutionConstants {
 	public static final String IS_GROWING = "isGrowing";
 	public static final String NUM_ITERATIONS = "NumberOfCMRIterations";
 	
-	public enum PROCESS_EVOLUTION{
+	public enum PROCESS_EVOLUTION_METRIC{
 		IS_GROWING(ProcessEvolutionConstants.IS_GROWING){
 			/** returns true if the model is always growing */
 			public double getAttribute(ProcessEvolutionModel input){
@@ -43,7 +43,7 @@ public class ProcessEvolutionConstants {
 		
 		private String description;
 	     
-		PROCESS_EVOLUTION(String description) {
+		PROCESS_EVOLUTION_METRIC(String description) {
 			this.description = description;
 	    }
 

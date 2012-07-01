@@ -32,12 +32,13 @@ import org.jbpt.pm.FlowNode;
 import org.jbpt.pm.Gateway;
 import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.Resource;
+import org.jbpt.pm.bpmn.BpmnMessageFlow;
 import org.jbpt.pm.bpmn.Document;
 import org.jbpt.pm.bpmn.Subprocess;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisConstants;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
 
 /**
  * @author Tobias Metzke
@@ -71,15 +72,17 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 				// check adds and deletes for every class like Activities, Gateways, Edges etc.
 				for (AnalysisConstants classToAnalyze : metrics) {
 					Map<AnalysisConstants, Integer> addsAndDeletes = analyzeAddsAndDeletesFor(classToAnalyze, oldElements, revision, includeSubprocesses);
-					additions += addsAndDeletes.get(AnalysisConstants.ADDITIONS);
-					deletions += addsAndDeletes.get(AnalysisConstants.DELETIONS);
-					newRevision.add(classToAnalyze.getDescription() + AnalysisConstants.ADDITIONS.getDescription(), additions);
-					newRevision.add(classToAnalyze.getDescription() + AnalysisConstants.DELETIONS.getDescription(), deletions);
+					int newAdditions = addsAndDeletes.get(AnalysisConstants.ADDITIONS);
+					int newDeletions = addsAndDeletes.get(AnalysisConstants.DELETIONS);
+					additions += newAdditions;
+					deletions += newDeletions;
+					newRevision.add(classToAnalyze.getDescription() + AnalysisConstants.ADDITIONS.getDescription(), newAdditions);
+					newRevision.add(classToAnalyze.getDescription() + AnalysisConstants.DELETIONS.getDescription(), newDeletions);
 				}
 				newModel.add(newRevision);
-				newModel.setNumberOfAdditions(additions);
-				newModel.setNumberOfDeletions(deletions);
 			}
+			newModel.setNumberOfAdditions(additions);
+			newModel.setNumberOfDeletions(deletions);
 			analyzedModels.put(model.getName(), newModel);
 		}
 	}
@@ -167,12 +170,17 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 		return ids;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static List<String> getEdgesIDs(ProcessModel actualModel,
 			boolean includeSubprocesses) {
 		Collection<ControlFlow<FlowNode>> flows = actualModel.getEdges();
 		List<String> ids = new ArrayList<>();
-		for (ControlFlow<FlowNode> flow : flows)
-			ids.add(flow.getId());
+		for (Object flow : flows) {
+			if (flow instanceof ControlFlow<?>)
+				ids.add(((ControlFlow<FlowNode>)flow).getId());
+			else
+				ids.add(((BpmnMessageFlow)flow).getId());
+		}
 		if (includeSubprocesses)
 			for (FlowNode node : actualModel.getVertices())
 				if (node instanceof Subprocess) 

@@ -19,6 +19,7 @@ package de.uni_potsdam.hpi.bpt.promnicat.analysisModules.metrics;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +31,7 @@ import org.jbpt.pm.ProcessModel;
 import weka.core.Attribute;
 import weka.core.EuclideanDistance;
 import weka.core.FastVector;
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ClusterNode;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ClusterTree;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.HierarchicalProcessClusterer;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ProcessInstance;
@@ -41,11 +43,11 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
 import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionConstants;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionConstants.PROCESS_EVOLUTION_METRIC;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.WriterHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionConstants.PROCESS_EVOLUTION;
 import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IFlexibleUnitChainBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnitChainBuilder;
@@ -89,8 +91,8 @@ public class ProcessEvolution {
 	private static final String ANALYSIS_ANALYSIS_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/new.analysis_results_analyzed.csv";
 	
-//	private static final String ADD_DELETE_RESULT_FILE_PATH = 
-//			new File("").getAbsolutePath() + "/resources/analysis/new.add_delete_results.csv";
+	private static final String ADD_DELETE_RESULT_FILE_PATH = 
+			new File("").getAbsolutePath() + "/resources/analysis/new.add_delete_results.csv";
 //	
 //	private static final String MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH = 
 //			new File("").getAbsolutePath() + "/resources/analysis/new.layout_changes_results.csv";
@@ -103,7 +105,7 @@ public class ProcessEvolution {
 	/**
 	 * flag to decide whether to use the full database or just a small test subset
 	 */
-	private static final boolean useFullDB = false;
+	private static final boolean useFullDB = true;
 
 	/**
 	 * the collection of metrics all model revisions will be analyzed by
@@ -113,6 +115,8 @@ public class ProcessEvolution {
 	public static HierarchicalProcessClusterer clusterer;
 	
 	public static FastVector numericAttributes;
+	
+	private static ProcessInstances instances;
 	
 	/**
 	 * @param args
@@ -130,11 +134,13 @@ public class ProcessEvolution {
 		Collection<IUnitDataProcessMetrics<Object>> result = executeChain(chainBuilder);
 		
 		Map<String,ProcessEvolutionModel> models = buildUpInternalDataStructure(result);
+		long time = System.currentTimeMillis() - startTime;
+		logger.info("Finished Data Structure in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
 
 		models = performAnalyses(models);
-		setupClusterer();
-		clusterModels(models);
-		long time = System.currentTimeMillis() - startTime;
+//		setupClusterer(models);
+//		clusterModels();
+		time = System.currentTimeMillis() - time;
 		logger.info("Finished Analysis in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
 	}
 
@@ -256,10 +262,10 @@ public class ProcessEvolution {
 //		WriterHelper.writeToCSVFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, relativeDifference);
 //		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
 //		
-//		// additions/deletions analysis with absolute numbers
-//		IAnalysis addsDeletes = AnalysisHelper.analyzeAdditionsAndDeletions(models, HANDLE_SUB_PROCESSES);
-//		WriterHelper.writeToCSVFile(ADD_DELETE_RESULT_FILE_PATH, addsDeletes);
-//		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
+		// additions/deletions analysis with absolute numbers
+		IAnalysis addsDeletes = AnalysisHelper.analyzeAdditionsAndDeletions(models, HANDLE_SUB_PROCESSES);
+		WriterHelper.writeToCSVFile(ADD_DELETE_RESULT_FILE_PATH, addsDeletes);
+		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
 //		
 //		// difference analysis with absolute differences
 //		IAnalysis difference = AnalysisHelper.analyzeDifferencesInMetrics(models, false);
@@ -287,45 +293,78 @@ public class ProcessEvolution {
 	/**
 	 * Create hierarchical clusterer with his attributes
 	 */
-	private static void setupClusterer(){
+	private static void setupClusterer(Map<String, ProcessEvolutionModel> models){
+		setNumericAttributes();
+		setClusterAttributes();
+		setInstances(models);
+	}
+
+	/**
+	 * 
+	 */
+	private static void setNumericAttributes() {
 		numericAttributes = new FastVector();
-		Attribute att = new Attribute(ProcessEvolutionConstants.PROCESS_EVOLUTION.NUM_ITERATIONS.name());
-		att.setWeight(3);
-		numericAttributes.addElement(att);
-		
+		Map<String,Double> attributesToClusterBy = getAttributesToClusterBy();
+		for (String attributeName : attributesToClusterBy.keySet()) {
+			Attribute attribute = new Attribute(attributeName);
+			attribute.setWeight(attributesToClusterBy.get(attributeName));
+			numericAttributes.addElement(attribute);
+		}
+	}
+
+	private static Map<String, Double> getAttributesToClusterBy() {
+		Map<String, Double> attributes = new HashMap<String, Double>();
+		attributes.put(ProcessEvolutionConstants.PROCESS_EVOLUTION_METRIC.NUM_ITERATIONS.name(), 3.0);
+		return attributes;
+	}
+
+	/**
+	 * 
+	 */
+	private static void setClusterAttributes() {
 		clusterer = new HierarchicalProcessClusterer(new EuclideanDistance());
-		clusterer.setLinkType("CENTROID");
-		clusterer.setNumClusters(1);
+		clusterer.setLinkType("SINGLE");
+		clusterer.setNumClusters(3);
 		clusterer.setDebug(true);
 		clusterer.setAttributes(numericAttributes);
 	}
 
-	@SuppressWarnings("unused")
-	private static void clusterModels(Map<String, ProcessEvolutionModel> models) {
-		ProcessInstances instances = new ProcessInstances("", numericAttributes, null, models.values().size());
+	/**
+	 * @param models
+	 */
+	private static void setInstances(Map<String, ProcessEvolutionModel> models) {
+		instances = new ProcessInstances("", numericAttributes, null, models.values().size());
 		for (ProcessEvolutionModel model : models.values()){
 			double[] values = new double[numericAttributes.size()];
 			int i = 0;
-			for (Object evolution : numericAttributes.toArray())
-				if (evolution instanceof PROCESS_EVOLUTION)
-					values[i++] = (((PROCESS_EVOLUTION) evolution).getAttribute(model));
+			for (Object attribute : numericAttributes.toArray())
+				if (attribute instanceof PROCESS_EVOLUTION_METRIC)
+					values[i++] = (((PROCESS_EVOLUTION_METRIC) attribute).getAttribute(model));
 			ProcessInstance inst = new ProcessInstance(1, values);
 			inst.process = model;
 			instances.add(inst);
 		}
-			
+	}
+
+	private static void clusterModels() {
 		try {//cluster the results
 			clusterer.buildClusterer(instances);
 			ClusterTree<ProcessInstances> clusters = clusterer.getClusters();
-			FastVector firstInstances = clusters.getRootElement().getChildren().get(0).getChildren().get(0).getData().getInstances();
-			FastVector secondInstances = clusters.getRootElement().getChildren().get(0).getChildren().get(1).getData().getInstances();
-			firstInstances.appendElements(secondInstances);
-			for (Object instance : firstInstances.toArray())
-				if(instance instanceof ProcessInstance)
-					logger.info("Yay: " + ((ProcessEvolutionModel)((ProcessInstance)instance).process).getName());
-			ClusterTree<ProcessInstances> newCluster = clusters.getSubtreeWithMinClusterSize(2);
+			ClusterTree<ProcessInstances> newCluster = clusters.getSubtreeWithMinClusterSize(1);
+			analyzeClusters(newCluster);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * @param newCluster
+	 */
+	private static void analyzeClusters(ClusterTree<ProcessInstances> newCluster) {
+		ArrayList<ClusterNode<ProcessInstances>> clusterNodes = newCluster.getNodesOnLevel(1);
+		for (ClusterNode<ProcessInstances> node : clusterNodes)
+			for (Object instance : node.getData().getInstances().toArray())
+				if (instance instanceof ProcessInstance)
+					System.out.println(((ProcessEvolutionModel)((ProcessInstance) instance).process).getName());
 	}
 }

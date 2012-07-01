@@ -25,6 +25,6 @@
 	<classpathentry kind="lib" path="lib/orientdb-tools-1.0rc6.jar"/>
 	<classpathentry kind="lib" path="lib/oryx-bpmn2.0.jar"/>
 	<classpathentry kind="lib" path="lib/bpmai.jar" sourcepath="C:/Users/Tobi/Documents/Repositories/SVN/bpmai"/>
-	<classpathentry kind="lib" path="lib/jbpt.jar" sourcepath="C:/Users/Tobi/Documents/Repositories/SVN/jbpt"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/jbpt"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

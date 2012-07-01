@@ -60,14 +60,14 @@ public class ProcessEvolutionModelRevision {
 	}
 
 	public void add(METRICS metric, double metricValue) {
-		if (metrics.containsKey(metric.name()))
-			logger.warning(OVERWRITE_METRIC_MESSAGE + metric.name());
+//		if (metrics.containsKey(metric.name()))
+//			logger.warning(OVERWRITE_METRIC_MESSAGE + metric.name());
 		metrics.put(metric.name(), metricValue);
 	}
 	
 	public void add(String metricKey, double metricValue) {
-		if (metrics.containsKey(metricKey))
-				logger.warning(OVERWRITE_METRIC_MESSAGE + metricKey);
+//		if (metrics.containsKey(metricKey))
+//				logger.warning(OVERWRITE_METRIC_MESSAGE + metricKey);
 		metrics.put(metricKey, metricValue);
 	}
 	
