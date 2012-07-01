@@ -322,7 +322,7 @@ public class IndividualProcessMetrics {
 			firstInstances.appendElements(secondInstances);
 			for (Object instance : firstInstances.toArray())
 				if(instance instanceof ProcessInstance)
-					System.out.println("Yay: " + ((AnalysisProcessModel)((ProcessInstance)instance).process).getName());
+					logger.info("Yay: " + ((AnalysisProcessModel)((ProcessInstance)instance).process).getName());
 			ClusterTree<ProcessInstances> newCluster = clusters.getSubtreeWithMinClusterSize(2);
 		} catch (Exception e) {
 			e.printStackTrace();
