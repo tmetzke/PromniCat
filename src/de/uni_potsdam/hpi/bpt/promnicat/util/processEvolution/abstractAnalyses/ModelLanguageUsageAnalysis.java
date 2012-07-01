@@ -15,17 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisConstants;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisHelper;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
 
 /**
  * @author Tobias Metzke
@@ -34,27 +34,27 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
 public class ModelLanguageUsageAnalysis extends AbstractAnalysis {
 
 	private Map<String, Integer> results = new HashMap<String, Integer>();
-	private Collection<AnalysisConstant> metrics; 
+	private Collection<AnalysisConstants> metrics; 
 	
 	/**
 	 * @param modelsToAnalyze
 	 */
-	public ModelLanguageUsageAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Map<String, AnalysisProcessModel> analyzedModels, Collection<AnalysisConstant> metrics) {
+	public ModelLanguageUsageAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze, Map<String, ProcessEvolutionModel> analyzedModels, Collection<AnalysisConstants> metrics) {
 		super(modelsToAnalyze, analyzedModels);
 		this.metrics = metrics;
 	}
 	
-	public ModelLanguageUsageAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Collection<AnalysisConstant> metrics) {
+	public ModelLanguageUsageAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze, Collection<AnalysisConstants> metrics) {
 		this(modelsToAnalyze, null, metrics);
 	}
 
 	@Override
 	protected void performAnalysis() {
 		IAnalysis modelLanguage = AnalysisHelper.modelLanguageAnalysis(modelsToAnalyze);
-		Map<String, AnalysisProcessModel> languageAnalyzedModels = modelLanguage.getAnalyzedModels();
-		for (AnalysisProcessModel model : languageAnalyzedModels.values()) {
-			AnalysisConstant behavior = AnalysisConstant.NONE;
-			for (AnalysisModelRevision revision : model.getRevisions().values()) {
+		Map<String, ProcessEvolutionModel> languageAnalyzedModels = modelLanguage.getAnalyzedModels();
+		for (ProcessEvolutionModel model : languageAnalyzedModels.values()) {
+			AnalysisConstants behavior = AnalysisConstants.NONE;
+			for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
 				Collection<String> languageElements = revision.getMetrics().keySet();
 				behavior = findBehavior(languageElements,behavior);
 			}
@@ -64,19 +64,19 @@ public class ModelLanguageUsageAnalysis extends AbstractAnalysis {
 		}
 	}
 	
-	private static AnalysisConstant findBehavior(Collection<String> languageElements,
-			AnalysisConstant behavior) {
-		AnalysisConstant newBehavior = behavior;
-		String controlConstant = AnalysisConstant.CONTROL_FLOW.getDescription();
-		String dataConstant = AnalysisConstant.DATA_FLOW.getDescription();
-		String orgaConstant = AnalysisConstant.ORGANISATION.getDescription();
+	private static AnalysisConstants findBehavior(Collection<String> languageElements,
+			AnalysisConstants behavior) {
+		AnalysisConstants newBehavior = behavior;
+		String controlConstant = AnalysisConstants.CONTROL_FLOW.getDescription();
+		String dataConstant = AnalysisConstants.DATA_FLOW.getDescription();
+		String orgaConstant = AnalysisConstants.ORGANISATION.getDescription();
 		
 		switch (behavior) {
 		case CONTROL_FLOW:
 			if (languageElements.contains(orgaConstant))
-				newBehavior = AnalysisConstant.CONTROL_ORGA;
+				newBehavior = AnalysisConstants.CONTROL_ORGA;
 			else if (languageElements.contains(dataConstant))
-				newBehavior = AnalysisConstant.CONTROL_DATA;
+				newBehavior = AnalysisConstants.CONTROL_DATA;
 			else
 				break;
 			newBehavior = findBehavior(languageElements, newBehavior);
@@ -84,9 +84,9 @@ public class ModelLanguageUsageAnalysis extends AbstractAnalysis {
 	
 		case DATA_FLOW:
 			if (languageElements.contains(controlConstant))
-				newBehavior = AnalysisConstant.DATA_CONTROL;
+				newBehavior = AnalysisConstants.DATA_CONTROL;
 			else if (languageElements.contains(orgaConstant))
-				newBehavior = AnalysisConstant.DATA_ORGA;
+				newBehavior = AnalysisConstants.DATA_ORGA;
 			else
 				break;
 			newBehavior = findBehavior(languageElements, newBehavior);
@@ -94,9 +94,9 @@ public class ModelLanguageUsageAnalysis extends AbstractAnalysis {
 			
 		case ORGANISATION:
 			if (languageElements.contains(controlConstant))
-				newBehavior = AnalysisConstant.ORGA_CONTROL;
+				newBehavior = AnalysisConstants.ORGA_CONTROL;
 			else if (languageElements.contains(dataConstant))
-				newBehavior = AnalysisConstant.ORGA_DATA;
+				newBehavior = AnalysisConstants.ORGA_DATA;
 			else
 				break;
 			newBehavior = findBehavior(languageElements, newBehavior);
@@ -104,41 +104,41 @@ public class ModelLanguageUsageAnalysis extends AbstractAnalysis {
 			
 		case CONTROL_ORGA:
 			if (languageElements.contains(dataConstant))
-				newBehavior = AnalysisConstant.CONTROL_ORGA_DATA;
+				newBehavior = AnalysisConstants.CONTROL_ORGA_DATA;
 			break;
 			
 		case CONTROL_DATA:
 			if (languageElements.contains(orgaConstant))
-				newBehavior = AnalysisConstant.CONTROL_DATA_ORGA;
+				newBehavior = AnalysisConstants.CONTROL_DATA_ORGA;
 			break;
 			
 		case DATA_CONTROL:
 			if (languageElements.contains(orgaConstant))
-				newBehavior = AnalysisConstant.DATA_CONTROL_ORGA;
+				newBehavior = AnalysisConstants.DATA_CONTROL_ORGA;
 			break;
 			
 		case DATA_ORGA:
 			if (languageElements.contains(controlConstant))
-				newBehavior = AnalysisConstant.DATA_ORGA_CONTROL;
+				newBehavior = AnalysisConstants.DATA_ORGA_CONTROL;
 			break;
 			
 		case ORGA_CONTROL:
 			if (languageElements.contains(dataConstant))
-				newBehavior = AnalysisConstant.ORGA_CONTROL_DATA;
+				newBehavior = AnalysisConstants.ORGA_CONTROL_DATA;
 			break;
 			
 		case ORGA_DATA:
 			if (languageElements.contains(controlConstant))
-				newBehavior = AnalysisConstant.ORGA_DATA_CONTROL;
+				newBehavior = AnalysisConstants.ORGA_DATA_CONTROL;
 			break;
 			
 		case NONE:
 			if (languageElements.contains(controlConstant))
-				newBehavior = AnalysisConstant.CONTROL_FLOW;
+				newBehavior = AnalysisConstants.CONTROL_FLOW;
 			else if (languageElements.contains(orgaConstant))
-				newBehavior = AnalysisConstant.ORGANISATION;
+				newBehavior = AnalysisConstants.ORGANISATION;
 			else if (languageElements.contains(dataConstant))
-				newBehavior = AnalysisConstant.DATA_FLOW;
+				newBehavior = AnalysisConstants.DATA_FLOW;
 			else
 				break;
 			
@@ -155,11 +155,11 @@ public class ModelLanguageUsageAnalysis extends AbstractAnalysis {
 	protected String getResultCSVString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("\n\n");
-		for (AnalysisConstant languageConstant : metrics)
+		for (AnalysisConstants languageConstant : metrics)
 			if (results.containsKey(languageConstant.getDescription()))
 				builder.append(languageConstant.getDescription() + CSV_ITEMSEPARATOR);
 		builder.append("\n");
-		for (AnalysisConstant languageConstant : metrics)
+		for (AnalysisConstants languageConstant : metrics)
 			if (results.containsKey(languageConstant.getDescription()))
 				builder.append(results.get(languageConstant.getDescription()) + CSV_ITEMSEPARATOR);
 		return builder.toString();

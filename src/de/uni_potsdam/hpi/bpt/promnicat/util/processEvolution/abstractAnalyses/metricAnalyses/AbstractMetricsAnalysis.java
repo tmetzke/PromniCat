@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses;
 
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.metrics.ProcessMetrics;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.AbstractAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.AbstractAnalysis;
 
 /**
  * @author Tobias Metzke
@@ -30,12 +30,12 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.AbstractA
 public abstract class AbstractMetricsAnalysis extends AbstractAnalysis{
 
 	public AbstractMetricsAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze,
-			Map<String, AnalysisProcessModel> analyzedModels) {
+			Map<String, ProcessEvolutionModel> modelsToAnalyze,
+			Map<String, ProcessEvolutionModel> analyzedModels) {
 		super(modelsToAnalyze, analyzedModels);
 	}
 
-	public AbstractMetricsAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze) {
+	public AbstractMetricsAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze) {
 		super(modelsToAnalyze);
 	}
 	
@@ -43,7 +43,7 @@ public abstract class AbstractMetricsAnalysis extends AbstractAnalysis{
 	protected String getResultCSVString() {
 		StringBuilder resultStringBuilder = new StringBuilder(addCSVHeader());
 		// collect result from each model
-		for (AnalysisProcessModel model : analyzedModels.values())
+		for (ProcessEvolutionModel model : analyzedModels.values())
 			resultStringBuilder.append(toCsvString(model));
 		return resultStringBuilder.toString();
 	}
@@ -62,5 +62,5 @@ public abstract class AbstractMetricsAnalysis extends AbstractAnalysis{
 	 * @param model that should be displayed in CSV format
 	 * @return a String representation of the formatted model results
 	 */
-	protected abstract String toCsvString(AnalysisProcessModel model);
+	protected abstract String toCsvString(ProcessEvolutionModel model);
 }

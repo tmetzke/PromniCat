@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses;
 
 import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses.CMRIterationsAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses.CMRIterationsAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
 
 /**
  * @author Tobias Metzke
@@ -34,8 +34,8 @@ public class CMRAnalysis extends AbstractAnalysis {
 	
 	private int numberOfHighIterationNumbers, numberOfMiddleIterationNumbers, numberOfLowIterationNumbers;
 	
-	public CMRAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze,
-			Map<String, AnalysisProcessModel> analyzedModels) {
+	public CMRAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze,
+			Map<String, ProcessEvolutionModel> analyzedModels) {
 		super(modelsToAnalyze, analyzedModels);
 		numberOfHighIterationNumbers = numberOfLowIterationNumbers = numberOfMiddleIterationNumbers = 0;
 	}
@@ -44,7 +44,7 @@ public class CMRAnalysis extends AbstractAnalysis {
 	 * @param modelsToAnalyze
 	 */
 	public CMRAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze) {
+			Map<String, ProcessEvolutionModel> modelsToAnalyze) {
 		this(modelsToAnalyze, null);
 	}
 
@@ -52,7 +52,7 @@ public class CMRAnalysis extends AbstractAnalysis {
 	protected void performAnalysis() {
 		IAnalysis iterationsAnalysis = new CMRIterationsAnalysis(modelsToAnalyze);
 		analyzedModels = iterationsAnalysis.getAnalyzedModels();
-		for (AnalysisProcessModel model : analyzedModels.values()) {
+		for (ProcessEvolutionModel model : analyzedModels.values()) {
 			int iterations = model.getCMRIterations();
 			if (iterations <= LOW)
 				numberOfLowIterationNumbers++;

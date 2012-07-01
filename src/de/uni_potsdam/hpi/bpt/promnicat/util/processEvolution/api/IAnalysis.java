@@ -15,11 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api;
 
 import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
 
 /**
  * @author Tobias Metzke
@@ -37,5 +37,5 @@ public interface IAnalysis {
 	 * delivers the analyzed models in a map
 	 * @return map of analyzed models
 	 */
-	public Map<String, AnalysisProcessModel> getAnalyzedModels();
+	public Map<String, ProcessEvolutionModel> getAnalyzedModels();
 }

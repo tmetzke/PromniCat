@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution;
 
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -24,10 +24,10 @@ import java.util.TreeMap;
  * @author Tobias Metzke
  *
  */
-public class AnalysisProcessModel {
+public class ProcessEvolutionModel {
 
 	private static final String MODELS_NOT_EQUAL_EXCEPTION_MESSAGE = "Models do not have the same name and are therefore not equal, can not be merged.\n";
-	private SortedMap<Integer, AnalysisModelRevision> revisions = new TreeMap<>();
+	private SortedMap<Integer, ProcessEvolutionModelRevision> revisions = new TreeMap<>();
 	private String name;
 	private boolean growing = true;
 	private int numberOfCMRIterations = 0;
@@ -35,7 +35,7 @@ public class AnalysisProcessModel {
 	private int numberOfAdditions = 0;
 	private int numberOfDeletions = 0;
 
-	public AnalysisProcessModel(String name) {
+	public ProcessEvolutionModel(String name) {
 		setName(name);
 	}
 	
@@ -44,7 +44,7 @@ public class AnalysisProcessModel {
 	 * @param model1
 	 * @param model2
 	 */
-	public AnalysisProcessModel(AnalysisProcessModel model1, AnalysisProcessModel model2) {
+	public ProcessEvolutionModel(ProcessEvolutionModel model1, ProcessEvolutionModel model2) {
 		if (model1.getName() != model2.getName())
 			throw new RuntimeException(MODELS_NOT_EQUAL_EXCEPTION_MESSAGE + "Model 1: " + model1.getName() + ", " + "Model 2: " + model2.getName());
 		else {
@@ -73,11 +73,11 @@ public class AnalysisProcessModel {
 		this.name = name;
 	}
 
-	public void add(AnalysisModelRevision revision) {
+	public void add(ProcessEvolutionModelRevision revision) {
 		revisions.put(revision.getRevisionNumber(), revision);
 	}
 
-	public SortedMap<Integer, AnalysisModelRevision> getRevisions() {
+	public SortedMap<Integer, ProcessEvolutionModelRevision> getRevisions() {
 		return revisions;
 	}
 
@@ -126,17 +126,17 @@ public class AnalysisProcessModel {
 	}
 
 	private void mergeRevisions(
-			SortedMap<Integer, AnalysisModelRevision> revisions1, SortedMap<Integer, AnalysisModelRevision> revisions2) {
-		for (AnalysisModelRevision revision1 : revisions1.values()) {
-			AnalysisModelRevision newRevision;
-			AnalysisModelRevision revision2 = revisions2.get(revision1.getRevisionNumber());
+			SortedMap<Integer, ProcessEvolutionModelRevision> revisions1, SortedMap<Integer, ProcessEvolutionModelRevision> revisions2) {
+		for (ProcessEvolutionModelRevision revision1 : revisions1.values()) {
+			ProcessEvolutionModelRevision newRevision;
+			ProcessEvolutionModelRevision revision2 = revisions2.get(revision1.getRevisionNumber());
 			if (revision2 != null)
-				newRevision = new AnalysisModelRevision(revision1, revision2);
+				newRevision = new ProcessEvolutionModelRevision(revision1, revision2);
 			else
 				newRevision = revision1;
 			add(newRevision);
 		}
-		for (AnalysisModelRevision revision2 : revisions2.values())
+		for (ProcessEvolutionModelRevision revision2 : revisions2.values())
 			if (!getRevisions().containsKey(revision2.getRevisionNumber()))
 				add(revision2);
 	}

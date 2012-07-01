@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses;
 
 import java.util.Collection;
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
 
 /**
  * @author Tobias Metzke
@@ -30,13 +30,13 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
 public class RelativeDifferenceAnalysis extends DifferenceAnalysis {
 
 	public RelativeDifferenceAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze,
-			Map<String, AnalysisProcessModel> analyzedModels,
+			Map<String, ProcessEvolutionModel> modelsToAnalyze,
+			Map<String, ProcessEvolutionModel> analyzedModels,
 			Collection<METRICS> metrics) {
 		super(modelsToAnalyze, analyzedModels, metrics);
 	}
 
-	public RelativeDifferenceAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Collection<METRICS> metrics) {
+	public RelativeDifferenceAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze, Collection<METRICS> metrics) {
 		super(modelsToAnalyze, metrics);
 	}
 	

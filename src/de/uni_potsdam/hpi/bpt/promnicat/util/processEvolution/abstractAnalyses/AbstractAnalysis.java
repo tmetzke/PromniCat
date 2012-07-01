@@ -15,14 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisConstants;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
 
 
 /**
@@ -31,19 +31,19 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
  */
 public abstract class AbstractAnalysis implements IAnalysis {
 
-	protected Map<String, AnalysisProcessModel> modelsToAnalyze;
+	protected Map<String, ProcessEvolutionModel> modelsToAnalyze;
 	
-	protected final String CSV_ITEMSEPARATOR = AnalysisConstant.ITEMSEPARATOR.getDescription();
+	protected final String CSV_ITEMSEPARATOR = AnalysisConstants.ITEMSEPARATOR.getDescription();
 	
-	protected Map<String, AnalysisProcessModel> alreadyAnalyzedModels;
+	protected Map<String, ProcessEvolutionModel> alreadyAnalyzedModels;
 	
-	protected Map<String, AnalysisProcessModel> analyzedModels;
+	protected Map<String, ProcessEvolutionModel> analyzedModels;
 
-	public AbstractAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze) {
+	public AbstractAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze) {
 		this(modelsToAnalyze, null);
 	}
 	
-	public AbstractAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Map<String, AnalysisProcessModel> analyzedModels) {
+	public AbstractAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze, Map<String, ProcessEvolutionModel> analyzedModels) {
 		this.modelsToAnalyze = modelsToAnalyze;
 		this.alreadyAnalyzedModels = analyzedModels;
 	}
@@ -51,16 +51,16 @@ public abstract class AbstractAnalysis implements IAnalysis {
 	@Override
 	public String toResultCSVString() {
 		if(analyzedModels == null) {
-			analyzedModels = new HashMap<String, AnalysisProcessModel>();
+			analyzedModels = new HashMap<String, ProcessEvolutionModel>();
 			performAnalysis();
 		}
 		return getResultCSVString();
 	}
 	
 	@Override
-	public Map<String, AnalysisProcessModel> getAnalyzedModels() {
+	public Map<String, ProcessEvolutionModel> getAnalyzedModels() {
 		if(analyzedModels == null) {
-			analyzedModels = new HashMap<String, AnalysisProcessModel>();
+			analyzedModels = new HashMap<String, ProcessEvolutionModel>();
 			performAnalysis();
 		}
 		if(alreadyAnalyzedModels != null)
@@ -69,23 +69,23 @@ public abstract class AbstractAnalysis implements IAnalysis {
 	}
 	
 
-	private Map<String, AnalysisProcessModel> merge(Map<String, AnalysisProcessModel> firstModelMap,
-			Map<String, AnalysisProcessModel> secondModelMap) {
-		Map<String, AnalysisProcessModel> newModelMap = new HashMap<>(secondModelMap);
+	private Map<String, ProcessEvolutionModel> merge(Map<String, ProcessEvolutionModel> firstModelMap,
+			Map<String, ProcessEvolutionModel> secondModelMap) {
+		Map<String, ProcessEvolutionModel> newModelMap = new HashMap<>(secondModelMap);
 		// add models of first collection to a new collection,
 		// merge with models of second collection if necessary
-		for (AnalysisProcessModel firstModel : firstModelMap.values()) {
-			AnalysisProcessModel secondModel = secondModelMap.get(firstModel.getName());
-			AnalysisProcessModel newModel;
+		for (ProcessEvolutionModel firstModel : firstModelMap.values()) {
+			ProcessEvolutionModel secondModel = secondModelMap.get(firstModel.getName());
+			ProcessEvolutionModel newModel;
 			if (secondModel != null)
-				newModel = new AnalysisProcessModel(firstModel, secondModel);
+				newModel = new ProcessEvolutionModel(firstModel, secondModel);
 			else
 				newModel = firstModel;
 			newModelMap.put(newModel.getName(), newModel);
 		}
 		// add models of second collection
 		// that haven't already been added before
-		for (AnalysisProcessModel secondModel : secondModelMap.values()) {
+		for (ProcessEvolutionModel secondModel : secondModelMap.values()) {
 			if (!newModelMap.containsKey(secondModel.getName())) {
 				newModelMap.put(secondModel.getName(), secondModel);
 			}

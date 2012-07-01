@@ -15,16 +15,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisHelper;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
 
 /**
  * @author Tobias Metzke
@@ -35,12 +35,12 @@ public class HighLevelAnalysis extends AbstractAnalysis {
 	private Collection<IAnalysis> analyses = new ArrayList<IAnalysis>();
 	private boolean includeSubprocesses;
 	
-	public HighLevelAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, boolean includeSubprocesses) {
+	public HighLevelAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze, boolean includeSubprocesses) {
 		this(modelsToAnalyze, null, includeSubprocesses);
 	}
 
-	public HighLevelAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze,
-			Map<String, AnalysisProcessModel> analyzedModels, boolean includeSubprocesses) {
+	public HighLevelAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze,
+			Map<String, ProcessEvolutionModel> analyzedModels, boolean includeSubprocesses) {
 		super(modelsToAnalyze, analyzedModels);
 		this.includeSubprocesses = includeSubprocesses;
 	}

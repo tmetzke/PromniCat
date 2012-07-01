@@ -15,17 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisConstants;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisHelper;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
 
 /**
  * @author Tobias Metzke
@@ -34,7 +34,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
 public class LazyRevisionsAnalysis extends AbstractAnalysis {
 
 	private boolean includeSubprocesses;
-	private Collection<AnalysisConstant> metrics;
+	private Collection<AnalysisConstants> metrics;
 	private int numberOfAlteringRevisions = 0;
 	private int numberOfRevisions = 0;
 
@@ -43,35 +43,35 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 	 * @param collection 
 	 */
 	public LazyRevisionsAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze, 
-			Map<String, AnalysisProcessModel> analyzedModels,
-			boolean includeSubpreocesses, Collection<AnalysisConstant> metrics) {
+			Map<String, ProcessEvolutionModel> modelsToAnalyze, 
+			Map<String, ProcessEvolutionModel> analyzedModels,
+			boolean includeSubpreocesses, Collection<AnalysisConstants> metrics) {
 		super(modelsToAnalyze, analyzedModels);
 		this.includeSubprocesses = includeSubpreocesses;
 		this.metrics = metrics;
 	}
 	
 	public LazyRevisionsAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze, 
-			boolean includeSubpreocesses, Collection<AnalysisConstant> metrics) {
+			Map<String, ProcessEvolutionModel> modelsToAnalyze, 
+			boolean includeSubpreocesses, Collection<AnalysisConstants> metrics) {
 		this(modelsToAnalyze, null, includeSubpreocesses, metrics);
 	}
 
 	@Override
 	protected void performAnalysis() {
-		Map<String, AnalysisProcessModel> modelsWithAlteringRevisions = new HashMap<String, AnalysisProcessModel>();
+		Map<String, ProcessEvolutionModel> modelsWithAlteringRevisions = new HashMap<String, ProcessEvolutionModel>();
 
 		// analyze additions and deletions and find altering revisions
 		IAnalysis addsDeletes = AnalysisHelper.analyzeAdditionsAndDeletions(modelsToAnalyze, includeSubprocesses);
 		analyzedModels = addsDeletes.getAnalyzedModels();
-		for (AnalysisProcessModel model : analyzedModels.values()) {
+		for (ProcessEvolutionModel model : analyzedModels.values()) {
 			numberOfRevisions += model.getRevisions().size();
-			for (AnalysisModelRevision revision : model.getRevisions().values())
-				for (AnalysisConstant metric : metrics)
-					if (!revision.get(metric.getDescription() + AnalysisConstant.ADDITIONS.getDescription()).equals(new Double(0))
-							|| !revision.get(metric.getDescription() + AnalysisConstant.ADDITIONS.getDescription()).equals(new Double(0))) {
+			for (ProcessEvolutionModelRevision revision : model.getRevisions().values())
+				for (AnalysisConstants metric : metrics)
+					if (!revision.get(metric.getDescription() + AnalysisConstants.ADDITIONS.getDescription()).equals(new Double(0))
+							|| !revision.get(metric.getDescription() + AnalysisConstants.ADDITIONS.getDescription()).equals(new Double(0))) {
 						if (!modelsWithAlteringRevisions.containsKey(model.getName()))
-							modelsWithAlteringRevisions.put(model.getName(), new AnalysisProcessModel(model.getName()));
+							modelsWithAlteringRevisions.put(model.getName(), new ProcessEvolutionModel(model.getName()));
 						modelsWithAlteringRevisions.get(model.getName()).add(revision);
 						break;
 					}
@@ -80,16 +80,16 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 		// if revision not already present as altering revision,
 		// add it to altering revision if it is one concerning layout changes
 		IAnalysis layoutChanges = AnalysisHelper.analyzeElementMovements(modelsToAnalyze);
-		Map<String, AnalysisProcessModel> newLayoutModels = layoutChanges.getAnalyzedModels();
-		for (AnalysisProcessModel model : newLayoutModels.values())
-			for (AnalysisModelRevision revision : model.getRevisions().values())
+		Map<String, ProcessEvolutionModel> newLayoutModels = layoutChanges.getAnalyzedModels();
+		for (ProcessEvolutionModel model : newLayoutModels.values())
+			for (ProcessEvolutionModelRevision revision : model.getRevisions().values())
 				if (modelsWithAlteringRevisions.containsKey(model.getName()))
 					if (!modelsWithAlteringRevisions.get(model.getName()).getRevisions().containsKey(revision.getRevisionNumber()))
-						if (!revision.get(AnalysisConstant.NEW_LAYOUT.getDescription()).equals(new Double(0)))
+						if (!revision.get(AnalysisConstants.NEW_LAYOUT.getDescription()).equals(new Double(0)))
 							modelsWithAlteringRevisions.get(model.getName()).add(revision);
 		
-		for (AnalysisProcessModel model : modelsWithAlteringRevisions.values()) {
-			AnalysisProcessModel analyzedModel = analyzedModels.get(model.getName());
+		for (ProcessEvolutionModel model : modelsWithAlteringRevisions.values()) {
+			ProcessEvolutionModel analyzedModel = analyzedModels.get(model.getName());
 			if (analyzedModel != null) {
 					analyzedModel.setNumberOfAlteringRevisions(model.getRevisions().size());
 			}
@@ -100,9 +100,9 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 	@Override
 	protected String getResultCSVString() {
 		return new StringBuilder()
-			.append(AnalysisConstant.NUM_REVISIONS.getDescription() + CSV_ITEMSEPARATOR)
-			.append(AnalysisConstant.ALTERING_REVISIONS.getDescription() + CSV_ITEMSEPARATOR)
-			.append(AnalysisConstant.UNALTERING_REVISIONS.getDescription() +CSV_ITEMSEPARATOR)
+			.append(AnalysisConstants.NUM_REVISIONS.getDescription() + CSV_ITEMSEPARATOR)
+			.append(AnalysisConstants.ALTERING_REVISIONS.getDescription() + CSV_ITEMSEPARATOR)
+			.append(AnalysisConstants.UNALTERING_REVISIONS.getDescription() +CSV_ITEMSEPARATOR)
 			.append("\n")
 			.append(numberOfRevisions +CSV_ITEMSEPARATOR)
 			.append(numberOfAlteringRevisions +CSV_ITEMSEPARATOR)

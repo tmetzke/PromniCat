@@ -15,14 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses;
 
 import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisConstants;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
 
 /**
  * @author Tobi
@@ -35,8 +35,8 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
 public class CMRIterationsAnalysis extends AbstractMetricsAnalysis {
 
 	public CMRIterationsAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze,
-			Map<String, AnalysisProcessModel> analyzedModels) {
+			Map<String, ProcessEvolutionModel> modelsToAnalyze,
+			Map<String, ProcessEvolutionModel> analyzedModels) {
 		super(modelsToAnalyze, analyzedModels);
 	}
 	
@@ -45,7 +45,7 @@ public class CMRIterationsAnalysis extends AbstractMetricsAnalysis {
 	 * @param modelsToAnalyze
 	 */
 	public CMRIterationsAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze) {
+			Map<String, ProcessEvolutionModel> modelsToAnalyze) {
 		super(modelsToAnalyze);
 	}
 
@@ -56,7 +56,7 @@ public class CMRIterationsAnalysis extends AbstractMetricsAnalysis {
 	}
 
 	@Override
-	protected String toCsvString(AnalysisProcessModel model) {
+	protected String toCsvString(ProcessEvolutionModel model) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -64,10 +64,10 @@ public class CMRIterationsAnalysis extends AbstractMetricsAnalysis {
 	@Override
 	protected void performAnalysis() {
 		IAnalysis cmrOccurrencesAnalysis = new CMROccurrencesAnalysis(modelsToAnalyze);
-		for (AnalysisProcessModel model : cmrOccurrencesAnalysis.getAnalyzedModels().values()) {
-			AnalysisConstant lastCMRElement = AnalysisConstant.NONE;
+		for (ProcessEvolutionModel model : cmrOccurrencesAnalysis.getAnalyzedModels().values()) {
+			AnalysisConstants lastCMRElement = AnalysisConstants.NONE;
 			int iterations = 0;
-			for (AnalysisModelRevision revision : model.getRevisions().values()) {
+			for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
 				if (isNewIteration(lastCMRElement, revision)) {
 					setToModeling(lastCMRElement);
 					if (isLastRevision(revision, model))
@@ -77,7 +77,7 @@ public class CMRIterationsAnalysis extends AbstractMetricsAnalysis {
 					setToReconciliation(lastCMRElement);
 				}
 			}
-			AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
+			ProcessEvolutionModel newModel = new ProcessEvolutionModel(model.getName());
 			newModel.setCMRIterations(iterations);
 			analyzedModels.put(model.getName(), newModel);
 		}
@@ -88,10 +88,10 @@ public class CMRIterationsAnalysis extends AbstractMetricsAnalysis {
 	 * @param revision
 	 * @return
 	 */
-	private boolean isNewIteration(AnalysisConstant lastCMRElement,
-			AnalysisModelRevision revision) {
+	private boolean isNewIteration(AnalysisConstants lastCMRElement,
+			ProcessEvolutionModelRevision revision) {
 		return (containsModeling(revision) && !containsReconciliation(revision)) ||
-		(containsModeling(revision) & containsReconciliation(revision) & lastCMRElement.equals(AnalysisConstant.RECONCILIATION));
+		(containsModeling(revision) & containsReconciliation(revision) & lastCMRElement.equals(AnalysisConstants.RECONCILIATION));
 	}
 
 	/**
@@ -99,37 +99,37 @@ public class CMRIterationsAnalysis extends AbstractMetricsAnalysis {
 	 * @param revision
 	 * @return
 	 */
-	private boolean isConcludedIteration(AnalysisConstant lastCMRElement,
-			AnalysisModelRevision revision) {
-		return (!lastCMRElement.equals(AnalysisConstant.RECONCILIATION) && containsReconciliation(revision) && containsModeling(revision)) ||
-				(containsReconciliation(revision) && !containsModeling(revision) && lastCMRElement.equals(AnalysisConstant.MODELING));
+	private boolean isConcludedIteration(AnalysisConstants lastCMRElement,
+			ProcessEvolutionModelRevision revision) {
+		return (!lastCMRElement.equals(AnalysisConstants.RECONCILIATION) && containsReconciliation(revision) && containsModeling(revision)) ||
+				(containsReconciliation(revision) && !containsModeling(revision) && lastCMRElement.equals(AnalysisConstants.MODELING));
 	}
 
 	/**
 	 * @param revision
 	 * @return
 	 */
-	private boolean containsReconciliation(AnalysisModelRevision revision) {
-		return revision.getMetrics().containsKey(AnalysisConstant.RECONCILIATION.getDescription());
+	private boolean containsReconciliation(ProcessEvolutionModelRevision revision) {
+		return revision.getMetrics().containsKey(AnalysisConstants.RECONCILIATION.getDescription());
 	}
 
 	/**
 	 * @param revision
 	 * @return
 	 */
-	private boolean containsModeling(AnalysisModelRevision revision) {
-		return revision.getMetrics().containsKey(AnalysisConstant.MODELING.getDescription());
+	private boolean containsModeling(ProcessEvolutionModelRevision revision) {
+		return revision.getMetrics().containsKey(AnalysisConstants.MODELING.getDescription());
 	}
 
-	private void setToModeling(AnalysisConstant lastCMRElement) {
-		lastCMRElement = AnalysisConstant.MODELING;
+	private void setToModeling(AnalysisConstants lastCMRElement) {
+		lastCMRElement = AnalysisConstants.MODELING;
 	}
 
-	private void setToReconciliation(AnalysisConstant lastCMRElement) {
-		lastCMRElement = AnalysisConstant.RECONCILIATION;
+	private void setToReconciliation(AnalysisConstants lastCMRElement) {
+		lastCMRElement = AnalysisConstants.RECONCILIATION;
 	}
 
-	private boolean isLastRevision(AnalysisModelRevision revision, AnalysisProcessModel model) {
+	private boolean isLastRevision(ProcessEvolutionModelRevision revision, ProcessEvolutionModel model) {
 		return model.getRevisions().lastKey() == revision.getRevisionNumber();
 	}
 

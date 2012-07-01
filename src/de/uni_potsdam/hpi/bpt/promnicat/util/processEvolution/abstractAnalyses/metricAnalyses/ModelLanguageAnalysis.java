@@ -15,14 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses;
 
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisConstants;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
 
 /**
  * @author Tobias Metzke
@@ -31,27 +31,27 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
 public class ModelLanguageAnalysis extends AbstractMetricsAnalysis {
 
 	public ModelLanguageAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze,
-			Map<String, AnalysisProcessModel> analyzedModels) {
+			Map<String, ProcessEvolutionModel> modelsToAnalyze,
+			Map<String, ProcessEvolutionModel> analyzedModels) {
 		super(modelsToAnalyze, analyzedModels);
 	}
 
-	public ModelLanguageAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze) {
+	public ModelLanguageAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze) {
 		super(modelsToAnalyze);
 	}
 
 	@Override
 	protected void performAnalysis() {
-		for (AnalysisProcessModel model : modelsToAnalyze.values()) {
-			AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
-			for (AnalysisModelRevision revision : model.getRevisions().values()) {
-				AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
+		for (ProcessEvolutionModel model : modelsToAnalyze.values()) {
+			ProcessEvolutionModel newModel = new ProcessEvolutionModel(model.getName());
+			for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
+				ProcessEvolutionModelRevision newRevision = new ProcessEvolutionModelRevision(revision.getRevisionNumber());
 				if (revision.get(METRICS.NUM_NODES) > 0 || revision.get(METRICS.NUM_EDGES) > 0)
-					newRevision.add(AnalysisConstant.CONTROL_FLOW.getDescription(), 1);
+					newRevision.add(AnalysisConstants.CONTROL_FLOW.getDescription(), 1);
 				if (revision.get(METRICS.NUM_DATA_NODES) > 0)
-					newRevision.add(AnalysisConstant.DATA_FLOW.getDescription(), 1);
+					newRevision.add(AnalysisConstants.DATA_FLOW.getDescription(), 1);
 				if (revision.get(METRICS.NUM_ROLES) > 0)
-					newRevision.add(AnalysisConstant.ORGANISATION.getDescription(), 1);
+					newRevision.add(AnalysisConstants.ORGANISATION.getDescription(), 1);
 				newModel.add(newRevision);
 			}
 			analyzedModels.put(model.getName(), newModel);
@@ -68,10 +68,10 @@ public class ModelLanguageAnalysis extends AbstractMetricsAnalysis {
 	}
 
 	@Override
-	protected String toCsvString(AnalysisProcessModel model) {
+	protected String toCsvString(ProcessEvolutionModel model) {
 		StringBuilder resultBuilder = new StringBuilder();
 		// language elements for every revision
-		for (AnalysisModelRevision revision : model.getRevisions().values()) {
+		for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
 			resultBuilder
 				.append("\n")
 				.append(model.getName())

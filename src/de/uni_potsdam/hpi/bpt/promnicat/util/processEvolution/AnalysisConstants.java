@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution;
 
 /**
  * @author Tobias Metzke
  *
  */
-public enum AnalysisConstant {
+public enum AnalysisConstants {
 
 	/**
 	 * the key for the number of models that are analyzed
@@ -110,7 +110,7 @@ public enum AnalysisConstant {
 	
 	private String stringRepresentation;
 	
-	private AnalysisConstant(String name) {
+	private AnalysisConstants(String name) {
 		this.stringRepresentation = name;
 	}
 	

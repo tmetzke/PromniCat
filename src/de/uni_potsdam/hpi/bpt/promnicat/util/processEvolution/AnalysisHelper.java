@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,13 +24,13 @@ import java.util.Collections;
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.HighLevelAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses.AdditionsDeletionsAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses.DifferenceAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses.ModelLanguageAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses.MovedElementsAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses.RelativeDifferenceAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.HighLevelAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses.AdditionsDeletionsAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses.DifferenceAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses.ModelLanguageAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses.MovedElementsAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses.RelativeDifferenceAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
 
 /**
  * @author Tobias Metzke
@@ -45,23 +45,23 @@ public class AnalysisHelper {
 	 * to the absolute old number (<code>true</code>) or absolute (<code>false</code>)
 	 * @return the analyzed models, their revisions and their values
 	 */
-	public static IAnalysis analyzeDifferencesInMetrics(Map<String, AnalysisProcessModel> models, boolean relative) {
+	public static IAnalysis analyzeDifferencesInMetrics(Map<String, ProcessEvolutionModel> models, boolean relative) {
 		IAnalysis differenceAnalysis = relative ? 
 				new RelativeDifferenceAnalysis(models, getProcessModelMetrics()) :
 				new DifferenceAnalysis(models, getProcessModelMetrics());
 		return differenceAnalysis;
 	}
 
-	public static IAnalysis analyzeAdditionsAndDeletions(Map<String, AnalysisProcessModel> models, boolean includeSubprocesses) {
+	public static IAnalysis analyzeAdditionsAndDeletions(Map<String, ProcessEvolutionModel> models, boolean includeSubprocesses) {
 		return new AdditionsDeletionsAnalysis(models, getIndividualMetrics(), includeSubprocesses);
 	}
 	
-	public static IAnalysis modelLanguageAnalysis(Map<String, AnalysisProcessModel> models) {
+	public static IAnalysis modelLanguageAnalysis(Map<String, ProcessEvolutionModel> models) {
 		return new ModelLanguageAnalysis(models);
 	}
 
 	public static IAnalysis analyzeElementMovements(
-			Map<String, AnalysisProcessModel> modelsToBeAnalyzed) {
+			Map<String, ProcessEvolutionModel> modelsToBeAnalyzed) {
 		return new MovedElementsAnalysis(modelsToBeAnalyzed);
 	}
 
@@ -71,7 +71,7 @@ public class AnalysisHelper {
 	 * @param analyzedModels
 	 * @throws IOException
 	 */
-	public static IAnalysis highLevelAnalysis(Map<String, AnalysisProcessModel> models, boolean includeSubprocesses) throws IOException {
+	public static IAnalysis highLevelAnalysis(Map<String, ProcessEvolutionModel> models, boolean includeSubprocesses) throws IOException {
 		return new HighLevelAnalysis(models, includeSubprocesses);
 	}
 
@@ -95,26 +95,26 @@ public class AnalysisHelper {
 		return processModelMetrics;
 	}
 	
-	public static Collection<AnalysisConstant> getIndividualMetrics() {
-		Collection<AnalysisConstant> individualMetrics = new ArrayList<>();
+	public static Collection<AnalysisConstants> getIndividualMetrics() {
+		Collection<AnalysisConstants> individualMetrics = new ArrayList<>();
 		Collections.addAll(individualMetrics,
-				AnalysisConstant.EVENTS, AnalysisConstant.ACTIVITIES, 
-				AnalysisConstant.GATEWAYS, AnalysisConstant.DOCUMENTS, 
-				AnalysisConstant.ROLES, AnalysisConstant.EDGES);
+				AnalysisConstants.EVENTS, AnalysisConstants.ACTIVITIES, 
+				AnalysisConstants.GATEWAYS, AnalysisConstants.DOCUMENTS, 
+				AnalysisConstants.ROLES, AnalysisConstants.EDGES);
 		return individualMetrics;
 	}
 	
-	public static Collection<AnalysisConstant> getModelLanguageMetrics() {
-		Collection<AnalysisConstant> languageMetrics = new ArrayList<>();
+	public static Collection<AnalysisConstants> getModelLanguageMetrics() {
+		Collection<AnalysisConstants> languageMetrics = new ArrayList<>();
 		Collections.addAll(languageMetrics,
-				AnalysisConstant.CONTROL_ORGA_DATA, AnalysisConstant.CONTROL_DATA_ORGA,
-				AnalysisConstant.DATA_CONTROL_ORGA, AnalysisConstant.DATA_ORGA_CONTROL, 
-				AnalysisConstant.ORGA_CONTROL_DATA, AnalysisConstant.ORGA_DATA_CONTROL,
-				AnalysisConstant.CONTROL_DATA, AnalysisConstant.CONTROL_ORGA,
-				AnalysisConstant.DATA_CONTROL, AnalysisConstant.DATA_ORGA,
-				AnalysisConstant.ORGA_CONTROL, AnalysisConstant.ORGA_DATA,
-				AnalysisConstant.CONTROL_FLOW, AnalysisConstant.DATA_FLOW,
-				AnalysisConstant.ORGANISATION);
+				AnalysisConstants.CONTROL_ORGA_DATA, AnalysisConstants.CONTROL_DATA_ORGA,
+				AnalysisConstants.DATA_CONTROL_ORGA, AnalysisConstants.DATA_ORGA_CONTROL, 
+				AnalysisConstants.ORGA_CONTROL_DATA, AnalysisConstants.ORGA_DATA_CONTROL,
+				AnalysisConstants.CONTROL_DATA, AnalysisConstants.CONTROL_ORGA,
+				AnalysisConstants.DATA_CONTROL, AnalysisConstants.DATA_ORGA,
+				AnalysisConstants.ORGA_CONTROL, AnalysisConstants.ORGA_DATA,
+				AnalysisConstants.CONTROL_FLOW, AnalysisConstants.DATA_FLOW,
+				AnalysisConstants.ORGANISATION);
 		return languageMetrics;
 	}
 }

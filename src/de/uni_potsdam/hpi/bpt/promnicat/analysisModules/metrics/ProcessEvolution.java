@@ -39,14 +39,14 @@ import de.uni_potsdam.hpi.bpt.promnicat.parser.EpcParser;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
-import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessEvolutionConstants;
-import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessEvolutionConstants.PROCESS_EVOLUTION;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.WriterHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisHelper;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionConstants;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.WriterHelper;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionConstants.PROCESS_EVOLUTION;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IFlexibleUnitChainBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.IUnitChainBuilder;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.UnitChainBuilder;
@@ -61,7 +61,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataProcessMet
  * @author Tobias Metzke
  *
  */
-public class IndividualProcessMetrics {
+public class ProcessEvolution {
 	
 	private static final boolean HANDLE_SUB_PROCESSES = true;
 
@@ -98,7 +98,7 @@ public class IndividualProcessMetrics {
 //	private static final String MODEL_LANGUAGE_RESULT_FILE_PATH = 
 //			new File("").getAbsolutePath() + "/resources/analysis/new.model_language_results.csv";
 	
-	private static final Logger logger = Logger.getLogger(IndividualProcessMetrics.class.getName());
+	private static final Logger logger = Logger.getLogger(ProcessEvolution.class.getName());
 	
 	/**
 	 * flag to decide whether to use the full database or just a small test subset
@@ -129,7 +129,7 @@ public class IndividualProcessMetrics {
 		
 		Collection<IUnitDataProcessMetrics<Object>> result = executeChain(chainBuilder);
 		
-		Map<String,AnalysisProcessModel> models = buildUpInternalDataStructure(result);
+		Map<String,ProcessEvolutionModel> models = buildUpInternalDataStructure(result);
 
 		models = performAnalyses(models);
 		setupClusterer();
@@ -202,10 +202,10 @@ public class IndividualProcessMetrics {
 	 * @param resultSet the collection of results of the metric analysis
 	 * @return the internal data structure representation
 	 */
-	private static Map<String, AnalysisProcessModel> buildUpInternalDataStructure(
+	private static Map<String, ProcessEvolutionModel> buildUpInternalDataStructure(
 			Collection<IUnitDataProcessMetrics<Object>> resultSet) {
 		
-		Map<String, AnalysisProcessModel> models = new HashMap<>();
+		Map<String, ProcessEvolutionModel> models = new HashMap<>();
 		
 		for (IUnitDataProcessMetrics<Object> resultItem : resultSet){
 			String modelPathWithRevision = resultItem.getModelPath();
@@ -218,12 +218,12 @@ public class IndividualProcessMetrics {
 			
 			// new model to be analyzed, so add it to the map of models
 			if (!models.containsKey(modelPath)) {
-				AnalysisProcessModel model = new AnalysisProcessModel(modelPath);
+				ProcessEvolutionModel model = new ProcessEvolutionModel(modelPath);
 				models.put(model.getName(), model);
 			}
 			
 			// add the revision to its model
-			AnalysisModelRevision revision = new AnalysisModelRevision(revisionNumber);
+			ProcessEvolutionModelRevision revision = new ProcessEvolutionModelRevision(revisionNumber);
 			for (METRICS metric : getProcessModelMetrics())
 				revision.add(metric, metric.getAttribute(resultItem));
 			revision.addProcessModel((ProcessModel)resultItem.getValue());
@@ -245,7 +245,7 @@ public class IndividualProcessMetrics {
 	 * @param models
 	 * @throws IOException
 	 */
-	private static Map<String, AnalysisProcessModel> performAnalyses(Map<String, AnalysisProcessModel> models)
+	private static Map<String, ProcessEvolutionModel> performAnalyses(Map<String, ProcessEvolutionModel> models)
 			throws IOException {
 //		// metrics results
 //		WriterHelper.writeToFile(MODEL_RESULT_FILE_PATH, models);
@@ -301,9 +301,9 @@ public class IndividualProcessMetrics {
 	}
 
 	@SuppressWarnings("unused")
-	private static void clusterModels(Map<String, AnalysisProcessModel> models) {
+	private static void clusterModels(Map<String, ProcessEvolutionModel> models) {
 		ProcessInstances instances = new ProcessInstances("", numericAttributes, null, models.values().size());
-		for (AnalysisProcessModel model : models.values()){
+		for (ProcessEvolutionModel model : models.values()){
 			double[] values = new double[numericAttributes.size()];
 			int i = 0;
 			for (Object evolution : numericAttributes.toArray())
@@ -322,7 +322,7 @@ public class IndividualProcessMetrics {
 			firstInstances.appendElements(secondInstances);
 			for (Object instance : firstInstances.toArray())
 				if(instance instanceof ProcessInstance)
-					logger.info("Yay: " + ((AnalysisProcessModel)((ProcessInstance)instance).process).getName());
+					logger.info("Yay: " + ((ProcessEvolutionModel)((ProcessInstance)instance).process).getName());
 			ClusterTree<ProcessInstances> newCluster = clusters.getSubtreeWithMinClusterSize(2);
 		} catch (Exception e) {
 			e.printStackTrace();

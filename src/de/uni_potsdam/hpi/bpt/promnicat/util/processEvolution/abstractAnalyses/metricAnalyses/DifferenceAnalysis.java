@@ -15,15 +15,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
 
 /**
  * @author Tobias Metzke
@@ -33,25 +33,25 @@ public class DifferenceAnalysis extends AbstractMetricsAnalysis {
 
 	protected Collection<METRICS> metrics;
 
-	public DifferenceAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Map<String, AnalysisProcessModel> analyzedModels, Collection<METRICS> metrics) {
+	public DifferenceAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze, Map<String, ProcessEvolutionModel> analyzedModels, Collection<METRICS> metrics) {
 		super(modelsToAnalyze,analyzedModels);
 		this.metrics = metrics;
 	}
 	
-	public DifferenceAnalysis(Map<String, AnalysisProcessModel> modelsToAnalyze, Collection<METRICS> metrics) {
+	public DifferenceAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze, Collection<METRICS> metrics) {
 		this(modelsToAnalyze, null, metrics);
 	}
 
 	@Override
 	protected void performAnalysis() {
 
-		for (AnalysisProcessModel model : modelsToAnalyze.values()) {
-			AnalysisProcessModel newModel = new AnalysisProcessModel(
+		for (ProcessEvolutionModel model : modelsToAnalyze.values()) {
+			ProcessEvolutionModel newModel = new ProcessEvolutionModel(
 					model.getName());
 			Map<METRICS, Double> oldValues = getInitialMetricsValues();
 			// perform the analysis of differences for every revision and metric
-			for (AnalysisModelRevision revision : model.getRevisions().values()) {
-				AnalysisModelRevision newRevision = new AnalysisModelRevision(
+			for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
+				ProcessEvolutionModelRevision newRevision = new ProcessEvolutionModelRevision(
 						revision.getRevisionNumber());
 				for (METRICS metric : metrics) {
 					double actualValue = revision.get(metric);
@@ -111,11 +111,11 @@ public class DifferenceAnalysis extends AbstractMetricsAnalysis {
 	}
 
 	@Override
-	protected String toCsvString(AnalysisProcessModel model) {
+	protected String toCsvString(ProcessEvolutionModel model) {
 		// collect all information from the revisions
 		// display each revision in a separate line
 		StringBuilder builder = new StringBuilder();
-		for (AnalysisModelRevision revision : model.getRevisions().values()) {
+		for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
 			builder
 				.append("\n")
 				.append(model.getName())

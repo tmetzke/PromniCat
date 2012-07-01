@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,9 +35,9 @@ import org.jbpt.pm.Resource;
 import org.jbpt.pm.bpmn.Document;
 import org.jbpt.pm.bpmn.Subprocess;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisConstants;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
 
 /**
  * @author Tobias Metzke
@@ -46,15 +46,15 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
 public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 
 	private boolean includeSubprocesses;
-	private Collection<AnalysisConstant> metrics;
+	private Collection<AnalysisConstants> metrics;
 	
 	public AdditionsDeletionsAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze, Collection<AnalysisConstant> metrics, boolean includeSubprocesses) {
+			Map<String, ProcessEvolutionModel> modelsToAnalyze, Collection<AnalysisConstants> metrics, boolean includeSubprocesses) {
 		this(modelsToAnalyze, null, metrics, includeSubprocesses);
 	}
 	
 	public AdditionsDeletionsAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze, Map<String, AnalysisProcessModel> analyzedModels, Collection<AnalysisConstant> metrics, boolean includeSubprocesses) {
+			Map<String, ProcessEvolutionModel> modelsToAnalyze, Map<String, ProcessEvolutionModel> analyzedModels, Collection<AnalysisConstants> metrics, boolean includeSubprocesses) {
 		super(modelsToAnalyze,analyzedModels);
 		this.metrics = metrics;
 		this.includeSubprocesses = includeSubprocesses;
@@ -62,19 +62,19 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 
 	@Override
 	protected void performAnalysis() {
-		for (AnalysisProcessModel model : modelsToAnalyze.values()) {
-			AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
+		for (ProcessEvolutionModel model : modelsToAnalyze.values()) {
+			ProcessEvolutionModel newModel = new ProcessEvolutionModel(model.getName());
 			Map<String, List<String>> oldElements = new HashMap<>();
 			int additions = 0, deletions = 0;
-			for (AnalysisModelRevision revision : model.getRevisions().values()) {
-				AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
+			for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
+				ProcessEvolutionModelRevision newRevision = new ProcessEvolutionModelRevision(revision.getRevisionNumber());
 				// check adds and deletes for every class like Activities, Gateways, Edges etc.
-				for (AnalysisConstant classToAnalyze : metrics) {
-					Map<AnalysisConstant, Integer> addsAndDeletes = analyzeAddsAndDeletesFor(classToAnalyze, oldElements, revision, includeSubprocesses);
-					additions += addsAndDeletes.get(AnalysisConstant.ADDITIONS);
-					deletions += addsAndDeletes.get(AnalysisConstant.DELETIONS);
-					newRevision.add(classToAnalyze.getDescription() + AnalysisConstant.ADDITIONS.getDescription(), additions);
-					newRevision.add(classToAnalyze.getDescription() + AnalysisConstant.DELETIONS.getDescription(), deletions);
+				for (AnalysisConstants classToAnalyze : metrics) {
+					Map<AnalysisConstants, Integer> addsAndDeletes = analyzeAddsAndDeletesFor(classToAnalyze, oldElements, revision, includeSubprocesses);
+					additions += addsAndDeletes.get(AnalysisConstants.ADDITIONS);
+					deletions += addsAndDeletes.get(AnalysisConstants.DELETIONS);
+					newRevision.add(classToAnalyze.getDescription() + AnalysisConstants.ADDITIONS.getDescription(), additions);
+					newRevision.add(classToAnalyze.getDescription() + AnalysisConstants.DELETIONS.getDescription(), deletions);
 				}
 				newModel.add(newRevision);
 				newModel.setNumberOfAdditions(additions);
@@ -89,9 +89,9 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 	 * @param revision
 	 */
 	@SuppressWarnings("unchecked")
-	private static Map<AnalysisConstant, Integer> analyzeAddsAndDeletesFor(
-			AnalysisConstant classToAnalyze, Map<String, List<String>> oldElements, 
-			AnalysisModelRevision revision, boolean includeSubprocesses) {
+	private static Map<AnalysisConstants, Integer> analyzeAddsAndDeletesFor(
+			AnalysisConstants classToAnalyze, Map<String, List<String>> oldElements, 
+			ProcessEvolutionModelRevision revision, boolean includeSubprocesses) {
 		List<String> newIDs = new ArrayList<>();
 		List<String> deletions;
 		List<String> additions;
@@ -128,10 +128,10 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 		oldIDs = oldIDs == null ? new ArrayList<String>() : oldIDs;
 		deletions = ListUtils.subtract(oldIDs, newIDs);
 		additions = ListUtils.subtract(newIDs, oldIDs);
-		Map<AnalysisConstant, Integer> results = new HashMap<>();
+		Map<AnalysisConstants, Integer> results = new HashMap<>();
 		oldElements.put(classToAnalyze.getDescription(), newIDs);
-		results.put(AnalysisConstant.ADDITIONS, additions.size());
-		results.put(AnalysisConstant.DELETIONS, deletions.size());
+		results.put(AnalysisConstants.ADDITIONS, additions.size());
+		results.put(AnalysisConstants.DELETIONS, deletions.size());
 		return results;
 	}
 
@@ -186,9 +186,9 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 		StringBuilder builder = new StringBuilder()
 			.append("Process Model" + CSV_ITEMSEPARATOR)
 			.append("Revision" + CSV_ITEMSEPARATOR);
-		for (AnalysisConstant metric : metrics) {
-			String metricAdditionName = metric.getDescription() + AnalysisConstant.ADDITIONS.getDescription();
-			String metricDeletionName = metric.getDescription() + AnalysisConstant.DELETIONS.getDescription();
+		for (AnalysisConstants metric : metrics) {
+			String metricAdditionName = metric.getDescription() + AnalysisConstants.ADDITIONS.getDescription();
+			String metricDeletionName = metric.getDescription() + AnalysisConstants.DELETIONS.getDescription();
 			builder
 				.append(metricAdditionName + CSV_ITEMSEPARATOR)
 				.append(metricDeletionName + CSV_ITEMSEPARATOR);
@@ -198,18 +198,18 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 	}
 	
 	@Override
-	protected String toCsvString(AnalysisProcessModel model) {
+	protected String toCsvString(ProcessEvolutionModel model) {
 		// collect all information from the revisions
 		// display each revision in a separate line
 		StringBuilder builder = new StringBuilder();
-		for (AnalysisModelRevision revision : model.getRevisions().values()) {
+		for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
 			builder
 				.append("\n")
 				.append(model.getName())
 				.append(CSV_ITEMSEPARATOR + revision.getRevisionNumber());
-			for (AnalysisConstant metric : metrics) {
-				String metricAdditionName = metric.getDescription() + AnalysisConstant.ADDITIONS.getDescription();
-				String metricDeletionName = metric.getDescription() + AnalysisConstant.DELETIONS.getDescription();
+			for (AnalysisConstants metric : metrics) {
+				String metricAdditionName = metric.getDescription() + AnalysisConstants.ADDITIONS.getDescription();
+				String metricDeletionName = metric.getDescription() + AnalysisConstants.DELETIONS.getDescription();
 				builder
 					.append(CSV_ITEMSEPARATOR + revision.get(metricAdditionName).intValue())
 					.append(CSV_ITEMSEPARATOR + revision.get(metricDeletionName).intValue());

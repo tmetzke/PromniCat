@@ -15,9 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
 
 /**
  * @author Tobi
@@ -31,13 +30,13 @@ public class ProcessEvolutionConstants {
 	public enum PROCESS_EVOLUTION{
 		IS_GROWING(ProcessEvolutionConstants.IS_GROWING){
 			/** returns true if the model is always growing */
-			public double getAttribute(AnalysisProcessModel input){
+			public double getAttribute(ProcessEvolutionModel input){
 				return input.isGrowing() ? 1 : 0;
 			}
 		},
 		NUM_ITERATIONS(ProcessEvolutionConstants.NUM_ITERATIONS){
 			/** returns the number of CMR iterations the model went through */
-			public double getAttribute(AnalysisProcessModel input){
+			public double getAttribute(ProcessEvolutionModel input){
 				return input.getCMRIterations();
 			}
 		};
@@ -51,6 +50,6 @@ public class ProcessEvolutionConstants {
 		public String toString() {
 			return description;
 		}
-		public abstract double getAttribute(AnalysisProcessModel input);
+		public abstract double getAttribute(ProcessEvolutionModel input);
 	};
 }

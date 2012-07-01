@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution;
 
 import java.util.HashMap;
 import java.util.Set;
@@ -30,9 +30,9 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
  * @author Tobias Metzke
  *
  */
-public class AnalysisModelRevision {
+public class ProcessEvolutionModelRevision {
 
-	private static final Logger logger = Logger.getLogger(AnalysisModelRevision.class.getName());
+	private static final Logger logger = Logger.getLogger(ProcessEvolutionModelRevision.class.getName());
 	
 	private static final String REVISIONS_NOT_EQUAL_EXCEPTION_MESSAGE = "Revisions do not have the same revision number and are therefore not equal, can not be merged.\n";
 
@@ -43,12 +43,12 @@ public class AnalysisModelRevision {
 	private int revisionNumber;
 	private ProcessModel processModel;
 	
-	public AnalysisModelRevision(int revisionNumber) {
+	public ProcessEvolutionModelRevision(int revisionNumber) {
 		setRevisionNumber(revisionNumber);
 	}
 
-	public AnalysisModelRevision(AnalysisModelRevision revision1,
-			AnalysisModelRevision revision2) {
+	public ProcessEvolutionModelRevision(ProcessEvolutionModelRevision revision1,
+			ProcessEvolutionModelRevision revision2) {
 		if (revision1.getRevisionNumber() != revision2.getRevisionNumber())
 			throw new RuntimeException(REVISIONS_NOT_EQUAL_EXCEPTION_MESSAGE);
 		else {

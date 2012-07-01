@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.analysis.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,10 +24,10 @@ import java.util.Map;
 
 import org.jbpt.hypergraph.abs.Vertex;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisConstant;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisModelRevision;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.AnalysisProcessModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisConstants;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
 
 /**
  * @author Tobias Metzke
@@ -36,16 +36,16 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.analysis.api.IAnalysis;
 public class MovedElementsAnalysis extends AbstractMetricsAnalysis implements
 		IAnalysis {
 	
-	private static final String NEW_LAYOUT = AnalysisConstant.NEW_LAYOUT.getDescription();
+	private static final String NEW_LAYOUT = AnalysisConstants.NEW_LAYOUT.getDescription();
 
 	public MovedElementsAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze,
-			Map<String, AnalysisProcessModel> analyzedModels) {
+			Map<String, ProcessEvolutionModel> modelsToAnalyze,
+			Map<String, ProcessEvolutionModel> analyzedModels) {
 		super(modelsToAnalyze, analyzedModels);
 	}
 
 	public MovedElementsAnalysis(
-			Map<String, AnalysisProcessModel> modelsToAnalyze) {
+			Map<String, ProcessEvolutionModel> modelsToAnalyze) {
 		super(modelsToAnalyze);
 	}
 
@@ -53,11 +53,11 @@ public class MovedElementsAnalysis extends AbstractMetricsAnalysis implements
 	
 	@Override
 	protected void performAnalysis() {
-		for (AnalysisProcessModel model : modelsToAnalyze.values()) {
+		for (ProcessEvolutionModel model : modelsToAnalyze.values()) {
 			oldNodes.clear();
-			AnalysisProcessModel newModel = new AnalysisProcessModel(model.getName());
-			for (AnalysisModelRevision revision : model.getRevisions().values()) {
-				AnalysisModelRevision newRevision = new AnalysisModelRevision(revision.getRevisionNumber());
+			ProcessEvolutionModel newModel = new ProcessEvolutionModel(model.getName());
+			for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
+				ProcessEvolutionModelRevision newRevision = new ProcessEvolutionModelRevision(revision.getRevisionNumber());
 				int alteredNodes = 0;
 				// look for changes to previous revision in x,y,width,height for every node
 				Collection<Vertex> actualNodes = new ArrayList<>();
@@ -93,9 +93,9 @@ public class MovedElementsAnalysis extends AbstractMetricsAnalysis implements
 	}
 
 	@Override
-	protected String toCsvString(AnalysisProcessModel model) {
+	protected String toCsvString(ProcessEvolutionModel model) {
 		StringBuilder builder = new StringBuilder();
-		for (AnalysisModelRevision revision : model.getRevisions().values()) {
+		for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
 			builder
 				.append("\n")
 				.append(model.getName())
