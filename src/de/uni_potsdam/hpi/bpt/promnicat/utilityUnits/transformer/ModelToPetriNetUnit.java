@@ -183,7 +183,8 @@ public class ModelToPetriNetUnit implements IUnit<IUnitData<Object>, IUnitData<O
 		try {
 			return new ModelToPetriNetConverter().convertToPetriNet(processModel);
 		} catch (TransformationException e) {
-			logger.severe("This process model can not be transformed to a petri net: " + processModel.toString());
+			logger.severe("This process model can not be transformed to a petri net: " + processModel.toString()
+					+ "\nThe follwoing exception has been thrown: " + e.getMessage());
 			return null;
 		}
 	}

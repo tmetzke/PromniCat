@@ -28,6 +28,12 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitData;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitDataClassification;
 
 /**
+ * This class checks, whether a {@link ProcessModel} can be structured or 
+ * is already structured.
+ * 
+ * The expected input type is {@link IUnitDataClassification}<{@link ProcessModel}>.
+ * The output type is the same as the input type.
+ * 
  * @author Tobias Hoppe
  *
  */
@@ -48,8 +54,11 @@ public class ModelStructuringUnit implements IUnit<IUnitData<Object>, IUnitData<
 			return input;
 		}
 		if (input instanceof IUnitDataClassification<?>){
-			//TODO check whether model can be structured and save structured model
-			((IUnitDataClassification<Object>) input).setStructured(StructuralModelChecker.isStructured((ProcessModel) input.getValue()));			
+			((IUnitDataClassification<Object>) input).setStructured(StructuralModelChecker.isStructured((ProcessModel) input.getValue()));
+			ProcessModel structuredProcess = StructuralModelChecker.structure((ProcessModel) input.getValue());
+			//TODO save structured model
+			((IUnitDataClassification<Object>) input).setAsStructurable(structuredProcess != null ? true : false);
+			
 		}
 		return input;
 	}

@@ -214,30 +214,37 @@ public class UnitDataClassification<V extends Object> extends UnitDataJbpt<V> im
 	@Override
 	public String toCsv(String itemseparator, boolean printPetriNet) {
 		StringBuilder builder = new StringBuilder();
-		builder.append(this.modelPath + itemseparator);
+		builder.append(this.modelPath.replaceAll(itemseparator, "#") + itemseparator);
 		builder.append(this.getDbId() + itemseparator);
 		//add BPMN Conformance Level check results
 		builder.append(addCsvContentFor(this.isDescriptiveModelingConform) + itemseparator);
 		builder.append(addCsvContentFor(this.isAnalyticModelingConform) + itemseparator);
 		builder.append(addCsvContentFor(this.isCommonExecutableModelingConform) + itemseparator);
-		//add soundness check results
-		builder.append(addCsvContentFor(this.soundnessResults.isBounded()) + itemseparator);
-		builder.append(addCsvContentFor(this.soundnessResults.hasLiveness()) + itemseparator);
-		builder.append(addCsvContentFor(this.soundnessResults.hasQuasiLiveness()) + itemseparator);
-		builder.append(addCsvContentFor(this.soundnessResults.isRelaxedSound()) + itemseparator);
-		builder.append(addCsvContentFor(this.soundnessResults.isWeakSound()) + itemseparator);
-		builder.append(addCsvContentFor(this.soundnessResults.isClassicalSound()) + itemseparator);
-		builder.append(addCsvContentFor(this.soundnessResults.hasTransitioncover()) + itemseparator);
-		builder.append(this.soundnessResults.getDeadTransitions().toString() + itemseparator);
-		builder.append(this.soundnessResults.getUncoveredTransitions().toString() + itemseparator);
-		builder.append(this.soundnessResults.getUnboundedPlaces().toString() + itemseparator);
-		//add structural check results
-		builder.append(addCsvContentFor(this.isCyclic) + itemseparator);
-		builder.append(addCsvContentFor(this.isFreeChoice) + itemseparator);
-		builder.append(addCsvContentFor(this.isExtendedFreeChoice) + itemseparator);
-		builder.append(addCsvContentFor(this.isSNet) + itemseparator);
-		builder.append(addCsvContentFor(this.isTnet) + itemseparator);
-		builder.append(addCsvContentFor(this.isWorkflowNet) + itemseparator);
+		if(this.soundnessResults != null) {			
+			//add soundness check results
+			builder.append(addCsvContentFor(this.soundnessResults.isBounded()) + itemseparator);
+			builder.append(addCsvContentFor(this.soundnessResults.hasLiveness()) + itemseparator);
+			builder.append(addCsvContentFor(this.soundnessResults.hasQuasiLiveness()) + itemseparator);
+			builder.append(addCsvContentFor(this.soundnessResults.isRelaxedSound()) + itemseparator);
+			builder.append(addCsvContentFor(this.soundnessResults.isWeakSound()) + itemseparator);
+			builder.append(addCsvContentFor(this.soundnessResults.isClassicalSound()) + itemseparator);
+			builder.append(addCsvContentFor(this.soundnessResults.hasTransitioncover()) + itemseparator);
+			builder.append(this.soundnessResults.getDeadTransitions().toString().replaceAll("\n", " ") + itemseparator);
+			builder.append(this.soundnessResults.getUncoveredTransitions().toString().replaceAll("\n", " ") + itemseparator);
+			builder.append(this.soundnessResults.getUnboundedPlaces().toString().replaceAll("\n", " ") + itemseparator);
+			//add structural check results
+			builder.append(addCsvContentFor(this.isCyclic) + itemseparator);
+			builder.append(addCsvContentFor(this.isFreeChoice) + itemseparator);
+			builder.append(addCsvContentFor(this.isExtendedFreeChoice) + itemseparator);
+			builder.append(addCsvContentFor(this.isSNet) + itemseparator);
+			builder.append(addCsvContentFor(this.isTnet) + itemseparator);
+			builder.append(addCsvContentFor(this.isWorkflowNet) + itemseparator);
+		} else {
+			//if soundness result is not available, leave output empty
+			for(int i = 0; i < 16; i++){
+				builder.append(itemseparator);
+			}
+		}
 		builder.append(addCsvContentFor(this.isStructured) + itemseparator);
 		//add Petri net if wanted
 		if (this.petriNet != null && printPetriNet) {

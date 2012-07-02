@@ -19,6 +19,7 @@ package de.uni_potsdam.hpi.bpt.promnicat.analysisModules.classification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.jbpt.algo.tree.rpst.RPST;
 import org.jbpt.algo.tree.tctree.TCType;
@@ -36,10 +37,11 @@ import org.jbpt.pm.XorGateway;
  */
 public class StructuralModelChecker {
 
+	private static final Logger logger = Logger.getLogger(StructuralModelChecker.class.getName());
 	/**
 	 * Check if a process is already structured.
 	 * @param process to check
-	 * @return true if process is structured
+	 * @return <code>true</code> if process is structured. Otherwise, <code>false</code>.
 	 */
 	public static boolean isStructured(ProcessModel process) {
 		ProcessModel copy = null;
@@ -70,8 +72,24 @@ public class StructuralModelChecker {
 			for (FlowNode node:sinks)
 				copy.addEdge(node, gate);
 		}
-		RPST<ControlFlow<FlowNode>, FlowNode> rpst = new RPST<ControlFlow<FlowNode>, FlowNode>(copy);
-		return rpst.getVertices(TCType.R).size() == 0;
+		try{
+			RPST<ControlFlow<FlowNode>, FlowNode> rpst = new RPST<ControlFlow<FlowNode>, FlowNode>(copy);
+			return rpst.getVertices(TCType.R).size() == 0;
+		} catch (Exception e) {
+			logger.warning("Error during structural check:" + e.getClass().getName() + ": " + e.getMessage());
+			return false;
+		}
+	}
+	
+	/**
+	 * Check if the given {@link ProcessModel} can be structured.
+	 * @param process to structure
+	 * @return structured {@link ProcessModel} if the given {@link ProcessModel}
+	 * can be structured. Otherwise, <code>null</code>.
+	 */
+	public static ProcessModel structure(ProcessModel process) {
+		//TODO implement
+		return null;
 	}
 	
 }
