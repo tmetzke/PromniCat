@@ -21,12 +21,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -133,7 +130,7 @@ public class ProcessEvolution {
 	 */
 	public static void main(String[] args) throws IllegalArgumentException, IllegalTypeException, IOException {
 
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 1; i++) {
 			long startTime = System.currentTimeMillis();
 			
 			IUnitChainBuilder chainBuilder = buildUpUnitChain(useFullDB);		
@@ -142,18 +139,29 @@ public class ProcessEvolution {
 			Collection<IUnitDataProcessMetrics<Object>> result = executeChain(chainBuilder);
 			
 			Map<String,ProcessEvolutionModel> models = buildUpInternalDataStructure(result);
-			long time = System.currentTimeMillis() - startTime;
-			logger.info("Finished Data Structure in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+			long endTime = logTime(startTime, "Finished Data Structure");
 	
 			models = performAnalyses(models);
-			time = System.currentTimeMillis() - time;
-			logger.info("Finished Analysis in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+			endTime = logTime(endTime,"Finished Analysis");
 			
 			doneWithClustering = false;
 			executeClusterTraining(models);
-			time = System.currentTimeMillis() - time;
-			logger.info("Finished Clustering in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+			endTime = logTime(endTime, "Finished Clustering");
 		}
+	}
+
+	/**
+	 * @param startTime
+	 * @return
+	 */
+	private static long logTime(long startTime, String message) {
+		long time = System.currentTimeMillis();
+		long endTime = time - startTime;
+		int[] timeParts = new int[2];
+		timeParts[0] =  (int) (endTime/1000 < 60 ? 0 : endTime/1000/60);
+		timeParts[1] = (int) (endTime/1000 % 60);
+		logger.info(message + " in " + timeParts[0]+ " min " + timeParts[1] + " sec \n\n");
+		return time;
 	}
 
 	/**
@@ -278,12 +286,11 @@ public class ProcessEvolution {
 	 * @throws IOException 
 	 */
 	private static void executeClusterTraining(Map<String, ProcessEvolutionModel> models) throws IOException{
-		for (Map<String, Double> numericAttributes : getNumericAttributeVariants())
-			for (String linkType : getPossibleLinkTypes())
-				for (int numClusters : getNumClusters())
-					configurations.add(new ProcessEvolutionClusteringConfiguration(numericAttributes, linkType, numClusters));
+		Map<String, Double> numericAttributes = getNumericAttributeVariants();
+		String linkType = getLinkType();
+		for (int numClusters : getNumClusters())
+			configurations.add(new ProcessEvolutionClusteringConfiguration(numericAttributes, linkType, numClusters));
 		
-		logger.info("Training set initialized with " + configurations.size() + " items.");
 		int numberOfThreads = configurations.size() > THREAD_NUMBER ? THREAD_NUMBER : configurations.size();
 		for (int i = 0; i < numberOfThreads; i++) {
 			new ClusteringThread(models);
@@ -291,41 +298,30 @@ public class ProcessEvolution {
 		
 		while(!doneWithClustering){
 			try {
-				// wait a bit, maybe all jobs are done then
-				Thread.sleep(10000);
+				// wait a bit, maybe all jobs are done by then
+				Thread.sleep(15000);
 				System.out.println("checking...");
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 	}
 
-	private static Set<Map<String, Double>> getNumericAttributeVariants() {
-		
-
-		Collection<Map<String, Double>> variants = new ArrayList<Map<String, Double>>();
+	private static Map<String, Double> getNumericAttributeVariants() {
 		String[] metrics = {
 				PROCESS_EVOLUTION_METRIC.NUM_ADDITIONS.name(),
 				PROCESS_EVOLUTION_METRIC.NUM_DELETIONS.name(),
 				PROCESS_EVOLUTION_METRIC.NUM_ITERATIONS.name()};
-		
-		double[] weights = {1,2,3};
-		
-		Map<String, Double> perm1 = new HashMap<>();
-		// same weight
-		perm1.put(metrics[0], weights[0]);
-		perm1.put(metrics[1], weights[0]);
-		perm1.put(metrics[2], weights[0]);
-		
-		Collections.addAll(variants, perm1);
-		return new HashSet<Map<String, Double>>(variants);
+		Map<String, Double> attributes = new HashMap<>();
+		// same weight for every parameter since it does not
+		// make a difference (as empirical study proved)
+		for (String metric : metrics)
+			attributes.put(metric, 1.0);
+		return attributes;
 	}
 
-	private static Collection<String> getPossibleLinkTypes() {
-		Collection<String> links = new ArrayList<>();
-		Collections.addAll(links, "MEAN");
-		return links;
+	private static String getLinkType() {
+		return "MEAN";
 	}
 
 	private static int[] getNumClusters() {
