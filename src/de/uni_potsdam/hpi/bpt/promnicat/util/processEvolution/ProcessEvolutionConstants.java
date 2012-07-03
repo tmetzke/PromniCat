@@ -26,18 +26,38 @@ public class ProcessEvolutionConstants {
 
 	public static final String IS_GROWING = "isGrowing";
 	public static final String NUM_ITERATIONS = "NumberOfCMRIterations";
+	public static final String NUM_ADDITIONS = "NumberOfAdditions";
+	public static final String NUM_DELETIONS = "NumberOfDeletions";
 	
 	public enum PROCESS_EVOLUTION_METRIC{
 		IS_GROWING(ProcessEvolutionConstants.IS_GROWING){
 			/** returns true if the model is always growing */
+			@Override
 			public double getAttribute(ProcessEvolutionModel input){
 				return input.isGrowing() ? 1 : 0;
 			}
 		},
 		NUM_ITERATIONS(ProcessEvolutionConstants.NUM_ITERATIONS){
 			/** returns the number of CMR iterations the model went through */
+			@Override
 			public double getAttribute(ProcessEvolutionModel input){
 				return input.getCMRIterations();
+			}
+		},
+		NUM_ADDITIONS(ProcessEvolutionConstants.NUM_ADDITIONS){
+			/** returns the number of additions of elements 
+			 * throughout the history of the model */
+			@Override
+			public double getAttribute(ProcessEvolutionModel input) {
+				return input.getNumberOfAdditions();
+			}
+		},
+		NUM_DELETIONS(ProcessEvolutionConstants.NUM_DELETIONS){
+			/** returns the number of deletions of elements 
+			 * throughout the history of the model */
+			@Override
+			public double getAttribute(ProcessEvolutionModel input) {
+				return input.getNumberOfDeletions();
 			}
 		};
 		
