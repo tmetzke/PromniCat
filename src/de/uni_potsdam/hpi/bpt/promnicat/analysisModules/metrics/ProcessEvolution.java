@@ -17,9 +17,7 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.analysisModules.metrics;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,17 +30,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections.ListUtils;
 import org.jbpt.pm.ProcessModel;
 
-import weka.core.Attribute;
-import weka.core.EuclideanDistance;
-import weka.core.FastVector;
-import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ClusterNode;
-import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ClusterTree;
-import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.HierarchicalProcessClusterer;
-import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ProcessInstance;
-import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ProcessInstances;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.BpmnParser;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.EpcParser;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
@@ -50,6 +39,8 @@ import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisHelper;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ClusteringThread;
+import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionClusteringConfiguration;
 import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionConstants.PROCESS_EVOLUTION_METRIC;
 import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
 import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
@@ -97,8 +88,8 @@ public class ProcessEvolution {
 	private static final String ANALYSIS_ANALYSIS_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/new.analysis_results_analyzed.csv";
 	
-	private static final String ADD_DELETE_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new.add_delete_results.csv";
+//	private static final String ADD_DELETE_RESULT_FILE_PATH = 
+//			new File("").getAbsolutePath() + "/resources/analysis/new.add_delete_results.csv";
 //	
 //	private static final String MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH = 
 //			new File("").getAbsolutePath() + "/resources/analysis/new.layout_changes_results.csv";
@@ -106,28 +97,34 @@ public class ProcessEvolution {
 //	private static final String MODEL_LANGUAGE_RESULT_FILE_PATH = 
 //			new File("").getAbsolutePath() + "/resources/analysis/new.model_language_results.csv";
 	
-	
-	private static final String CLUSTER_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/clustering/new.cluster_results_";
-	
 	private static final Logger logger = Logger.getLogger(ProcessEvolution.class.getName());
 	
-	private static final String LINEBREAK = "\n";
+	private static boolean doneWithClustering = false; 
 	
 	/**
 	 * flag to decide whether to use the full database or just a small test subset
 	 */
 	private static final boolean useFullDB = true;
 
+	private static final int THREAD_NUMBER = 10;
+
 	/**
 	 * the collection of metrics all model revisions will be analyzed by
 	 */
 	private static Collection<METRICS> processModelMetrics;
 	
-	public static HierarchicalProcessClusterer clusterer;
-	
-	private static StringBuilder clusterResultStringBuilder = new StringBuilder();
+	private static List<ProcessEvolutionClusteringConfiguration> configurations = new ArrayList<>();
 
+	public static synchronized ProcessEvolutionClusteringConfiguration getNextConfiguration() {
+		if (!configurations.isEmpty())
+			return configurations.remove(0);
+		else {
+			System.out.println("List of configs is empty.");
+			doneWithClustering = true;
+			return null;
+		}
+	}
+	
 	/**
 	 * @param args
 	 * @throws IllegalTypeException 
@@ -136,24 +133,27 @@ public class ProcessEvolution {
 	 */
 	public static void main(String[] args) throws IllegalArgumentException, IllegalTypeException, IOException {
 
-		long startTime = System.currentTimeMillis();
-		
-		IUnitChainBuilder chainBuilder = buildUpUnitChain(useFullDB);		
-		logger.info(chainBuilder.getChain().toString() + "\n");		
-		
-		Collection<IUnitDataProcessMetrics<Object>> result = executeChain(chainBuilder);
-		
-		Map<String,ProcessEvolutionModel> models = buildUpInternalDataStructure(result);
-		long time = System.currentTimeMillis() - startTime;
-		logger.info("Finished Data Structure in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
-
-		models = performAnalyses(models);
-		time = System.currentTimeMillis() - time;
-		logger.info("Finished Analysis in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
-		
-		executeClusterTraining(models);
-		time = System.currentTimeMillis() - time;
-		logger.info("Finished Clustering in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+		for (int i = 0; i < 10; i++) {
+			long startTime = System.currentTimeMillis();
+			
+			IUnitChainBuilder chainBuilder = buildUpUnitChain(useFullDB);		
+			logger.info(chainBuilder.getChain().toString() + "\n");		
+			
+			Collection<IUnitDataProcessMetrics<Object>> result = executeChain(chainBuilder);
+			
+			Map<String,ProcessEvolutionModel> models = buildUpInternalDataStructure(result);
+			long time = System.currentTimeMillis() - startTime;
+			logger.info("Finished Data Structure in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+	
+			models = performAnalyses(models);
+			time = System.currentTimeMillis() - time;
+			logger.info("Finished Analysis in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+			
+			doneWithClustering = false;
+			executeClusterTraining(models);
+			time = System.currentTimeMillis() - time;
+			logger.info("Finished Clustering in " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+		}
 	}
 
 	/**
@@ -265,35 +265,6 @@ public class ProcessEvolution {
 	 */
 	private static Map<String, ProcessEvolutionModel> performAnalyses(Map<String, ProcessEvolutionModel> models)
 			throws IOException {
-//		// metrics results
-//		WriterHelper.writeToFile(MODEL_RESULT_FILE_PATH, models);
-//		logger.info("Wrote model metrics results to " + MODEL_RESULT_FILE_PATH + "\n");
-//		
-//		// difference analysis with relative differences
-//		IAnalysis relativeDifference = AnalysisHelper.analyzeDifferencesInMetrics(models, true);
-//		WriterHelper.writeToCSVFile(METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH, relativeDifference);
-//		logger.info("Wrote relative metrics analysis results to " + METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH + "\n");
-//		
-		// additions/deletions analysis with absolute numbers
-		IAnalysis addsDeletes = AnalysisHelper.analyzeAdditionsAndDeletions(models, HANDLE_SUB_PROCESSES);
-		WriterHelper.writeToCSVFile(ADD_DELETE_RESULT_FILE_PATH, addsDeletes);
-		logger.info("Wrote addition/deletion analysis results to " + ADD_DELETE_RESULT_FILE_PATH + "\n");
-//		
-//		// difference analysis with absolute differences
-//		IAnalysis difference = AnalysisHelper.analyzeDifferencesInMetrics(models, false);
-//		WriterHelper.writeToCSVFile(METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH, difference);
-//		logger.info("Wrote absolute metrics analysis results to " + METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH + "\n");
-//		
-//		// model language analysis
-//		IAnalysis modelLanguage = AnalysisHelper.modelLanguageAnalysis(models);
-//		WriterHelper.writeToCSVFile(MODEL_LANGUAGE_RESULT_FILE_PATH, modelLanguage);
-//		logger.info("Wrote analysis of model language to " + MODEL_LANGUAGE_RESULT_FILE_PATH + "\n");
-//		
-//		// number of changed elements according to their position in the model
-//		IAnalysis layoutChanges = AnalysisHelper.analyzeElementMovements(models);
-//		WriterHelper.writeToCSVFile(MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH, layoutChanges);
-//		logger.info("Wrote analysis of moved elements to " + MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH + "\n");
-//		
 		// high level analysis of model metrics
 		IAnalysis highLevel = AnalysisHelper.highLevelAnalysis(models, HANDLE_SUB_PROCESSES);
 		WriterHelper.writeToCSVFile(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, highLevel);
@@ -307,192 +278,58 @@ public class ProcessEvolution {
 	 * @throws IOException 
 	 */
 	private static void executeClusterTraining(Map<String, ProcessEvolutionModel> models) throws IOException{
-		int actualClusterTestNumber = 1;
 		for (Map<String, Double> numericAttributes : getNumericAttributeVariants())
 			for (String linkType : getPossibleLinkTypes())
-				for (int numClusters : getNumClusters()) {
-					FastVector extractedAttributes = getNumericAttributes(models, numericAttributes);
-					setClusterAttributes(linkType, numClusters, extractedAttributes);
-					ProcessInstances instances = getInstances(models, extractedAttributes);
-					clusterResultStringBuilder
-						.append("Configuration:")
-						.append(LINEBREAK + "numeric attributes: ");
-					for (Object attribute : extractedAttributes.toArray())
-						if (attribute != null && attribute instanceof Attribute)
-							clusterResultStringBuilder.append(((Attribute) attribute).name() + ",");
-					clusterResultStringBuilder
-						.append(LINEBREAK + "link type: " + linkType)
-						.append(LINEBREAK + "number of clusters: " + numClusters);
-					clusterModels(instances);
-					BufferedWriter writer = new BufferedWriter(new FileWriter(CLUSTER_FILE_PATH + actualClusterTestNumber++ + ".txt"));
-					writer.write(clusterResultStringBuilder.toString());
-					writer.close();
-					clusterResultStringBuilder = new StringBuilder();
-				}
+				for (int numClusters : getNumClusters())
+					configurations.add(new ProcessEvolutionClusteringConfiguration(numericAttributes, linkType, numClusters));
+		
+		logger.info("Training set initialized with " + configurations.size() + " items.");
+		int numberOfThreads = configurations.size() > THREAD_NUMBER ? THREAD_NUMBER : configurations.size();
+		for (int i = 0; i < numberOfThreads; i++) {
+			new ClusteringThread(models);
+		}
+		
+		while(!doneWithClustering){
+			try {
+				// wait a bit, maybe all jobs are done then
+				Thread.sleep(10000);
+				System.out.println("checking...");
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private static Set<Map<String, Double>> getNumericAttributeVariants() {
-		double[] weights = {1,2,3};
-		List<String> metrics = new ArrayList<>();
-		Collections.addAll(metrics,
-				PROCESS_EVOLUTION_METRIC.NUM_ADDITIONS.name(),
-				PROCESS_EVOLUTION_METRIC.NUM_DELETIONS.name(),
-				PROCESS_EVOLUTION_METRIC.NUM_ITERATIONS.name());
+		
 
 		Collection<Map<String, Double>> variants = new ArrayList<Map<String, Double>>();
-		for (String metric1 : metrics)
-			for (double weight1 : weights) {
-				Map<String, Double> variant = new HashMap<>();
-				variant.put(metric1, weight1);
-				variants.add(variant);
-				List<String> listWithActualMetrics = new ArrayList<>();
-				listWithActualMetrics.add(metric1);
-				for (String metric2 : (String[])ListUtils.subtract(metrics,listWithActualMetrics).toArray(new String[0]))
-					for (double weight2 : weights) {
-						variant = new HashMap<>();
-						variant.put(metric1, weight1);
-						variant.put(metric2, weight2);
-						variants.add(variant);
-						listWithActualMetrics.add(metric2);
-						for (String metric3 : (String[])ListUtils.subtract(metrics,listWithActualMetrics).toArray(new String[0]))
-							for (double weight3 : weights) {
-								variant = new HashMap<>();
-								variant.put(metric1, weight1);
-								variant.put(metric2, weight2);
-								variant.put(metric3, weight3);
-								variants.add(variant);
-								listWithActualMetrics.add(metric2);
-								for (String metric4 : (String[])ListUtils.subtract(metrics,listWithActualMetrics).toArray(new String[0]))
-									for (double weight4 : weights) {
-										variant = new HashMap<>();
-										variant.put(metric1, weight1);
-										variant.put(metric2, weight2);
-										variant.put(metric3, weight3);
-										variant.put(metric4, weight4);
-										variants.add(variant);
-									}
-							}
-					}
-			}
+		String[] metrics = {
+				PROCESS_EVOLUTION_METRIC.NUM_ADDITIONS.name(),
+				PROCESS_EVOLUTION_METRIC.NUM_DELETIONS.name(),
+				PROCESS_EVOLUTION_METRIC.NUM_ITERATIONS.name()};
 		
+		double[] weights = {1,2,3};
+		
+		Map<String, Double> perm1 = new HashMap<>();
+		// same weight
+		perm1.put(metrics[0], weights[0]);
+		perm1.put(metrics[1], weights[0]);
+		perm1.put(metrics[2], weights[0]);
+		
+		Collections.addAll(variants, perm1);
 		return new HashSet<Map<String, Double>>(variants);
 	}
 
 	private static Collection<String> getPossibleLinkTypes() {
 		Collection<String> links = new ArrayList<>();
-		Collections.addAll(links, "AVERAGE", "ADJCOMLPETE", "SINGLE");
+		Collections.addAll(links, "MEAN");
 		return links;
 	}
 
 	private static int[] getNumClusters() {
-		int[] numClusters = {3,4,5};
+		int[] numClusters = {4,5};
 		return numClusters;
-	}
-
-	/**
-	 * 
-	 */
-	private static FastVector getNumericAttributes(Map<String, ProcessEvolutionModel> models, Map<String, Double> attributes) {
-		FastVector numericAttributes = new FastVector();
-		for (String attributeName : attributes.keySet()) {
-			Attribute attribute = new Attribute(attributeName);
-			attribute.setWeight(attributes.get(attributeName));
-			numericAttributes.addElement(attribute);
-		}
-		return numericAttributes;
-	}
-
-	/**
-	 * @param models
-	 */
-	private static ProcessInstances getInstances(Map<String, ProcessEvolutionModel> models, FastVector numericAttributes) {
-		ProcessInstances instances = new ProcessInstances("", numericAttributes, null, models.values().size());
-		for (ProcessEvolutionModel model : models.values()){
-			double[] values = new double[numericAttributes.size()];
-			int i = 0;
-			for (Object attribute : numericAttributes.toArray())
-				if (attribute instanceof Attribute)
-					values[i++] = (PROCESS_EVOLUTION_METRIC.valueOf(((Attribute) attribute).name()).getAttribute(model));
-			ProcessInstance inst = new ProcessInstance(1, values);
-			inst.process = model;
-			instances.add(inst);
-		}
-		return instances;
-	}
-
-	/**
-	 * 
-	 */
-	private static void setClusterAttributes(String linkType, int numClusters, FastVector numericAttributes) {
-		clusterer = new HierarchicalProcessClusterer(new EuclideanDistance());
-		clusterer.setLinkType(linkType);
-		clusterer.setNumClusters(numClusters);
-		clusterer.setAttributes(numericAttributes);
-		clusterer.setDebug(true);
-	}
-
-	private static void clusterModels(ProcessInstances instances) {
-		try {//cluster the results
-			
-			clusterer.buildClusterer(instances);
-			ClusterTree<ProcessInstances> clusters = clusterer.getClusters();
-			ClusterTree<ProcessInstances> newCluster = clusters.getSubtreeWithMinClusterSize(1);
-			analyzeClusters(newCluster);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * @param cluster
-	 */
-	private static void analyzeClusters(ClusterTree<ProcessInstances> cluster) {
-		Collection<Collection<ProcessEvolutionModel>> clustersWithModels = findDistinctClusters(cluster);
-		int i= 1;
-		for (Collection<ProcessEvolutionModel> models : clustersWithModels) {
-			double averageAdds = 0, averageDeletes = 0, averageCMR = 0;
-			for (ProcessEvolutionModel model : models) {
-				averageAdds += model.getNumberOfAdditions();
-				averageDeletes += model.getNumberOfDeletions();
-				averageCMR += model.getCMRIterations();
-			}
-			averageAdds /= models.size();
-			averageDeletes /= models.size();
-			averageCMR /= models.size();
-			clusterResultStringBuilder
-				.append(LINEBREAK + "Cluster " + i++ + ": (" + models.size() + " models)")
-				.append(LINEBREAK + "avg. additions: " + averageAdds)
-				.append(LINEBREAK + "avg. deletions: " + averageDeletes)
-				.append(LINEBREAK + "avg CMR iterations: " + averageCMR);
-		}
-	}
-
-	/**
-	 * @param clusters
-	 * @return
-	 */
-	private static Collection<Collection<ProcessEvolutionModel>> findDistinctClusters(
-			ClusterTree<ProcessInstances> clusters) {
-		Collection<Collection<ProcessEvolutionModel>> clustersWithModels = new ArrayList<>();
-		List<ClusterNode<ProcessInstances>> clusterNodes = null;
-		int i = 0;
-		boolean foundThem = false;
-		while(!foundThem) {
-			clusterNodes = clusters.getNodesOnLevel(i++);
-			if (clusterNodes != null)
-				foundThem = true;
-				for (ClusterNode<ProcessInstances> node : clusterNodes) {
-					ClusterTree<ClusterNode<ProcessInstances>> newTree = new ClusterTree<>();
-					newTree.setRootElement(node);
-					List<ClusterNode<ProcessInstances>> treeNodes = newTree.toList();
-					Collection<ProcessEvolutionModel> clusterModels = new ArrayList<>();
-					for (ClusterNode<ProcessInstances> treeNode : treeNodes)
-						for (Object instance : treeNode.getData().getInstances().toArray())
-							if (instance instanceof ProcessInstance && ((ProcessInstance)instance).process != null)
-								clusterModels.add((ProcessEvolutionModel) ((ProcessInstance) instance).process);
-					clustersWithModels.add(clusterModels);
-				}
-		}
-		return clustersWithModels;
 	}
 }
