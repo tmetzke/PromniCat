@@ -28,7 +28,7 @@ public class ProcessClassificationTest {
 		long errors = 0;
 		
 		for(IUnitDataClassification<Object> resultItem : resultSet){
-			ProcessModel model = (ProcessModel) resultItem.getValue();
+			ProcessModel model = (ProcessModel) resultItem.getProcessModel();
 			for (IVertex sp : model.filter(Subprocess.class)) {
 				adHocSp += ((Subprocess) sp).isAdhoc() ? 1 : 0;
 				eventDrivenSp += ((Subprocess) sp).isEventDriven() ? 1 : 0;

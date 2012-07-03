@@ -272,7 +272,8 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 	
 	/**
 	 * Adds an additional {@link Place} in front of each {@link Transition} 
-	 * without incoming {@link Flow}.
+	 * without incoming {@link Flow} and an additional {@link Place} after
+	 * each {@link Transition} without an outgoing {@link Flow}.
 	 */
 	protected void addInitialAndFinalPlaces() {
 		for(Transition t : this.petriNet.getSinkTransitions()) {
