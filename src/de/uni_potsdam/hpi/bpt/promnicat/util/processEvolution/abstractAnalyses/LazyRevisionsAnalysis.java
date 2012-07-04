@@ -79,9 +79,9 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 		
 		// if revision not already present as altering revision,
 		// add it to altering revision if it is one concerning layout changes
-		IAnalysis layoutChanges = AnalysisHelper.analyzeElementMovements(modelsToAnalyze);
-		Map<String, ProcessEvolutionModel> newLayoutModels = layoutChanges.getAnalyzedModels();
-		for (ProcessEvolutionModel model : newLayoutModels.values())
+		IAnalysis layoutChanges = AnalysisHelper.analyzeElementMovements(modelsToAnalyze, analyzedModels);
+		analyzedModels = layoutChanges.getAnalyzedModels();
+		for (ProcessEvolutionModel model : analyzedModels.values())
 			for (ProcessEvolutionModelRevision revision : model.getRevisions().values())
 				if (modelsWithAlteringRevisions.containsKey(model.getName()))
 					if (!modelsWithAlteringRevisions.get(model.getName()).getRevisions().containsKey(revision.getRevisionNumber()))

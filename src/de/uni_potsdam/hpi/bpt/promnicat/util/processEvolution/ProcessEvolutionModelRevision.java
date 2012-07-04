@@ -46,13 +46,19 @@ public class ProcessEvolutionModelRevision {
 
 	public ProcessEvolutionModelRevision(ProcessEvolutionModelRevision revision1,
 			ProcessEvolutionModelRevision revision2) {
+		this(revision1.getRevisionNumber());
 		if (revision1.getRevisionNumber() != revision2.getRevisionNumber())
 			throw new RuntimeException(REVISIONS_NOT_EQUAL_EXCEPTION_MESSAGE);
 		else {
-			for (String metricKey : revision1.getMetricKeys())
-				add(metricKey, revision1.get(metricKey));
+			for (String metricKey : revision1.getMetricKeys()) {
+				if (revision2.getMetricKeys().contains(metricKey))
+					add(metricKey, Math.max(revision1.get(metricKey), revision2.get(metricKey)));
+				else
+					add(metricKey, revision1.get(metricKey));
+			}
 			for (String metricKey : revision2.getMetricKeys())
-				add(metricKey, revision2.get(metricKey));
+				if (!getMetricKeys().contains(metricKey))
+					add(metricKey, revision2.get(metricKey));
 		}
 	}
 

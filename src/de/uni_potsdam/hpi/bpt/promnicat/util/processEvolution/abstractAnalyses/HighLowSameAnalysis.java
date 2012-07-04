@@ -56,12 +56,12 @@ public class HighLowSameAnalysis extends AbstractAnalysis {
 	@Override
 	protected void performAnalysis() {
 		IAnalysis differenceAnalysis = AnalysisHelper.analyzeDifferencesInMetrics(modelsToAnalyze, false);
-		Map<String, ProcessEvolutionModel> differenceAnalyzedModels = differenceAnalysis.getAnalyzedModels();
+		analyzedModels = differenceAnalysis.getAnalyzedModels();
 		for (METRICS metric : metrics) {
 			int higherValues = 0;
 			int lowerValues =  0;
 			int sameValues = 0;
-			for (ProcessEvolutionModel model : differenceAnalyzedModels.values())
+			for (ProcessEvolutionModel model : analyzedModels.values())
 				for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
 					double actualValue = revision.get(metric);
 					if (actualValue < 0) lowerValues++;

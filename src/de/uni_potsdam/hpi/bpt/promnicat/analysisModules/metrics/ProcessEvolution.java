@@ -311,7 +311,8 @@ public class ProcessEvolution {
 		String[] metrics = {
 				PROCESS_EVOLUTION_METRIC.NUM_ADDITIONS.name(),
 				PROCESS_EVOLUTION_METRIC.NUM_DELETIONS.name(),
-				PROCESS_EVOLUTION_METRIC.NUM_ITERATIONS.name()};
+				PROCESS_EVOLUTION_METRIC.NUM_ITERATIONS.name(),
+				PROCESS_EVOLUTION_METRIC.NUM_LAYOUT_CHANGES.name()};
 		Map<String, Double> attributes = new HashMap<>();
 		// same weight for every parameter since it does not
 		// make a difference (as empirical study proved)

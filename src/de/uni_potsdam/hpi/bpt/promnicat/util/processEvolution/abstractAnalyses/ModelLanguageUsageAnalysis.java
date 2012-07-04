@@ -51,8 +51,8 @@ public class ModelLanguageUsageAnalysis extends AbstractAnalysis {
 	@Override
 	protected void performAnalysis() {
 		IAnalysis modelLanguage = AnalysisHelper.modelLanguageAnalysis(modelsToAnalyze);
-		Map<String, ProcessEvolutionModel> languageAnalyzedModels = modelLanguage.getAnalyzedModels();
-		for (ProcessEvolutionModel model : languageAnalyzedModels.values()) {
+		analyzedModels = modelLanguage.getAnalyzedModels();
+		for (ProcessEvolutionModel model : analyzedModels.values()) {
 			AnalysisConstants behavior = AnalysisConstants.NONE;
 			for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
 				Collection<String> languageElements = revision.getMetrics().keySet();

@@ -64,7 +64,8 @@ public class CMRIterationsAnalysis extends AbstractMetricsAnalysis {
 	@Override
 	protected void performAnalysis() {
 		IAnalysis cmrOccurrencesAnalysis = new CMROccurrencesAnalysis(modelsToAnalyze);
-		for (ProcessEvolutionModel model : cmrOccurrencesAnalysis.getAnalyzedModels().values()) {
+		analyzedModels = cmrOccurrencesAnalysis.getAnalyzedModels();
+		for (ProcessEvolutionModel model : analyzedModels.values()) {
 			AnalysisConstants lastCMRElement = AnalysisConstants.NONE;
 			int iterations = 0;
 			for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
@@ -77,9 +78,7 @@ public class CMRIterationsAnalysis extends AbstractMetricsAnalysis {
 					setToReconciliation(lastCMRElement);
 				}
 			}
-			ProcessEvolutionModel newModel = new ProcessEvolutionModel(model.getName());
-			newModel.setCMRIterations(iterations);
-			analyzedModels.put(model.getName(), newModel);
+			model.setCMRIterations(iterations);
 		}
 	}
 

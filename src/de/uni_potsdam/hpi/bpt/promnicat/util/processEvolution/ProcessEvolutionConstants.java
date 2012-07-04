@@ -28,6 +28,7 @@ public class ProcessEvolutionConstants {
 	public static final String NUM_ITERATIONS = "NumberOfCMRIterations";
 	public static final String NUM_ADDITIONS = "NumberOfAdditions";
 	public static final String NUM_DELETIONS = "NumberOfDeletions";
+	public static final String NUM_LAYOUT_CHANGES = "NumberOfLayoutChanges";
 	
 	public enum PROCESS_EVOLUTION_METRIC{
 		IS_GROWING(ProcessEvolutionConstants.IS_GROWING){
@@ -58,6 +59,15 @@ public class ProcessEvolutionConstants {
 			@Override
 			public double getAttribute(ProcessEvolutionModel input) {
 				return input.getNumberOfDeletions();
+			}
+		},
+		NUM_LAYOUT_CHANGES(ProcessEvolutionConstants.NUM_LAYOUT_CHANGES){
+			/** returns the number of changed elements according
+			 * to their position or size throughout the history of the model */
+			// TODO also cover other layout changes like renamed labels
+			@Override
+			public double getAttribute(ProcessEvolutionModel input) {
+				return input.getNumberOfMovedOrResizedElements();
 			}
 		};
 		

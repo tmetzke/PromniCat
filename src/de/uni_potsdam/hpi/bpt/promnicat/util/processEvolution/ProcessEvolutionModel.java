@@ -34,6 +34,7 @@ public class ProcessEvolutionModel {
 	private int numberOfAlteringRevisions = 0;
 	private int numberOfAdditions = 0;
 	private int numberOfDeletions = 0;
+	private int numberOfMovedOrResizedElements = 0;
 
 	public ProcessEvolutionModel(String name) {
 		setName(name);
@@ -54,6 +55,7 @@ public class ProcessEvolutionModel {
 			setNumberOfAlteringRevisions(Math.max(model1.getNumberOfAlteringRevisions(), model2.getNumberOfAlteringRevisions()));
 			setCMRIterations(Math.max(model1.getCMRIterations(), model2.getCMRIterations()));
 			setNumberOfDeletions(Math.max(model1.getNumberOfDeletions(), model2.getNumberOfDeletions()));
+			setNumberOfMovedOrResizedElements(Math.max(model1.getNumberOfMovedOrResizedElements(), model2.getNumberOfMovedOrResizedElements()));
 			mergeRevisions(model1.getRevisions(), model2.getRevisions());
 		}
 		
@@ -123,6 +125,14 @@ public class ProcessEvolutionModel {
 
 	public void setNumberOfDeletions(int numberOfDeletions) {
 		this.numberOfDeletions = numberOfDeletions;
+	}
+
+	public int getNumberOfMovedOrResizedElements() {
+		return numberOfMovedOrResizedElements;
+	}
+
+	public void setNumberOfMovedOrResizedElements(int numberOfMovedOrResizedElements) {
+		this.numberOfMovedOrResizedElements = numberOfMovedOrResizedElements;
 	}
 
 	private void mergeRevisions(

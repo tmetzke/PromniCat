@@ -64,6 +64,12 @@ public class AnalysisHelper {
 			Map<String, ProcessEvolutionModel> modelsToBeAnalyzed) {
 		return new MovedElementsAnalysis(modelsToBeAnalyzed);
 	}
+	
+	public static IAnalysis analyzeElementMovements(
+			Map<String, ProcessEvolutionModel> modelsToBeAnalyzed,
+			Map<String, ProcessEvolutionModel> analyzedModels) {
+		return new MovedElementsAnalysis(modelsToBeAnalyzed, analyzedModels);
+	}
 
 	/**
 	 * further analyze the already analyzed models and try to find high-level

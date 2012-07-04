@@ -62,51 +62,31 @@ public class CMROccurrencesAnalysis extends AbstractMetricsAnalysis {
 	@Override
 	protected void performAnalysis() {
 		IAnalysis addDeleteAnalysis = AnalysisHelper.analyzeAdditionsAndDeletions(modelsToAnalyze, true);
-		IAnalysis movedElementsAnalysis = AnalysisHelper.analyzeElementMovements(modelsToAnalyze);
-		modelsToAnalyze = meltAnalyses(addDeleteAnalysis,movedElementsAnalysis);
-		for (ProcessEvolutionModel model : modelsToAnalyze.values()) {
-			ProcessEvolutionModel newModel = new ProcessEvolutionModel(model.getName());
+		analyzedModels = addDeleteAnalysis.getAnalyzedModels();
+		IAnalysis movedElementsAnalysis = AnalysisHelper.analyzeElementMovements(modelsToAnalyze, analyzedModels);
+		analyzedModels = movedElementsAnalysis.getAnalyzedModels();
+		for (ProcessEvolutionModel model : analyzedModels.values()) {
 			for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
-				ProcessEvolutionModelRevision newRevision = new ProcessEvolutionModelRevision(revision.getRevisionNumber());
-				analyzeAddsDeletes(revision, newRevision);
-				analyzeMovements(revision, newRevision);
-				newModel.add(newRevision);
+				analyzeAddsDeletes(revision);
+				analyzeMovements(revision);
 			}
-			analyzedModels.put(model.getName(), newModel);
 		}
+		
+		
 	}
 
-	private Map<String, ProcessEvolutionModel> meltAnalyses(IAnalysis firstAnalysis,
-			IAnalysis secondAnalysis) {
-		Map<String, ProcessEvolutionModel> firstModelMap = firstAnalysis.getAnalyzedModels();
-		Map<String, ProcessEvolutionModel> secondModelMap = secondAnalysis.getAnalyzedModels(); 
-		for (ProcessEvolutionModel model : firstModelMap.values()) {
-			if (secondModelMap.containsKey(model.getName()))
-				for(ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
-					ProcessEvolutionModelRevision secondRevision = secondModelMap.get(model.getName()).getRevisions().get(revision.getRevisionNumber());
-					for (String metricKey : revision.getMetrics().keySet())
-						secondRevision.add(metricKey, revision.get(metricKey));
-				}
-			else
-				secondModelMap.put(model.getName(), model);
-		}
-		return secondModelMap;
-	}
-
-	private void analyzeAddsDeletes(ProcessEvolutionModelRevision revision,
-			ProcessEvolutionModelRevision newRevision) {
+	private void analyzeAddsDeletes(ProcessEvolutionModelRevision revision) {
 		Collection<AnalysisConstants> metrics = AnalysisHelper.getIndividualMetrics();
 		for (AnalysisConstants metric : metrics) {
 			if(!revision.get(metric.getDescription() + AnalysisConstants.ADDITIONS.getDescription()).equals(new Double(0)) ||
 					!revision.get(metric.getDescription() + AnalysisConstants.DELETIONS.getDescription()).equals(new Double(0)))
-					newRevision.add(AnalysisConstants.MODELING.getDescription(), 1);
+					revision.add(AnalysisConstants.MODELING.getDescription(), 1);
 		}
 	}
 
-	private void analyzeMovements(ProcessEvolutionModelRevision revision,
-			ProcessEvolutionModelRevision newRevision) {
+	private void analyzeMovements(ProcessEvolutionModelRevision revision) {
 		if (!revision.get(AnalysisConstants.NEW_LAYOUT.getDescription()).equals(new Double(0)))
-			newRevision.add(AnalysisConstants.RECONCILIATION.getDescription(), 1);
+			revision.add(AnalysisConstants.RECONCILIATION.getDescription(), 1);
 	}
 
 }

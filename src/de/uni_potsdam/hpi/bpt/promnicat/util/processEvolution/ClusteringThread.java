@@ -166,12 +166,13 @@ public class ClusteringThread extends Thread {
 		int i= 1;
 		for (Collection<ProcessEvolutionModel> models : clustersWithModels) {
 			clusterResultStringBuilder
-				.append("Cluster " + i++ + ": (" + models.size() + " models)," + LINEBREAK);
-			double[] averages = new double[3];
+				.append(LINEBREAK + "Cluster " + i++ + ": (" + models.size() + " models)," + LINEBREAK);
+			double[] averages = new double[4];
 			for (ProcessEvolutionModel model : models) {
 				averages[0] += model.getNumberOfAdditions();
 				averages[1] += model.getNumberOfDeletions();
 				averages[2] += model.getCMRIterations();
+				averages[3] += model.getNumberOfMovedOrResizedElements();
 			}
 			for (int j = 0; j < averages.length; j++) {
 				averages[j] /= models.size();
@@ -179,7 +180,8 @@ public class ClusteringThread extends Thread {
 			clusterResultStringBuilder
 			.append("avg additions: " + averages[0] + LINEBREAK)
 			.append("avg deletions: " + averages[1] + LINEBREAK)
-			.append("avg CMR: " + averages[2] + LINEBREAK);
+			.append("avg CMR: " + averages[2] + LINEBREAK)
+			.append("avg layout changes: " + averages[3] + LINEBREAK);
 		}
 	}
 

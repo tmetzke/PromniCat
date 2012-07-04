@@ -54,6 +54,7 @@ public class MovedElementsAnalysis extends AbstractMetricsAnalysis implements
 	@Override
 	protected void performAnalysis() {
 		for (ProcessEvolutionModel model : modelsToAnalyze.values()) {
+			int layoutChanges = 0;
 			oldNodes.clear();
 			ProcessEvolutionModel newModel = new ProcessEvolutionModel(model.getName());
 			for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
@@ -74,11 +75,13 @@ public class MovedElementsAnalysis extends AbstractMetricsAnalysis implements
 					}
 				newRevision.add(NEW_LAYOUT, new Double(alteredNodes));
 				newModel.add(newRevision);
+				layoutChanges += alteredNodes;
 				// add actual nodes as back reference for next revision
 				oldNodes.clear();
 				oldNodes.addAll(revision.getProcessModel().getFlowNodes());
 				oldNodes.addAll(revision.getProcessModel().getNonFlowNodes());
 			}
+			newModel.setNumberOfMovedOrResizedElements(layoutChanges);
 			analyzedModels.put(model.getName(), newModel);
 		}
 	}

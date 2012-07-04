@@ -86,9 +86,8 @@ public abstract class AbstractAnalysis implements IAnalysis {
 		// add models of second collection
 		// that haven't already been added before
 		for (ProcessEvolutionModel secondModel : secondModelMap.values()) {
-			if (!newModelMap.containsKey(secondModel.getName())) {
+			if (!newModelMap.containsKey(secondModel.getName()))
 				newModelMap.put(secondModel.getName(), secondModel);
-			}
 		}
 		return newModelMap;
 	}

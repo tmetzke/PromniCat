@@ -46,11 +46,11 @@ public class ModelGrowthAnalysis extends AbstractAnalysis {
 	@Override
 	protected void performAnalysis() {
 		IAnalysis differenceAnalysis = AnalysisHelper.analyzeDifferencesInMetrics(modelsToAnalyze, false);
-		Map<String, ProcessEvolutionModel> differenceAnalyzedModels = differenceAnalysis.getAnalyzedModels();
+		analyzedModels = differenceAnalysis.getAnalyzedModels();
 		
 		// continuously growing models
-		numberOfModels = differenceAnalyzedModels.size();
-		for (ProcessEvolutionModel model : differenceAnalyzedModels.values())
+		numberOfModels = analyzedModels.size();
+		for (ProcessEvolutionModel model : analyzedModels.values())
 			if (model.isGrowing()) growingModels++;
 	}
 	
