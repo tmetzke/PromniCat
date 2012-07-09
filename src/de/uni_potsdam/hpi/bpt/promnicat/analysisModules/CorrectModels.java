@@ -38,41 +38,49 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataJbpt;
  * latest revisions) and only parse the ones that could correctly be parsed. Emit the 
  * amount of all process models and of those that could be parsed correctly (split off
  * to BPMN and EPC process models).
- * @author Cindy Fähnrich
+ * @author Cindy Fähnrich, Tobias Hoppe
  *
  */
-public class CorrectModels {
-private final static Logger logger = Logger.getLogger(CorrectModels.class.getName());
-	
+public class CorrectModels implements IAnalysisModule {
+
+	private final static Logger logger = Logger.getLogger(CorrectModels.class.getName());
+
 	public static void main(String[] args) throws IllegalTypeException, IOException {
-		
+		CorrectModels correctModels = new CorrectModels();
+		correctModels.execute(args);		
+	}
+
+	@Override
+	public Object execute(String[] parameter) throws IOException, IllegalTypeException {
 		//configure for time measurement
 		long startTime = System.currentTimeMillis();
-		
+
 		//build up chain
 		IUnitChainBuilder chainBuilder = new UnitChainBuilder("configuration(full).properties", Constants.DATABASE_TYPES.ORIENT_DB, UnitDataJbpt.class);
 		buildUpUnitChain(chainBuilder);
-		
+
 		logger.info(chainBuilder.getChain().toString());
-		
+
 		//run chain
 		@SuppressWarnings("unchecked")
 		Collection<UnitData<Object> > result = (Collection<UnitData<Object>>) chainBuilder.getChain().execute();
-		
+
 		//print result
 		printResult(result);
-		
+
 		//finish time measurement
 		long time = System.currentTimeMillis() - startTime;
-		System.out.println("Time needed: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+		logger.info("Time needed: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+		
+		return result;
 	}
-	
+
 	/**
 	 * Configures and builds up the {@link UnitChain} by invoking the corresponding builder methods.
 	 * @param chainBuilder
 	 * @throws IllegalTypeException 
 	 */
-	private static void buildUpUnitChain(IUnitChainBuilder chainBuilder) throws IllegalTypeException {
+	private void buildUpUnitChain(IUnitChainBuilder chainBuilder) throws IllegalTypeException {
 		//build db query
 		DbFilterConfig dbFilter = new DbFilterConfig();
 		dbFilter.addOrigin(Constants.ORIGINS.BPMAI);
@@ -84,17 +92,17 @@ private final static Logger logger = Logger.getLogger(CorrectModels.class.getNam
 		chainBuilder.addDbFilterConfig(dbFilter);
 		//transform to jbpt - set strictness attribute to true to only take the correctly parsed ones
 		chainBuilder.createBpmaiJsonToJbptUnit(true);
-		
+
 		//collect results
 		chainBuilder.createSimpleCollectorUnit();
 	}
-	
+
 	/**
 	 * Iterates through the results and prints whether the process models are connected or not and the amount
 	 * of entries and exists. 
 	 * @param results from the execution of the {@link UnitChain}
 	 */
-	private static void printResult(Collection<UnitData<Object> > results){
+	private void printResult(Collection<UnitData<Object> > results){
 		int all = 0;
 		int bpmn = 0;
 		int epc = 0;
@@ -119,6 +127,6 @@ private final static Logger logger = Logger.getLogger(CorrectModels.class.getNam
 			}*/
 		}
 		logger.info("Correctly parsed models from BPMN: " + bpmn + " EPC: " + epc + " Overall collection size: " + all);
-	
+
 	}
 }

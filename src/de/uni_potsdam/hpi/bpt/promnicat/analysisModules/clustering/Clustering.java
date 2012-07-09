@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 
 import weka.core.Attribute;
 import weka.core.FastVector;
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.IAnalysisModule;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.WeightedEuclideanDistance;
@@ -44,16 +45,21 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataProcessMet
  * @author Cindy Fähnrich
  *
  */
-public class Clustering {
+public class Clustering implements IAnalysisModule {
 
-private final static Logger logger = Logger.getLogger(Clustering.class.getName());
-
-public static HierarchicalProcessClusterer clusterer;
-public static FastVector numericAttributes; 
-public static FastVector stringAttributes;
+	private final static Logger logger = Logger.getLogger(Clustering.class.getName());
+	
+	protected HierarchicalProcessClusterer clusterer;
+	protected FastVector numericAttributes; 
+	protected FastVector stringAttributes;
 	
 	public static void main(String[] args) throws IllegalTypeException, IOException {
-		
+		Clustering clustering = new Clustering();
+		clustering.execute(args);
+	}
+	
+	@Override
+	public Object execute(String[] parameter) throws IOException, IllegalTypeException {
 		//configure for time measurement
 		long startTime = System.currentTimeMillis();
 		
@@ -73,14 +79,16 @@ public static FastVector stringAttributes;
 		//finish time measurement
 		long time = System.currentTimeMillis() - startTime;
 		System.out.println("Time needed: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
-	}
 	
+		return result;
+	}
+
 	/**
 	 * Configures and builds up the {@link UnitChain} by invoking the corresponding builder methods.
 	 * @param chainBuilder
 	 * @throws IllegalTypeException 
 	 */
-	public static void buildUpUnitChain(IUnitChainBuilder chainBuilder) throws IllegalTypeException {
+	public void buildUpUnitChain(IUnitChainBuilder chainBuilder) throws IllegalTypeException {
 		//build db query
 		chainBuilder.addDbFilterConfig(createDbFilterConfig());
 		chainBuilder.createBpmaiJsonToJbptUnit(false);
@@ -98,7 +106,7 @@ public static FastVector stringAttributes;
 	 * @param results from the execution of the {@link UnitChain}
 	 */
 	@SuppressWarnings("unused")
-	private static void printResult(Collection<ClusterTree<ClusterNode<ProcessInstance>>> results){
+	private void printResult(Collection<ClusterTree<ClusterNode<ProcessInstance>>> results){
 		//TODO implement
 		results.clear();
 	}
@@ -110,7 +118,7 @@ public static FastVector stringAttributes;
 	 * @return the configuration containing the selected features for clustering
 	 */
 	
-	private static FeatureConfig createMetricsConfig(){
+	private FeatureConfig createMetricsConfig(){
 		FeatureConfig features = new FeatureConfig();
 		numericAttributes = new FastVector();
 		stringAttributes = new FastVector();
@@ -132,7 +140,7 @@ public static FastVector stringAttributes;
 	 * Create database filter configuration
 	 * @return a new filter config for the database access
 	 */
-	private static DbFilterConfig createDbFilterConfig(){
+	private DbFilterConfig createDbFilterConfig(){
 		DbFilterConfig dbFilter = new DbFilterConfig();
 		dbFilter.addOrigin(Constants.ORIGINS.BPMAI);
 		dbFilter.addFormat(Constants.FORMATS.BPMAI_JSON);
@@ -143,7 +151,7 @@ public static FastVector stringAttributes;
 	/**
 	 * Create hierarchical clusterer with his attributes
 	 */
-	public static void setupClusterer(Collection<UnitDataFeatureVector<Object>> result){
+	public void setupClusterer(Collection<UnitDataFeatureVector<Object>> result){
 		clusterer = new HierarchicalProcessClusterer();
 		clusterer.setStringDistanceFunction(new WeightedEditDistance());
 		clusterer.setNumericDistanceFunction(new WeightedEuclideanDistance(normalizeValues(result)));
@@ -157,7 +165,7 @@ public static FastVector stringAttributes;
 	 * Computes the maximum number of all feature values 
 	 * @param result
 	 */
-	public static ArrayList<double[]> normalizeValues(Collection<UnitDataFeatureVector<Object>> result){
+	public ArrayList<double[]> normalizeValues(Collection<UnitDataFeatureVector<Object>> result){
 		
 		double[] maxFeatureValues = new double[numericAttributes.size()];
 		double[] minFeatureValues = new double[numericAttributes.size()];
@@ -185,7 +193,7 @@ public static FastVector stringAttributes;
 	
 	
 	@SuppressWarnings("unused")
-	public static void clusterResult(Collection<UnitDataFeatureVector<Object>> result){
+	public void clusterResult(Collection<UnitDataFeatureVector<Object>> result){
 		ProcessInstances data = new ProcessInstances("", numericAttributes, stringAttributes, result.size());
 		for (UnitDataFeatureVector<Object> vector : result){
 			data.add(vector.getInstance());
