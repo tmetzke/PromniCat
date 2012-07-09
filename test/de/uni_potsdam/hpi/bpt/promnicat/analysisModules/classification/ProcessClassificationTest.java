@@ -14,9 +14,11 @@ import org.jbpt.pm.OrGateway;
 import org.jbpt.pm.ProcessModel;
 import org.jbpt.pm.bpmn.BpmnControlFlow;
 import org.jbpt.pm.bpmn.Subprocess;
+import org.junit.Ignore;
 
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitDataClassification;
 
+@Ignore
 public class ProcessClassificationTest {
 	
 	public static void openMappings(Collection<IUnitDataClassification<Object>> resultSet) {
