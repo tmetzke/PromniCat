@@ -80,7 +80,9 @@ public class PromniCATSurvey implements IAnalysisModule {
 		for(IUnitData<Object> unitData : result) {
 			Representation repr = (Representation) unitData.getValue();
 			//TODO do something with the result here
-			svgs.add(repr.convertDataContentToString());			
+			String svg = repr.convertDataContentToString();
+			svgs.add(svg);
+			logger.info(svg);
 		}
 		return svgs;
 	}
@@ -95,7 +97,7 @@ public class PromniCATSurvey implements IAnalysisModule {
 	 */
 	private IUnitChainBuilder buildUpUnitChain(boolean useFullDB) throws IOException, IllegalTypeException {
 		IUnitChainBuilder chainBuilder = null;
-		String configPath = "configuration.properties";
+		String configPath = "";
 		if (useFullDB){
 			configPath = "configuration(full).properties";
 		}

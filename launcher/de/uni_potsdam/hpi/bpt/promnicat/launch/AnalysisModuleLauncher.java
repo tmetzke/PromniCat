@@ -18,6 +18,8 @@
 package de.uni_potsdam.hpi.bpt.promnicat.launch;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.logging.Logger;
 
 import com.jdotsoft.jarloader.JarClassLoader;
@@ -76,5 +78,21 @@ public class AnalysisModuleLauncher {
 			logger.severe("Failed to run analysis module " + analysisModuleName + ". Got error message: " + e.getMessage());
 			return null;
 		}
+	}
+
+	/**
+	 * Starts the analysis module given as first parameter in args. The name must contain the
+	 * complete path starting from analysis module package.<br\>
+	 * e.g. "example.Analysis" for de.uni_potsdam.hpi.bpt.promnicat.analysisModules.example.Analysis
+	 * @param args first parameter is the analysis module being started.
+	 * Any further parameters are passed on to the analysis module's main method.
+	 */
+	public static void main(String[] args) {
+		String moduleName = args[0];
+		Collection<String> arguments = new ArrayList<String>();
+		for (int i = 1; i < args.length; i++) {
+			arguments.add(args[i]);
+		}
+		execute(moduleName, arguments.toArray(new String[0]));
 	}
 }
