@@ -18,11 +18,13 @@
 package de.uni_potsdam.hpi.bpt.promnicat.analysisModules.survey;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.logging.Logger;
 
 import org.jbpt.pm.ProcessModel;
 
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.IAnalysisModule;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.IPersistenceApi;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
@@ -40,7 +42,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitData;
  * @author Tobias Hoppe
  *
  */
-public class PromniCATSurvey {
+public class PromniCATSurvey implements IAnalysisModule {
 
 	private static final Logger logger = Logger.getLogger(PromniCATSurvey.class.getName());
 	
@@ -50,12 +52,17 @@ public class PromniCATSurvey {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException, IllegalTypeException {
-
+		PromniCATSurvey survey = new PromniCATSurvey();
+		survey.execute(args);
+	}
+	
+	@Override
+	public Object execute(String[] parameter) throws IOException, IllegalTypeException {
 		//set to true if the whole DB data should be used for analysis otherwise only a small sub set is used.
 		boolean useFullDB = false;
 		//build up chain
 		IUnitChainBuilder chainBuilder = buildUpUnitChain(useFullDB);
-		
+	
 		logger.info(chainBuilder.getChain().toString() + "\n");		
 
 		//configure for time measurement
@@ -69,14 +76,15 @@ public class PromniCATSurvey {
 		long time = System.currentTimeMillis() - startTime;
 		logger.info("Time needed for unit chain execution: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
 		
+		Collection<String> svgs = new ArrayList<String>();
 		for(IUnitData<Object> unitData : result) {
 			Representation repr = (Representation) unitData.getValue();
 			//TODO do something with the result here
-			//byte[] imageContent = repr.getDataContent();
-			logger.info(repr.convertDataContentToString());				
+			svgs.add(repr.convertDataContentToString());			
 		}
+		return svgs;
 	}
-	
+
 	/**
 	 * Create an new unit chain builder and builds up
 	 * a chain to get the metrics of the {@link ProcessModel}s from the given database.
@@ -85,9 +93,9 @@ public class PromniCATSurvey {
 	 * @throws IOException if the given configuration file path could not be found
 	 * @throws IllegalTypeException if the units of the chain have incompatible input/output types
 	 */
-	private static IUnitChainBuilder buildUpUnitChain(boolean useFullDB) throws IOException, IllegalTypeException {
+	private IUnitChainBuilder buildUpUnitChain(boolean useFullDB) throws IOException, IllegalTypeException {
 		IUnitChainBuilder chainBuilder = null;
-		String configPath = "";
+		String configPath = "configuration.properties";
 		if (useFullDB){
 			configPath = "configuration(full).properties";
 		}

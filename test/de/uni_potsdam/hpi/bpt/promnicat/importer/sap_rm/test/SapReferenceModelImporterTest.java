@@ -47,69 +47,71 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataJbpt;
  */
 public class SapReferenceModelImporterTest {
 
-    private static IPersistenceApi persistenceApi = null;
+	private static IPersistenceApi persistenceApi = null;
 
-    @BeforeClass
-    public static void init(){
-	try {
-	    persistenceApi = new ConfigurationParser(Constants.TEST_DB_CONFIG_PATH).getDbInstance(Constants.DATABASE_TYPES.ORIENT_DB);
-	} catch (IOException e) {
-	    fail("Unexpected exception occurred: " + e.getMessage());
+	@BeforeClass
+	public static void init(){
+		try {
+			persistenceApi = new ConfigurationParser(Constants.TEST_DB_CONFIG_PATH).getDbInstance(Constants.DATABASE_TYPES.ORIENT_DB);
+		} catch (IOException e) {
+			fail("Unexpected exception occurred: " + e.getMessage());
+		}
 	}
-    }
 
-    @AfterClass
-    public static void tearDown(){
-	persistenceApi.dropDb();
-    }
-
-    @Test
-    public void testUnknownFileImport(){
-	try {
-	    SapReferenceModelImporter modelImporter = new SapReferenceModelImporter(persistenceApi);
-	    modelImporter.importModelsFrom("unknown.file");
-	    fail("Expected exception has not been raised!");
-	} catch (Exception e) {
-
+	@AfterClass
+	public static void tearDown(){
+		persistenceApi.dropDb();
 	}
-    }
-    @Test
-    public void importModels(){
-	SapReferenceModelImporter modelImporter = new SapReferenceModelImporter(persistenceApi);
-	String filePath = "resources/SAP_RM";
-	ImporterTest.importModelsTwice(persistenceApi, modelImporter, filePath, 1, 1, 1);
-	filePath = "resources/SAP_RM";
-	ImporterTest.importModelsTwice(persistenceApi, modelImporter, filePath, 1, 1, 1);	
 
-	persistenceApi.dropDb();
-    }
-    @Test
-    public void parseModels() throws IllegalTypeException, IOException, JSONException{
-	SapReferenceModelImporter modelImporter = new SapReferenceModelImporter(persistenceApi);
-	String filePath = "resources/SAP_RM";
-	modelImporter.importModelsFrom(filePath);
-	//build up chain
-	persistenceApi.openDb();
-	IUnitChainBuilder chainBuilder = new UnitChainBuilder(persistenceApi, 3, UnitDataJbpt.class);
-	//build db query
-	DbFilterConfig dbFilter = new DbFilterConfig();
-	chainBuilder.addDbFilterConfig(dbFilter);
-	//transform to jbpt and check for connectedness
-	chainBuilder.createBpmaiJsonToJbptUnit();
-	chainBuilder.createConnectednessFilterUnit();
-	
-	//collect results
-	chainBuilder.createSimpleCollectorUnit();
-	
-		
-	//run chain
-	@SuppressWarnings("unchecked")
-	Collection<IUnitDataJbpt<Object> > result = (Collection<IUnitDataJbpt<Object>>) chainBuilder.getChain().execute();
-	
-	//print result
-	ConnectedEPC.printResult(result);
+	@Test
+	public void testUnknownFileImport(){
+		try {
+			SapReferenceModelImporter modelImporter = new SapReferenceModelImporter(persistenceApi);
+			modelImporter.importModelsFrom("unknown.file");
+			fail("Expected exception has not been raised!");
+		} catch (Exception e) {
 
-	persistenceApi.closeDb();
-	persistenceApi.dropDb();
-    }
+		}
+	}
+
+	@Test
+	public void importModels(){
+		SapReferenceModelImporter modelImporter = new SapReferenceModelImporter(persistenceApi);
+		String filePath = "resources/SAP_RM";
+		ImporterTest.importModelsTwice(persistenceApi, modelImporter, filePath, 1, 1, 1);
+		filePath = "resources/SAP_RM";
+		ImporterTest.importModelsTwice(persistenceApi, modelImporter, filePath, 1, 1, 1);	
+
+		persistenceApi.dropDb();
+	}
+
+	@Test
+	public void parseModels() throws IllegalTypeException, IOException, JSONException{
+		SapReferenceModelImporter modelImporter = new SapReferenceModelImporter(persistenceApi);
+		String filePath = "resources/SAP_RM";
+		modelImporter.importModelsFrom(filePath);
+		//build up chain
+		persistenceApi.openDb();
+		IUnitChainBuilder chainBuilder = new UnitChainBuilder(persistenceApi, 3, UnitDataJbpt.class);
+		//build db query
+		DbFilterConfig dbFilter = new DbFilterConfig();
+		chainBuilder.addDbFilterConfig(dbFilter);
+		//transform to jbpt and check for connectedness
+		chainBuilder.createBpmaiJsonToJbptUnit();
+		chainBuilder.createConnectednessFilterUnit();
+
+		//collect results
+		chainBuilder.createSimpleCollectorUnit();
+
+
+		//run chain
+		@SuppressWarnings("unchecked")
+		Collection<IUnitDataJbpt<Object> > result = (Collection<IUnitDataJbpt<Object>>) chainBuilder.getChain().execute();
+
+		//print result
+		ConnectedEPC.printResult(result);
+
+		persistenceApi.closeDb();
+		persistenceApi.dropDb();
+	}
 }

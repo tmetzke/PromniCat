@@ -42,12 +42,17 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataJbpt;
  * @author Andrina Mascher, Tobias Hoppe, Cindy Fähnrich
  *
  */
-public class ConnectedEPC {
+public class ConnectedEPC implements IAnalysisModule {
 	
 	private final static Logger logger = Logger.getLogger(ConnectedEPC.class.getName());
 	
 	public static void main(String[] args) throws IllegalTypeException, IOException {
-		
+		ConnectedEPC conEpc = new ConnectedEPC();
+		conEpc.execute(args);
+	}
+	
+	@Override
+	public Object execute(String[] parameter) throws IllegalTypeException, IOException {
 		//configure for time measurement
 		long startTime = System.currentTimeMillis();
 		
@@ -60,21 +65,22 @@ public class ConnectedEPC {
 		//run chain
 		@SuppressWarnings("unchecked")
 		Collection<IUnitDataJbpt<Object> > result = (Collection<IUnitDataJbpt<Object>>) chainBuilder.getChain().execute();
-		
+	
 		//print result
 		printResult(result);
-		
 		//finish time measurement
 		long time = System.currentTimeMillis() - startTime;
-		System.out.println("Time needed: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+		logger.info("Time needed: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+			
+		return result;
 	}
-	
+
 	/**
 	 * Configures and builds up the {@link UnitChain} by invoking the corresponding builder methods.
 	 * @param chainBuilder
 	 * @throws IllegalTypeException 
 	 */
-	public static void buildUpUnitChain(IUnitChainBuilder chainBuilder) throws IllegalTypeException {
+	private void buildUpUnitChain(IUnitChainBuilder chainBuilder) throws IllegalTypeException {
 		//build db query
 		DbFilterConfig dbFilter = new DbFilterConfig();
 		dbFilter.addOrigin(Constants.ORIGINS.BPMAI);

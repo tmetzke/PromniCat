@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 
 import org.jbpt.pm.ProcessModel;
 
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.IAnalysisModule;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.BpmnParser;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.EpcParser;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
@@ -44,7 +45,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataProcessMet
  * @author Tobias Hoppe
  *
  */
-public class ProcessMetrics {
+public class ProcessMetrics implements IAnalysisModule {
 	
 	/**
 	 * split element for CSV file values
@@ -52,7 +53,7 @@ public class ProcessMetrics {
 	private static final String ITEMSEPARATOR = ";";
 
 	private static final String RESULT_FILE_PATH = new File("").getAbsolutePath() + "/src/de/uni_potsdam/hpi/bpt/promnicat/analysisModules/metrics/result.csv";
-	private final static Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
+	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
 	
 	/**
 	 * @param args
@@ -61,6 +62,13 @@ public class ProcessMetrics {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IllegalArgumentException, IllegalTypeException, IOException {
+		ProcessMetrics analysis = new ProcessMetrics();
+		analysis.execute(args);
+	}
+
+	@Override
+	public Object execute(String[] parameter) throws IOException,
+			IllegalTypeException {
 		//configure for time measurement
 		long startTime = System.currentTimeMillis();
 		
@@ -88,13 +96,15 @@ public class ProcessMetrics {
 		writeResultToFile(result, time);
 		
 		logger.info("Time needed for metric calculation: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+			
+		return result;
 	}
 
 	/**
 	 * Write the result into a CSV file
 	 * @param resultSet the collected result of the chain execution
 	 */
-	private static void writeResultToFile(Collection<IUnitDataProcessMetrics<Object>> resultSet, long time) {
+	private void writeResultToFile(Collection<IUnitDataProcessMetrics<Object>> resultSet, long time) {
 		BufferedWriter writer = null;
 		try {
 			//open file for writing
@@ -125,7 +135,7 @@ public class ProcessMetrics {
 	 * @return a String representation of the process model metrics
 	 * separated by the {@link ProcessMetrics#ITEMSEPARATOR}.
 	 */
-	private static String addHeader() {
+	private String addHeader() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Process Model Path" + ITEMSEPARATOR);
 		builder.append("DB ID" + ITEMSEPARATOR);
@@ -169,7 +179,7 @@ public class ProcessMetrics {
 	 * @throws IOException if the given configuration file path could not be found
 	 * @throws IllegalTypeException if the units of the chain have incompatible input/output types
 	 */
-	private static IUnitChainBuilder buildUpUnitChain(boolean useFullDB) throws IOException, IllegalTypeException {
+	private IUnitChainBuilder buildUpUnitChain(boolean useFullDB) throws IOException, IllegalTypeException {
 		IUnitChainBuilder chainBuilder = null;
 		if (useFullDB){
 			chainBuilder = new UnitChainBuilder("configuration(full).properties", Constants.DATABASE_TYPES.ORIENT_DB, UnitDataProcessMetrics.class);
