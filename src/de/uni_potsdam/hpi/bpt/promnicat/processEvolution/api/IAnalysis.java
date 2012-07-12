@@ -15,35 +15,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api;
 
 import java.util.Map;
 
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
+
 /**
- * @author Tobi
+ * @author Tobias Metzke
  *
  */
-public class ProcessEvolutionClusteringConfiguration {
+public interface IAnalysis {
 
-	private Map<String, Double> numericAttributes;
-	private String linkType;
-	private int numClusters;
+	/**
+	 * delivers the results of the analysis in a CSV-formatted String
+	 * @return the formatted results as a string
+	 */
+	public String toResultCSVString();
 	
-	public ProcessEvolutionClusteringConfiguration(Map<String, Double> numericAttributes2, String linkType, int numClusters) {
-		this.numClusters = numClusters;
-		this.linkType = linkType;
-		this.numericAttributes = numericAttributes2;
-	}
-
-	public Map<String, Double> getNumericAttributes() {
-		return numericAttributes;
-	}
-
-	public String getLinkType() {
-		return linkType;
-	}
-
-	public int getNumClusters() {
-		return numClusters;
-	}
+	/**
+	 * delivers the analyzed models in a map
+	 * @return map of analyzed models
+	 */
+	public Map<String, ProcessEvolutionModel> getAnalyzedModels();
 }

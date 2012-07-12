@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,10 +24,10 @@ import java.util.Map;
 
 import org.jbpt.hypergraph.abs.Vertex;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisConstants;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModelRevision;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisConstants;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
 
 /**
  * @author Tobias Metzke

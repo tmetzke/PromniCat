@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
 
 /**
  * @author Tobias Metzke

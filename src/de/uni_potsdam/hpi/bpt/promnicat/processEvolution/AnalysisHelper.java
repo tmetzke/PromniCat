@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,14 +23,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.HighLevelAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses.AdditionsDeletionsAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses.DifferenceAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses.ModelLanguageAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses.MovedElementsAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses.RelativeDifferenceAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.HighLevelAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses.AdditionsDeletionsAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses.DifferenceAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses.ModelLanguageAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses.MovedElementsAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses.metricAnalyses.RelativeDifferenceAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
 
 /**
  * @author Tobias Metzke

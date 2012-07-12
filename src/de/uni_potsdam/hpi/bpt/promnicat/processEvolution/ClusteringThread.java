@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -35,7 +35,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.HierarchicalP
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ProcessInstance;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ProcessInstances;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.metrics.ProcessEvolution;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionConstants.PROCESS_EVOLUTION_METRIC;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionConstants.PROCESS_EVOLUTION_METRIC;
 
 /**
  * @author Tobias Metzke

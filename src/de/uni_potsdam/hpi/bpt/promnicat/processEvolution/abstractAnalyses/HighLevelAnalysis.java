@@ -15,16 +15,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.abstractAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.AnalysisHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.ProcessEvolutionModel;
-import de.uni_potsdam.hpi.bpt.promnicat.util.processEvolution.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisHelper;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
 
 /**
  * @author Tobias Metzke
