@@ -111,12 +111,29 @@ public class ModelToPetriNetConverterTest {
 	}
 	
 	@Test
+	public void testMultiProcessConverting() {
+		IModelToPetriNetConverter converter = new ModelToPetriNetConverter();
+		try {
+			PetriNet pn = converter.convertToPetriNet(TestModelBuilder.getDisconnectedModel());
+			assertEquals(4, pn.getSinkNodes().size());
+			assertEquals(4, pn.getSourceNodes().size());
+			assertEquals(23, pn.getNodes().size());
+			assertEquals(20, pn.getFlow().size());
+			assertEquals(14, pn.getPlaces().size());
+			assertEquals(9, pn.getTransitions().size());
+			assertEquals(0, pn.getSilentTransitions().size());
+		} catch (TransformationException e) {
+			fail(GOT_UNEXPECTED_TRANSFORMATION_EXCEPTION);
+		}
+	}
+	
+	@Test
 	public void testSubprocessConverting() {
 		//TODO implement me
 	}
 	
 	@Test
-	public void testgatewayConverting() {
+	public void testGatewayConverting() {
 		//TODO implement me
 	}
 	

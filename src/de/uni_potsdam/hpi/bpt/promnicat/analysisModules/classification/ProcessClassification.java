@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 
 import org.jbpt.pm.ProcessModel;
 
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.IAnalysisModule;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.metrics.ProcessMetrics;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.BpmnParser;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.EpcParser;
@@ -51,7 +52,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataClassifica
  * @author Tobias Hoppe
  *
  */
-public class ProcessClassification {
+public class ProcessClassification implements IAnalysisModule{
 	
 	/**
 	 * split element for CSV file values
@@ -59,7 +60,7 @@ public class ProcessClassification {
 	private static final String ITEMSEPARATOR = ";";
 
 	private static final String RESULT_FILE_PATH = new File("").getAbsolutePath() + "/src/de/uni_potsdam/hpi/bpt/promnicat/analysisModules/classification/result.csv";
-	private final static Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
+	private static final Logger logger = Logger.getLogger(ProcessMetrics.class.getName());
 
 	/**
 	 * @param args
@@ -67,6 +68,12 @@ public class ProcessClassification {
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException, IllegalTypeException {
+		ProcessClassification analysis = new ProcessClassification();
+		analysis.execute(args);
+	}
+	
+	@Override
+	public Object execute(String[] parameter) throws IOException, IllegalTypeException {
 		//configure for time measurement
 		long startTime = System.currentTimeMillis();
 		
@@ -82,20 +89,21 @@ public class ProcessClassification {
 		epcParserLog.setLevel(Level.SEVERE);
 		Logger bpmnParserLog = Logger.getLogger(BpmnParser.class.getName());
 		bpmnParserLog.setLevel(Level.SEVERE);
-
+	
 		//run chain
 		@SuppressWarnings("unchecked")
 		Collection<IUnitDataClassification<Object> > result = (Collection<IUnitDataClassification<Object>>) chainBuilder.getChain().execute();
-
+	
 		//finish time measurement
 		long time = System.currentTimeMillis() - startTime;
 		
 		//print result
 		writeResultToFile(result, time);
 		
-		logger.info("Time needed for process model classification: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+		logger.info("Time needed for process model classification: " + (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");			
+		return result;
 	}
-	
+
 	/**
 	 * Create an new unit chain builder and builds up
 	 * a chain to get structural information of the {@link ProcessModel}s from the given database.
@@ -104,7 +112,7 @@ public class ProcessClassification {
 	 * @throws IOException if the given configuration file path could not be found
 	 * @throws IllegalTypeException if the units of the chain have incompatible input/output types
 	 */
-	private static IUnitChainBuilder buildUpUnitChain(boolean useFullDB) throws IOException, IllegalTypeException {
+	private IUnitChainBuilder buildUpUnitChain(boolean useFullDB) throws IOException, IllegalTypeException {
 		IUnitChainBuilder chainBuilder = null;
 		String configPath = "";
 		if (useFullDB){
@@ -143,7 +151,7 @@ public class ProcessClassification {
 	 * Write the result into a CSV file
 	 * @param resultSet the collected result of the chain execution
 	 */
-	private static void writeResultToFile(Collection<IUnitDataClassification<Object>> resultSet, long time) {
+	private void writeResultToFile(Collection<IUnitDataClassification<Object>> resultSet, long time) {
 		BufferedWriter writer = null;
 		try {
 			//open file for writing
@@ -175,7 +183,7 @@ public class ProcessClassification {
 	 * @return a String representation of the process model metrics
 	 * separated by the {@link ProcessMetrics#ITEMSEPARATOR}.
 	 */
-	private static String addHeader() {
+	private String addHeader() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Process Model Path" + ITEMSEPARATOR);
 		builder.append("DB ID" + ITEMSEPARATOR);

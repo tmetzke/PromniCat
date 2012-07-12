@@ -17,22 +17,35 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.analysisModules.nodeName;
 
+import java.io.IOException;
+
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.IAnalysisModule;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.nodeName.pojos.AnalysisRun;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.nodeName.pojos.LabelStorage;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.AbstractPojo;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.Representation;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.orientdbObj.PersistenceApiOrientDbObj;
+import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 
-public class RetrieveNodeNames {
+public class RetrieveNodeNames implements IAnalysisModule {
 
-	static String analysisRunId = "#11:1"; // see output of CalcAndSaveNodeName.java for correct id
-	static PersistenceApiOrientDbObj papi;
+	private static final String analysisRunId = "#11:1"; // see output of CalcAndSaveNodeName.java for correct id
+	private PersistenceApiOrientDbObj papi;
 	private static final String CONFIGURATION_FILE = "configuration.properties";
 	
 	/**
 	 * @param args
+	 * @throws IllegalTypeException 
+	 * @throws IOException 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException, IllegalTypeException {
+		RetrieveNodeNames analysis = new RetrieveNodeNames();
+		analysis.execute(args);
+	}
+
+	@Override
+	public Object execute(String[] parameter) throws IOException,
+			IllegalTypeException {
 		papi = PersistenceApiOrientDbObj.getInstance(CONFIGURATION_FILE);
 		papi.registerPojoPackage(LabelStorage.class.getPackage().getName());
 
@@ -47,5 +60,6 @@ public class RetrieveNodeNames {
 			Representation rep = (Representation) papi.loadPojo(ls.getRepresentationId());
 			System.out.println(rep);
 		}
+		return analyse;
 	}
 }

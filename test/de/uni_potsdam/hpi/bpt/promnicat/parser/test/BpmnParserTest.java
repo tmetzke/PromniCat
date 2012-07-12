@@ -31,6 +31,7 @@ import org.jbpt.pm.AndGateway;
 import org.jbpt.pm.Event;
 import org.jbpt.pm.FlowNode;
 import org.jbpt.pm.ProcessModel;
+import org.jbpt.pm.Resource;
 import org.jbpt.pm.bpmn.Bpmn;
 import org.jbpt.pm.bpmn.BpmnControlFlow;
 import org.json.JSONException;
@@ -110,4 +111,24 @@ public class BpmnParserTest {
 		assertEquals(6, process.filter(Activity.class).size());
 		assertEquals(2, process.filter(Event.class).size());
 	}
+	
+	@Test
+	public void messageFlowTest() {
+		Resource pool1 = new Resource();
+		Resource pool2 = new Resource();
+		Activity a = new Activity();
+		Bpmn<BpmnControlFlow<FlowNode>, FlowNode> model = new Bpmn<BpmnControlFlow<FlowNode>, FlowNode>();
+		
+		model.addMessageFlow(pool1, pool2);
+		assertEquals(2, model.getNonFlowNodes().size());
+		assertTrue(model.getFlowNodes().isEmpty());
+		assertTrue(model.getVertices().isEmpty());
+		
+		model.addMessageFlow(pool1, a);
+		assertEquals(2, model.getNonFlowNodes().size());
+		assertEquals(1, model.getFlowNodes().size());
+		assertEquals(1, model.getVertices().size());
+		assertTrue(model.getVertices().iterator().next() instanceof FlowNode);
+	}
+
 }

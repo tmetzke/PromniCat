@@ -40,7 +40,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.filter.DatabaseFilterUnit;
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitData;
 
 /**
- * @author Cindy Fähnrich
+ * @author Cindy Fähnrich, Tobias Hoppe
  *
  */
 public class DatabaseFilterUnitTest {
@@ -56,8 +56,6 @@ public class DatabaseFilterUnitTest {
 			
 			Model mockModel = ModelFactory.createModelWith1Link();
 			persistenceApi.savePojo(mockModel);
-			long i = persistenceApi.countClass(Model.class);
-			System.out.println(i);
 			databaseFilterUnit = new DatabaseFilterUnit(persistenceApi);
 		} catch (Exception e){
 			fail("An unexpected exception occurred:" + e.getMessage());
@@ -96,7 +94,7 @@ public class DatabaseFilterUnitTest {
 		
 		try {
 			Collection<? extends IUnitData<Object>> result = chain.execute();
-			assertTrue(result.size() == 1);
+			assertEquals(1, result.size());
 			IUnitData<Object> labelFilterResult = result.iterator().next();
 			assertTrue(labelFilterResult.getValue() instanceof Representation);
 			assertEquals(Constants.NOTATIONS.EPC.toString(), ((Representation)labelFilterResult.getValue()).getNotation());

@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 
 import org.jbpt.pm.FlowNode;
 
+import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.IAnalysisModule;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.nodeName.pojos.AnalysisRun;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.nodeName.pojos.LabelStorage;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
@@ -48,16 +49,23 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataLabelFilte
  * @author Andrina Mascher, Tobias Hoppe, Cindy Fähnrich
  *
  */
-public class CalcAndSaveNodeName {
+public class CalcAndSaveNodeName implements IAnalysisModule {
 	
 	private static final String CONFIGURATION_FILE = "configuration.properties";
-	public static final String SEARCHCRITERION = "Customer";
-	static PersistenceApiOrientDbObj papi;
+	private static final String SEARCHCRITERION = "Customer";
+	private PersistenceApiOrientDbObj papi;
 
 	private static final Logger logger = Logger
 			.getLogger(CalcAndSaveNodeName.class.getName());
 	
 	public static void main(String[] args) throws IllegalTypeException, IOException {
+		CalcAndSaveNodeName analysis = new CalcAndSaveNodeName();
+		analysis.execute(args);
+	}
+
+	@Override
+	public Object execute(String[] parameter) throws IOException,
+			IllegalTypeException {
 		//configure for time measurement
 		long startTime = System.currentTimeMillis();
 		
@@ -78,6 +86,7 @@ public class CalcAndSaveNodeName {
 		long time = System.currentTimeMillis() - startTime;
 		System.out.println("Time needed: "
 			+ (time / 1000 / 60) + " min " + (time / 1000 % 60) + " sec \n\n");
+		return result;
 	}
 
 	/**
@@ -85,7 +94,7 @@ public class CalcAndSaveNodeName {
 	 * @param chainBuilder
 	 * @throws IllegalTypeException 
 	 */
-	private static void buildUpUnitChain(IUnitChainBuilder chainBuilder) throws IllegalTypeException {
+	private void buildUpUnitChain(IUnitChainBuilder chainBuilder) throws IllegalTypeException {
 		//build db query
 		DbFilterConfig dbFilter = new DbFilterConfig();
 		dbFilter.addOrigin(Constants.ORIGINS.BPMAI);
@@ -108,7 +117,7 @@ public class CalcAndSaveNodeName {
 	 * Iterates through the results and prints whether the activities contain the search criteria or not.
 	 * @param results from the execution of the {@link IUnitChain}
 	 */
-	private static void printResult(Collection<IUnitDataLabelFilter<Object> > result){
+	private void printResult(Collection<IUnitDataLabelFilter<Object> > result){
 
 		AnalysisRun run = new AnalysisRun("searched for " + SEARCHCRITERION);
 		
@@ -145,7 +154,7 @@ public class CalcAndSaveNodeName {
 		logger.info("saved analysis run " + run.getDbId());
 	}
 
-	private static LabelStorage createLabelStorage(String label, String elementClass, String repId) {
+	private LabelStorage createLabelStorage(String label, String elementClass, String repId) {
 		LabelStorage labelStorage = new LabelStorage(label, elementClass);
 		labelStorage.setRepresentationId(repId);
 		System.out.println("created " + labelStorage);

@@ -33,7 +33,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitDataClassific
 
 /**
  * This class analysis a {@link PetriNet} according to the following criteria:
- * <li> soundness (using the LOLA soundness checker)</li>
+ * <li> soundness (using the {@link LolaSoundnessChecker})</li>
  * <li> is cyclic </li>
  * <li> is free choice </li>
  * <li> is extended free choice </li>

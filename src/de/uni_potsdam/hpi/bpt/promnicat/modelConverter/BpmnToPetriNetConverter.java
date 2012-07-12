@@ -24,9 +24,11 @@ import org.jbpt.petri.Flow;
 import org.jbpt.petri.Node;
 import org.jbpt.petri.PetriNet;
 import org.jbpt.petri.Place;
+import org.jbpt.petri.Transition;
 import org.jbpt.pm.Activity;
 import org.jbpt.pm.AndGateway;
 import org.jbpt.pm.ControlFlow;
+import org.jbpt.pm.DataNode;
 import org.jbpt.pm.Event;
 import org.jbpt.pm.FlowNode;
 import org.jbpt.pm.Gateway;
@@ -40,6 +42,9 @@ import org.jbpt.throwable.TransformationException;
 
 /**
  * This class converts a {@link Bpmn} model to the corresponding {@link PetriNet}.
+ * TODO handle specifics of certain event types(e.g. Link event)
+ * TODO handle message flow and data flow(in subclasses?!)
+ * 
  * @author Tobias Hoppe
  *
  */
@@ -47,6 +52,7 @@ public class BpmnToPetriNetConverter extends AbstractModelToPetriNetConverter {
 
 	/**
 	 * Transforms the given {@link ProcessModel} into a {@link PetriNet}.
+	 * {@link DataNode}s are not converted.
 	 * <b><br/>Assumptions:</b><br/>
 	 * - Model does not contain any {@link OrGateway}s or Ad-hoc-{@link Subprocess}es
 	 * or event-based-{@link Subprocess}es
@@ -84,21 +90,28 @@ public class BpmnToPetriNetConverter extends AbstractModelToPetriNetConverter {
 			Collection<ControlFlow<FlowNode>> outgoingControlFlows) throws TransformationException {
 		String name = "post_" + node.getName();
 		Gateway g = new AndGateway(name);
-		if(model instanceof Bpmn<?,?>) {
-			Collection<Boolean> conditional = new ArrayList<Boolean>();
-			for(ControlFlow<FlowNode> edge : outgoingControlFlows) {
-				if(!((BpmnControlFlow<FlowNode>)edge).hasCondition()) {
-					conditional.add(false);
-				}
+		Collection<Boolean> conditional = new ArrayList<Boolean>();
+		Collection<Boolean> attachedEventEdges = new ArrayList<Boolean>();
+		for(ControlFlow<FlowNode> edge : outgoingControlFlows) {
+			if(!((BpmnControlFlow<FlowNode>)edge).hasCondition()) {
+				conditional.add(false);
 			}
-			if(conditional.size() >= outgoingControlFlows.size() - 1) {
-				throw new TransformationException(THE_GIVEN_PROCESS_MODEL_CONTAINS_AT_LEAST_ONE_OR_GATEWAY);
-				//TODO check if or gateway could be handled
-				//g = new OrGateway(name);
+			if(!((BpmnControlFlow<FlowNode>)edge).hasAttachedEvent()) {
+				attachedEventEdges.add(false);
 			}
 		}
+		//if there is only one edge without attached event return
+		if(outgoingControlFlows.size() - 1 <= attachedEventEdges.size()) {
+			return;
+		}
+		if(conditional.size() >= outgoingControlFlows.size() - 1) {
+			g = new OrGateway(name);
+		}
+		//add gateway only for edges without attached events
 		for(ControlFlow<FlowNode> edge : outgoingControlFlows) {
-			edge.setSource(g);
+			if (!((BpmnControlFlow<FlowNode>)edge).hasAttachedEvent()) {
+				edge.setSource(g);
+			}
 		}
 		model.addControlFlow(node, g);
 	}
@@ -135,7 +148,7 @@ public class BpmnToPetriNetConverter extends AbstractModelToPetriNetConverter {
 	@Override
 	protected void convertControlFlowEdges(Collection<ControlFlow<FlowNode>> edges) {
 		for(ControlFlow<FlowNode> edge : edges) {
-			if (((BpmnControlFlow<FlowNode>)edge).hasAttachedEvent()) {
+			if ((edge instanceof BpmnControlFlow<?>) && ((BpmnControlFlow<FlowNode>)edge).hasAttachedEvent()) {
 				convertAttachedEvent((BpmnControlFlow<FlowNode>) edge);
 			}
 		}
@@ -144,9 +157,36 @@ public class BpmnToPetriNetConverter extends AbstractModelToPetriNetConverter {
 
 	/**
 	 * converts the attached {@link BpmnEvent} of the given {@link BpmnControlFlow}.
-	 * @param edge
+	 * @param edge containing the attached {@link Event}.
 	 */
-	private void convertAttachedEvent(BpmnControlFlow<FlowNode> edge) {
+	protected void convertAttachedEvent(BpmnControlFlow<FlowNode> edge) {
+		if (edge.getSource() instanceof Subprocess) {
+			convertAttachedEventForSubprocess(edge);
+		} else {
+			BpmnEvent attachedEvent = edge.getAttachedEvent();
+			Transition attachedEventTransition = new Transition(attachedEvent.getLabel());
+			for (ControlFlow<FlowNode> e : edge.getSource().getModel().getOutgoingControlFlow(edge.getSource())) {
+				if (e != edge) {
+					Place p = new Place();
+					this.petriNet.addFlow(this.nodeMapping.get(e.getSource()), p);
+					this.nodeMapping.put(e.getSource(), p);
+					this.petriNet.addFlow(p, attachedEventTransition);
+					if (!edge.getAttachedEvent().isInterrupting()) {
+						this.petriNet.addFlow(attachedEventTransition, p);
+					}
+				}
+			}
+			edge.setSource(attachedEvent);
+			this.nodeMapping.put(attachedEvent, attachedEventTransition);
+		}
+	}
+
+	/**
+	 * converts the attached {@link BpmnEvent} of the given {@link BpmnControlFlow}
+	 * starting at a {@link Subprocess}.
+	 * @param edge containing the attached {@link Event}.
+	 */
+	protected void convertAttachedEventForSubprocess(BpmnControlFlow<FlowNode> edge) {
 		// TODO Auto-generated method stub		
 	}
 
@@ -163,7 +203,7 @@ public class BpmnToPetriNetConverter extends AbstractModelToPetriNetConverter {
 	 * @param subprocess the {@link Subprocess} to convert
 	 * @throws TransformationException if the {@link Subprocess} could not be converted
 	 */
-	private void convertSubprocess(Subprocess subprocess) throws TransformationException {
+	protected void convertSubprocess(Subprocess subprocess) throws TransformationException {
 		Bpmn<BpmnControlFlow<FlowNode>, FlowNode> process = subprocess.getSubProcess();
 		//convert subprocess to Petrinet and add it to the resulting net
 		PetriNet pn = new BpmnToPetriNetConverter().convertToPetriNet(process);

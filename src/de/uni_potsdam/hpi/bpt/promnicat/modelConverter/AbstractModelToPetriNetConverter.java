@@ -21,6 +21,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jbpt.algo.tree.rpst.RPST;
+import org.jbpt.algo.tree.rpst.RPSTNode;
+import org.jbpt.algo.tree.tctree.TCType;
 import org.jbpt.hypergraph.abs.GObject;
 import org.jbpt.petri.Flow;
 import org.jbpt.petri.Node;
@@ -46,8 +49,10 @@ import org.jbpt.throwable.TransformationException;
  */
 public abstract class AbstractModelToPetriNetConverter implements IModelToPetriNetConverter {
 
-	protected static final String THE_GIVEN_PROCESS_MODEL_CONTAINS_AT_LEAST_ONE_OR_GATEWAY = "The given ProcessModel contains at least one OrGateway.";
-	protected static final String THE_GIVEN_PROCESS_MODEL_CAN_NOT_BE_HANDELED_BY_THIS_CONVERTER = "The given process model can not be handeled by this converter!";
+	protected static final String THE_GIVEN_PROCESS_MODEL_CONTAINS_AT_LEAST_ONE_OR_GATEWAY = 
+			"The given ProcessModel contains at least one OrGateway that can not be mapped.";
+	protected static final String THE_GIVEN_PROCESS_MODEL_CAN_NOT_BE_HANDELED_BY_THIS_CONVERTER = 
+			"The given process model can not be handeled by this converter!";
 	
 	/**
 	 * PetriNet converted from given model
@@ -58,6 +63,11 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 	 * Mapping from model element to 
 	 */
 	protected Map<FlowNode, Node> nodeMapping = new HashMap<FlowNode, Node>();
+	
+	/**
+	 * {@link RPST} of the model to transform. Needed for structural checks of {@link OrGateway}-mappings.
+	 */
+	protected RPST<ControlFlow<FlowNode>, FlowNode> rpsTree = null;
 	
 	/**
 	 * Identifier used for additional created model elements. Shall be
@@ -87,13 +97,11 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 		}
 		//remove multiple incoming or outgoing edges by transforming model
 		ProcessModel transformedModel = preProcessProcessModel(model);
-		if(model.filter(OrGateway.class).size() > 0) {
-			throw new TransformationException(THE_GIVEN_PROCESS_MODEL_CONTAINS_AT_LEAST_ONE_OR_GATEWAY);
-		}
 		
 		//initialize internal data structures
 		this.petriNet = new PetriNet();
 		this.nodeMapping.clear();
+		this.rpsTree = new RPST<ControlFlow<FlowNode>, FlowNode>(transformedModel);
 		//copy id, name, desc, and tag
 		copyAttributes(model, this.petriNet);
 		
@@ -174,8 +182,9 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 	 * {@link XorGateway}s are converted to {@link Place}s and
 	 * {@link AndGateway}s are converted to {@link Transition}s.
 	 * @param gateway {@link Gateway} to convert
+	 * @throws TransformationException if an {@link OrGateway} must be converted
 	 */
-	protected void convertGateway(Gateway gateway) {
+	protected void convertGateway(Gateway gateway) throws TransformationException {
 		if(gateway instanceof AndGateway) {
 			//add a silent transition for AND-Gateway
 			Transition t = new Transition();
@@ -190,7 +199,15 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 			copyAttributes(gateway, p);
 			this.petriNet.addPlace(p);
 			this.nodeMapping.put(gateway, p);
-		}		
+		} else if (gateway instanceof OrGateway) {
+			for (RPSTNode<ControlFlow<FlowNode>, FlowNode> rigidNode : rpsTree.getVertices(TCType.R)) {
+				if (rigidNode.getSkeleton().contains(gateway)) {
+					throw new TransformationException(THE_GIVEN_PROCESS_MODEL_CONTAINS_AT_LEAST_ONE_OR_GATEWAY);
+				}
+			}
+			//TODO map OrGateway
+			throw new TransformationException(THE_GIVEN_PROCESS_MODEL_CONTAINS_AT_LEAST_ONE_OR_GATEWAY);
+		}
 	}
 	
 	/**
@@ -210,10 +227,6 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 				convertEvent((Event) flowNode);
 			} 
 			else if (flowNode instanceof Gateway) {
-				// OR joins cannot be mapped at all!!!
-				if(flowNode instanceof OrGateway) {
-					throw new TransformationException(THE_GIVEN_PROCESS_MODEL_CONTAINS_AT_LEAST_ONE_OR_GATEWAY);
-				}
 				convertGateway((Gateway) flowNode);
 			}
 		}	
@@ -259,7 +272,8 @@ public abstract class AbstractModelToPetriNetConverter implements IModelToPetriN
 	
 	/**
 	 * Adds an additional {@link Place} in front of each {@link Transition} 
-	 * without incoming {@link Flow}.
+	 * without incoming {@link Flow} and an additional {@link Place} after
+	 * each {@link Transition} without an outgoing {@link Flow}.
 	 */
 	protected void addInitialAndFinalPlaces() {
 		for(Transition t : this.petriNet.getSinkTransitions()) {
