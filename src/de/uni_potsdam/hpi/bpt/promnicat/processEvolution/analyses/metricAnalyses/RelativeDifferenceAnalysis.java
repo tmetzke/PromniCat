@@ -15,15 +15,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.metricAnalyses;
 
 import java.util.Collection;
 import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 
 /**
+ * @see DifferenceAnalysis
+ * 
+ * This analysis looks for differences in a relative manner according to the previous absolute
+ * value. (e.g. number of nodes increased by 200%)
+ * 
  * @author Tobias Metzke
  *
  */

@@ -15,12 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.processEvolution;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.clustering;
 
 import java.util.Map;
 
 /**
- * @author Tobi
+ * A container for cluster attributes. 
+ * 
+ * @author Tobias Metzke
  *
  */
 public class ProcessEvolutionClusteringConfiguration {
@@ -35,14 +37,23 @@ public class ProcessEvolutionClusteringConfiguration {
 		this.numericAttributes = numericAttributes2;
 	}
 
+	/**
+	 * @return the numeric attributes to consider when clustering
+	 */
 	public Map<String, Double> getNumericAttributes() {
 		return numericAttributes;
 	}
 
+	/**
+	 * @return the type of link algorithm to use in the clustering
+	 */
 	public String getLinkType() {
 		return linkType;
 	}
 
+	/**
+	 * @return the number of clusters the clusterer must divide the models into.
+	 */
 	public int getNumClusters() {
 		return numClusters;
 	}

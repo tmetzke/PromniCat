@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -23,11 +23,12 @@ import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisConstants;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModelRevision;
 
 /**
+ * This analysis looks out for revisions that do not alter any metric and are therefore called <code>Lazy Revisions</code>
  * @author Tobias Metzke
  *
  */
@@ -39,15 +40,16 @@ public class LazyRevisionsAnalysis extends AbstractAnalysis {
 	private int numberOfRevisions = 0;
 
 	/**
-	 * @param modelsToAnalyze
-	 * @param collection 
+	 * @see AbstractAnalysis#AbstractAnalysis(Map, Map)
+	 * @param metrics the metrics to analyze the changes for
+	 * @param includeSubprocesses flag to decide whether to include subprocesses in the analysis as well 
 	 */
 	public LazyRevisionsAnalysis(
 			Map<String, ProcessEvolutionModel> modelsToAnalyze, 
 			Map<String, ProcessEvolutionModel> analyzedModels,
-			boolean includeSubpreocesses, Collection<AnalysisConstants> metrics) {
+			boolean includeSubprocesses, Collection<AnalysisConstants> metrics) {
 		super(modelsToAnalyze, analyzedModels);
-		this.includeSubprocesses = includeSubpreocesses;
+		this.includeSubprocesses = includeSubprocesses;
 		this.metrics = metrics;
 	}
 	

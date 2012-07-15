@@ -15,12 +15,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.processEvolution;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model;
 
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 /**
+ * The representation of a process model for further process evolution analysis.
+ * A model consists of all its revisions and several attributes that can be set throughout
+ * the analysis process. This model only serves for process evolution analysis purposes.
+ * 
  * @author Tobias Metzke
  *
  */
@@ -36,6 +40,10 @@ public class ProcessEvolutionModel {
 	private int numberOfDeletions = 0;
 	private int numberOfMovedOrResizedElements = 0;
 
+	/**
+	 * default constructor
+	 * @param name of the model
+	 */
 	public ProcessEvolutionModel(String name) {
 		setName(name);
 	}
@@ -62,7 +70,7 @@ public class ProcessEvolutionModel {
 	}
 	
 	/**
-	 * @return the name
+	 * @return the name of the model
 	 */
 	public String getName() {
 		return name;
@@ -75,66 +83,129 @@ public class ProcessEvolutionModel {
 		this.name = name;
 	}
 
+	/**
+	 * add a revision to the model
+	 * @param revision the {@link ProcessEvolutionModelRevision} to add
+	 */
 	public void add(ProcessEvolutionModelRevision revision) {
 		revisions.put(revision.getRevisionNumber(), revision);
 	}
 
+	/**
+	 * @return the revisions of this model
+	 */
 	public SortedMap<Integer, ProcessEvolutionModelRevision> getRevisions() {
 		return revisions;
 	}
 
+	/**
+	 * @return <code>true</code> if the model is never shrinking
+	 */
 	public boolean isGrowing() {
 		return growing;
 	}
 
+	/**
+	 * @param growing the growth behavior of the model
+	 */
 	public void setGrowing(boolean growing) {
 		this.growing = growing;
 	}
 
+	/**
+	 * @return the number of iterations through the CMR phases
+	 */
 	public int getCMRIterations() {
 		return numberOfCMRIterations;
 	}
 	
+	/**
+	 * @param iterations number of iterations through the CMR phases
+	 */
 	public void setCMRIterations(int iterations) {
 		this.numberOfCMRIterations = iterations;
 	}
 
+	/**
+	 * @return the number of revisions that change at least one metric
+	 * compared to their previous revision 
+	 */
 	public int getNumberOfAlteringRevisions() {
 		return numberOfAlteringRevisions;
 	}
 
-	public void setNumberOfAlteringRevisions(int size) {
-		this.numberOfAlteringRevisions  = size;
+	/**
+	 * @param numberOfRevisions the number of revisions that change at least one metric
+	 * compared to their previous revision
+	 */
+	public void setNumberOfAlteringRevisions(int numberOfRevisions) {
+		this.numberOfAlteringRevisions  = numberOfRevisions;
 	}
 
+	/**
+	 * @return the number of revisions that do not change any metric
+	 * compared to their previous revision
+	 */
 	public int getNumberOfLazyRevisions() {
 		return revisions.size() - getNumberOfAlteringRevisions();
 	}
 
+	/**
+	 * @return the number of additions of model elements that have
+	 * occurred throughout the whole history of the model
+	 */
 	public int getNumberOfAdditions() {
 		return numberOfAdditions;
 	}
 
+	/**
+	 * @param numberOfAdditions the number of additions of model elements that have
+	 * occurred throughout the whole history of the model
+	 */
 	public void setNumberOfAdditions(int numberOfAdditions) {
 		this.numberOfAdditions = numberOfAdditions;
 	}
 
+	/**
+	 * @return the number of deletions of model elements that have
+	 * occurred throughout the whole history of the model
+	 */
 	public int getNumberOfDeletions() {
 		return numberOfDeletions;
 	}
 
+	/**
+	 * @param numberOfDeletions the number of deletions of model elements that have
+	 * occurred throughout the whole history of the model
+	 */
 	public void setNumberOfDeletions(int numberOfDeletions) {
 		this.numberOfDeletions = numberOfDeletions;
 	}
 
+	/**
+	 * @return the number of model elements that have
+	 * been moved or resized throughout the whole history of the model
+	 */
 	public int getNumberOfMovedOrResizedElements() {
 		return numberOfMovedOrResizedElements;
 	}
 
+	/**
+	 * @param numberOfMovedOrResizedElements the number of model elements that have
+	 * been moved or resized throughout the whole history of the model
+	 */
 	public void setNumberOfMovedOrResizedElements(int numberOfMovedOrResizedElements) {
 		this.numberOfMovedOrResizedElements = numberOfMovedOrResizedElements;
 	}
 
+	/**
+	 * If two models are merged, their revisions have to be merged as well.
+	 * This is done by looking for revisions that occur in both collections
+	 * of revisions and merging them, otherwise the respective revisions are simply
+	 * added to the model
+	 * @param revisions1 the first collection of revisions to merge
+	 * @param revisions2 the second collection of revisions to merge
+	 */
 	private void mergeRevisions(
 			SortedMap<Integer, ProcessEvolutionModelRevision> revisions1, SortedMap<Integer, ProcessEvolutionModelRevision> revisions2) {
 		for (ProcessEvolutionModelRevision revision1 : revisions1.values()) {

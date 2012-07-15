@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.metricAnalyses;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,11 +25,14 @@ import java.util.Map;
 import org.jbpt.hypergraph.abs.Vertex;
 
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisConstants;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModelRevision;
 
 /**
+ * This analysis looks for elements that have been moved in position
+ * or resized from one revision to another and counts them.
+ * 
  * @author Tobias Metzke
  *
  */
@@ -64,6 +67,7 @@ public class MovedElementsAnalysis extends AbstractMetricsAnalysis implements
 				Collection<Vertex> actualNodes = new ArrayList<>();
 				actualNodes.addAll(revision.getProcessModel().getFlowNodes());
 				actualNodes.addAll(revision.getProcessModel().getNonFlowNodes());
+				// FIXME does not work for edges so far since they do not have these attributes
 				for (Vertex node : actualNodes)
 					if (oldNodes.contains(node)) {
 						Vertex oldNode = oldNodes.get(oldNodes.indexOf(node));
@@ -80,6 +84,7 @@ public class MovedElementsAnalysis extends AbstractMetricsAnalysis implements
 				oldNodes.clear();
 				oldNodes.addAll(revision.getProcessModel().getFlowNodes());
 				oldNodes.addAll(revision.getProcessModel().getNonFlowNodes());
+				// FIXME edges can not be used so far
 			}
 			newModel.setNumberOfMovedOrResizedElements(layoutChanges);
 			analyzedModels.put(model.getName(), newModel);

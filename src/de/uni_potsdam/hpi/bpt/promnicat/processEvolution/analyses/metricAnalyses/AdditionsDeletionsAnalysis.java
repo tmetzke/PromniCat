@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.metricAnalyses;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,10 +37,13 @@ import org.jbpt.pm.bpmn.Document;
 import org.jbpt.pm.bpmn.Subprocess;
 
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisConstants;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModelRevision;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModelRevision;
 
 /**
+ * This analysis looks for additions and deletions from revision to revision
+ * and also adds the total number of additions and deletions to every model.
+ * 
  * @author Tobias Metzke
  *
  */
@@ -88,8 +91,15 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 	}
 
 	/**
-	 * @param oldElements
-	 * @param revision
+	 * find number of additions and deletions for a revision
+	 * by comparing the IDs of the elements from the previous revision with
+	 * the new IDs.
+	 * 
+	 * @param classToAnalyze the element class to analyze (events, activities, etc.)
+	 * @param oldElements the elements to compare the new elements to
+	 * @param revision the actual revision to get the new elements from
+	 * @param includeSubprocesses flag to decide whether to include subprocesses in the analysis
+	 * @return the number of additions and deletions for the given element class
 	 */
 	@SuppressWarnings("unchecked")
 	private static Map<AnalysisConstants, Integer> analyzeAddsAndDeletesFor(
@@ -113,7 +123,7 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 			break;
 		
 		case ROLES:
-			newIDs = getResourceIDs(actualModel, includeSubprocesses);
+			newIDs = getIDsFor(Resource.class, actualModel, includeSubprocesses);
 			break;
 			
 		case GATEWAYS:
@@ -139,8 +149,12 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 	}
 
 	/**
-	 * @param actualModel
-	 * @return
+	 * Collect the IDs of the given element class
+	 * 
+	 * @param classToAnalyze the element class to analyze (events, activities, etc.)
+	 * @param actualModel the model representation to analyze
+	 * @param includeSubprocesses flag to decide whether to include subprocesses in the analysis
+	 * @return the IDs of all elements of the given class in the given revision representation
 	 */
 	@SuppressWarnings("unchecked")
 	private static List<String> getIDsFor(Class<?> classToAnalyze, ProcessModel actualModel, boolean includeSubprocesses) {
@@ -155,21 +169,14 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 		return ids;
 	}
 
-	private static List<String> getResourceIDs(ProcessModel actualModel,
-			boolean includeSubprocesses) {
-		@SuppressWarnings("unchecked")
-		Collection<Resource> resources = (Collection<Resource>) actualModel.filter(Resource.class);
-		List<String> ids = new ArrayList<>();
-		for (Resource resource : resources)
-			ids.add(resource.getId());
-		if (includeSubprocesses)
-			for (FlowNode node : actualModel.getVertices())
-				if (node instanceof Subprocess) 
-					ids.addAll(getResourceIDs(((Subprocess)node).getSubProcess(), includeSubprocesses));
-		
-		return ids;
-	}
-
+	/**
+	 * Collect the IDs of the Edges. Since they are not of type {@link Vertex}
+	 * they need a separate method.
+	 * 
+	 * @param actualModel the model representation to analyze
+	 * @param includeSubprocesses flag to decide whether to include subprocesses in the analysis
+	 * @return the IDs of all edges in the given revision representation
+	 */
 	@SuppressWarnings("unchecked")
 	private static List<String> getEdgesIDs(ProcessModel actualModel,
 			boolean includeSubprocesses) {

@@ -15,16 +15,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses;
 
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisConstants;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
 
 /**
+ * Simple analysis looking for models that grow continuously, 
+ * meaning that no metric was lowered throughout the history
+ * of the model.
+ * 
  * @author Tobias Metzke
  *
  */
@@ -45,10 +49,9 @@ public class ModelGrowthAnalysis extends AbstractAnalysis {
 
 	@Override
 	protected void performAnalysis() {
+		// the difference analysis marks models as growing or not growing
 		IAnalysis differenceAnalysis = AnalysisHelper.analyzeDifferencesInMetrics(modelsToAnalyze, false);
 		analyzedModels = differenceAnalysis.getAnalyzedModels();
-		
-		// continuously growing models
 		numberOfModels = analyzedModels.size();
 		for (ProcessEvolutionModel model : analyzedModels.values())
 			if (model.isGrowing()) growingModels++;

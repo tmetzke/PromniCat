@@ -23,62 +23,53 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.HighLevelAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses.AdditionsDeletionsAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses.DifferenceAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses.ModelLanguageAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses.MovedElementsAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses.RelativeDifferenceAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.HighLevelAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.metricAnalyses.AdditionsDeletionsAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.metricAnalyses.DifferenceAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.metricAnalyses.ModelLanguageAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.metricAnalyses.MovedElementsAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.metricAnalyses.RelativeDifferenceAnalysis;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
 
 /**
+ * A helper class that builds a bridge to the specific analyses.
+ * 
  * @author Tobias Metzke
  *
  */
 public class AnalysisHelper {
 
-	/**
-	 * analysis of the analyzed models.
-	 * @param models the models to be analyzed further
-	 * @param relative flag to determine whether the values shall be relative
-	 * to the absolute old number (<code>true</code>) or absolute (<code>false</code>)
-	 * @return the analyzed models, their revisions and their values
-	 */
-	public static IAnalysis analyzeDifferencesInMetrics(Map<String, ProcessEvolutionModel> models, boolean relative) {
-		IAnalysis differenceAnalysis = relative ? 
-				new RelativeDifferenceAnalysis(models, getProcessModelMetrics()) :
-				new DifferenceAnalysis(models, getProcessModelMetrics());
+	
+	public static IAnalysis analyzeDifferencesInMetrics(Map<String, ProcessEvolutionModel> modelsToAnalyze, boolean useRelativeDifferences) {
+		IAnalysis differenceAnalysis = useRelativeDifferences ? 
+				new RelativeDifferenceAnalysis(modelsToAnalyze, getProcessModelMetrics()) :
+				new DifferenceAnalysis(modelsToAnalyze, getProcessModelMetrics());
 		return differenceAnalysis;
 	}
 
-	public static IAnalysis analyzeAdditionsAndDeletions(Map<String, ProcessEvolutionModel> models, boolean includeSubprocesses) {
-		return new AdditionsDeletionsAnalysis(models, getIndividualMetrics(), includeSubprocesses);
+	public static IAnalysis analyzeAdditionsAndDeletions(Map<String, ProcessEvolutionModel> modelsToAnalyze, boolean includeSubprocesses) {
+		return new AdditionsDeletionsAnalysis(modelsToAnalyze, getIndividualMetrics(), includeSubprocesses);
 	}
 	
-	public static IAnalysis modelLanguageAnalysis(Map<String, ProcessEvolutionModel> models) {
-		return new ModelLanguageAnalysis(models);
+	public static IAnalysis analyzeModelLanguage(Map<String, ProcessEvolutionModel> modelsToAnalyze) {
+		return new ModelLanguageAnalysis(modelsToAnalyze);
 	}
 
 	public static IAnalysis analyzeElementMovements(
-			Map<String, ProcessEvolutionModel> modelsToBeAnalyzed) {
-		return new MovedElementsAnalysis(modelsToBeAnalyzed);
+			Map<String, ProcessEvolutionModel> modelsToAnalyze) {
+		return new MovedElementsAnalysis(modelsToAnalyze);
 	}
 	
 	public static IAnalysis analyzeElementMovements(
-			Map<String, ProcessEvolutionModel> modelsToBeAnalyzed,
-			Map<String, ProcessEvolutionModel> analyzedModels) {
-		return new MovedElementsAnalysis(modelsToBeAnalyzed, analyzedModels);
+			Map<String, ProcessEvolutionModel> modelsToAnalyze,
+			Map<String, ProcessEvolutionModel> alreadyAnalyzedModels) {
+		return new MovedElementsAnalysis(modelsToAnalyze, alreadyAnalyzedModels);
 	}
 
-	/**
-	 * further analyze the already analyzed models and try to find high-level
-	 * results like the number of continuously growing models
-	 * @param analyzedModels
-	 * @throws IOException
-	 */
-	public static IAnalysis highLevelAnalysis(Map<String, ProcessEvolutionModel> models, boolean includeSubprocesses) throws IOException {
-		return new HighLevelAnalysis(models, includeSubprocesses);
+	public static IAnalysis highLevelAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze, boolean includeSubprocesses) throws IOException {
+		return new HighLevelAnalysis(modelsToAnalyze, includeSubprocesses);
 	}
 
 	/*
@@ -101,6 +92,9 @@ public class AnalysisHelper {
 		return processModelMetrics;
 	}
 	
+	/**
+	 * @return the metrics used in additions and deletions analysis
+	 */
 	public static Collection<AnalysisConstants> getIndividualMetrics() {
 		Collection<AnalysisConstants> individualMetrics = new ArrayList<>();
 		Collections.addAll(individualMetrics,

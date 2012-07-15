@@ -15,23 +15,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.metricAnalyses;
 
 import java.util.Collection;
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisConstants;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModelRevision;
 
 /**
+ * This analysis looks for actions that correspond to reconciliation and modeling phases 
+ * in revisions and takes down if they have occurred in the revisions.
+ * 
  * @author Tobias Metzke
  *
  */
 public class CMROccurrencesAnalysis extends AbstractMetricsAnalysis {
 
+	/**
+	 * @see AbstractMetricsAnalysis#AbstractMetricsAnalysis(Map, Map)
+	 */
 	public CMROccurrencesAnalysis(
 			Map<String, ProcessEvolutionModel> modelsToAnalyze,
 			Map<String, ProcessEvolutionModel> analyzedModels) {
@@ -40,7 +46,7 @@ public class CMROccurrencesAnalysis extends AbstractMetricsAnalysis {
 	
 
 	/**
-	 * @param modelsToAnalyze
+	 * @see AbstractMetricsAnalysis#AbstractMetricsAnalysis(Map)
 	 */
 	public CMROccurrencesAnalysis(
 			Map<String, ProcessEvolutionModel> modelsToAnalyze) {
@@ -49,14 +55,20 @@ public class CMROccurrencesAnalysis extends AbstractMetricsAnalysis {
 
 	@Override
 	protected String addCSVHeader() {
-		// TODO Auto-generated method stub
-		return null;
+		return "model" + CSV_ITEMSEPARATOR + "revision" + CSV_ITEMSEPARATOR + "CMR elements";
 	}
 
 	@Override
 	protected String toCsvString(ProcessEvolutionModel model) {
-		// TODO Auto-generated method stub
-		return null;
+		StringBuilder builder = new StringBuilder();
+		for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
+			builder.append("\n" + model.getName() + CSV_ITEMSEPARATOR + revision.getRevisionNumber() + CSV_ITEMSEPARATOR);
+			if (revision.getMetricKeys().contains(AnalysisConstants.MODELING.getDescription()))
+				builder.append(AnalysisConstants.MODELING.getDescription() + ",");
+			if (revision.getMetricKeys().contains(AnalysisConstants.RECONCILIATION.getDescription()))
+				builder.append(AnalysisConstants.RECONCILIATION.getDescription());
+		}
+		return builder.toString();
 	}
 
 	@Override
@@ -67,15 +79,20 @@ public class CMROccurrencesAnalysis extends AbstractMetricsAnalysis {
 		analyzedModels = movedElementsAnalysis.getAnalyzedModels();
 		for (ProcessEvolutionModel model : analyzedModels.values()) {
 			for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
-				analyzeAddsDeletes(revision);
-				analyzeMovements(revision);
+				findModeling(revision);
+				findReconciliation(revision);
 			}
 		}
 		
 		
 	}
 
-	private void analyzeAddsDeletes(ProcessEvolutionModelRevision revision) {
+	/**
+	 * Marks a revision as containing modeling if additions or deletions have taken place
+	 * in this revision
+	 * @param revision the revision to find modeling in
+	 */
+	private void findModeling(ProcessEvolutionModelRevision revision) {
 		Collection<AnalysisConstants> metrics = AnalysisHelper.getIndividualMetrics();
 		for (AnalysisConstants metric : metrics) {
 			if(!revision.get(metric.getDescription() + AnalysisConstants.ADDITIONS.getDescription()).equals(new Double(0)) ||
@@ -84,7 +101,12 @@ public class CMROccurrencesAnalysis extends AbstractMetricsAnalysis {
 		}
 	}
 
-	private void analyzeMovements(ProcessEvolutionModelRevision revision) {
+	/**
+	 * Marks a revision as containing reconciliation if layout changes have taken place
+	 * in this revision
+	 * @param revision the revision to find reconciliation in
+	 */
+	private void findReconciliation(ProcessEvolutionModelRevision revision) {
 		if (!revision.get(AnalysisConstants.NEW_LAYOUT.getDescription()).equals(new Double(0)))
 			revision.add(AnalysisConstants.RECONCILIATION.getDescription(), 1);
 	}

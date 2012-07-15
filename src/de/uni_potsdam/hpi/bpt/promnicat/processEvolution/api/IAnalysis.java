@@ -19,9 +19,13 @@ package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api;
 
 import java.util.Map;
 
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
 
 /**
+ * The interface for every Process Evolution Analysis.
+ * Every analysis must be able to return the analyzed models
+ * and must be able to return the analysis as a result string.
+ *  
  * @author Tobias Metzke
  *
  */
@@ -34,7 +38,8 @@ public interface IAnalysis {
 	public String toResultCSVString();
 	
 	/**
-	 * delivers the analyzed models in a map
+	 * delivers the analyzed models and merges with the results of prior
+	 * analyses if given
 	 * @return map of analyzed models
 	 */
 	public Map<String, ProcessEvolutionModel> getAnalyzedModels();

@@ -18,6 +18,8 @@
 package de.uni_potsdam.hpi.bpt.promnicat.processEvolution;
 
 /**
+ * A set of string constants used throughout the analyses.
+ * 
  * @author Tobias Metzke
  *
  */

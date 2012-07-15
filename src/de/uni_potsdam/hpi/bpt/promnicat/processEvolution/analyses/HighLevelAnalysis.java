@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,10 +23,13 @@ import java.util.Collections;
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
 
 /**
+ * This analysis concentrates on several aspects and is therefore a high-level view on the models.
+ * Different analyses are used herein to draw an overall picture of the model collection.
+ * 
  * @author Tobias Metzke
  *
  */
@@ -35,16 +38,30 @@ public class HighLevelAnalysis extends AbstractAnalysis {
 	private Collection<IAnalysis> analyses = new ArrayList<IAnalysis>();
 	private boolean includeSubprocesses;
 	
+	/**
+	 * @param modelsToAnalyze
+	 * @param includeSubprocesses
+	 */
 	public HighLevelAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze, boolean includeSubprocesses) {
 		this(modelsToAnalyze, null, includeSubprocesses);
 	}
 
+	/**
+	 * @see AbstractAnalysis#AbstractAnalysis(Map, Map)
+	 * @param includeSubprocesses flag deciding on whether to also include subprocesses in the analyses
+	 */
 	public HighLevelAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze,
 			Map<String, ProcessEvolutionModel> analyzedModels, boolean includeSubprocesses) {
 		super(modelsToAnalyze, analyzedModels);
 		this.includeSubprocesses = includeSubprocesses;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * <br>This analysis combines several analyses and passes their results on to the next one every time.
+	 * In the end, the analyzed models include the results of all the herein listed analyses. 
+	 */
 	@Override
 	protected void performAnalysis() {
 		
@@ -61,6 +78,12 @@ public class HighLevelAnalysis extends AbstractAnalysis {
 		Collections.addAll(analyses, modelGrowth, highLowSame, lazyRevisions, modellanguage, cmr);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * <br>This analysis displays the results of all its used analyses by passing the request of getting the
+	 * result string on to them and concatenating the results.
+	 */
 	@Override
 	protected String getResultCSVString() {
 		StringBuilder builder = new StringBuilder();

@@ -17,9 +17,14 @@
  */
 package de.uni_potsdam.hpi.bpt.promnicat.processEvolution;
 
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
+
 
 /**
- * @author Tobi
+ * A collection of metrics used for process evolution analysis purposes.
+ * Each metric can be evaluated on a given {@link ProcessEvolutionModel}.
+ * 
+ * @author Tobias Metzke
  *
  */
 public class ProcessEvolutionConstants {
@@ -80,6 +85,12 @@ public class ProcessEvolutionConstants {
 		public String toString() {
 			return description;
 		}
+		
+		/**
+		 * Evaluate the metric on the given model
+		 * @param input the {@link ProcessEvolutionModel} to evaluate the metric on
+		 * @return the value of the metric for this model
+		 */
 		public abstract double getAttribute(ProcessEvolutionModel input);
 	};
 }

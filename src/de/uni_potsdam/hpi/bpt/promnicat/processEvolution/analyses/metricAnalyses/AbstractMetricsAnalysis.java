@@ -15,26 +15,42 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.metricAnalyses;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.metricAnalyses;
 
 import java.util.Map;
 
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.metrics.ProcessMetrics;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.abstractAnalyses.AbstractAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.AbstractAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
 
 /**
+ * Metrics analyses are just like all other analyses.
+ * This class is for comfortability reasons only.
+ * It provides a template method for building the result string
+ * since metric analyses have to display results for every
+ * model and this should not be repeatedly be used in every
+ * metric analysis.
+ * <br>Metric analyses only have to provide the method
+ * that describes how a model is displayed and what the
+ * header looks like. 
+ * 
  * @author Tobias Metzke
  * 
  */
 public abstract class AbstractMetricsAnalysis extends AbstractAnalysis{
 
+	/**
+	 * @see AbstractAnalysis#AbstractAnalysis(Map, Map)
+	 */
 	public AbstractMetricsAnalysis(
 			Map<String, ProcessEvolutionModel> modelsToAnalyze,
 			Map<String, ProcessEvolutionModel> analyzedModels) {
 		super(modelsToAnalyze, analyzedModels);
 	}
 
+	/**
+	 * @see AbstractAnalysis#AbstractAnalysis(Map)
+	 */
 	public AbstractMetricsAnalysis(Map<String, ProcessEvolutionModel> modelsToAnalyze) {
 		super(modelsToAnalyze);
 	}

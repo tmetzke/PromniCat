@@ -15,9 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.uni_potsdam.hpi.bpt.promnicat.analysisModules.metrics;
+package de.uni_potsdam.hpi.bpt.promnicat.processEvolution;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,14 +34,12 @@ import org.jbpt.pm.ProcessModel;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.BpmnParser;
 import de.uni_potsdam.hpi.bpt.promnicat.parser.EpcParser;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisHelper;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ClusteringThread;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionClusteringConfiguration;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModel;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionModelRevision;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.WriterHelper;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionConstants.PROCESS_EVOLUTION_METRIC;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.clustering.ClusteringThread;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.clustering.ProcessEvolutionClusteringConfiguration;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModelRevision;
 import de.uni_potsdam.hpi.bpt.promnicat.util.Constants;
 import de.uni_potsdam.hpi.bpt.promnicat.util.IllegalTypeException;
 import de.uni_potsdam.hpi.bpt.promnicat.util.ProcessMetricConstants.METRICS;
@@ -50,52 +50,44 @@ import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.IUnitDataProcessMe
 import de.uni_potsdam.hpi.bpt.promnicat.utilityUnits.unitData.UnitDataProcessMetrics;
 
 /**
- * Analysis module to calculate metrics from all {@link ProcessModel}s of a given database.
- * Furthermore the metrics analysis is analyzed in further steps to gain more high-level
- * insights into the given model collection.
+ * Analysis module that tries to identify different profiles of modeling processes
+ * by analyzing process models according to several evolution analyses and
+ * clustering by the results of them afterwards.
  * 
  * @author Tobias Metzke
  *
  */
 public class ProcessEvolution {
 	
+	/**
+	 * the file ending of the filtered model representations
+	 */
+	private static final String MODEL_FILE_TYPE = ".json";
+
+	/**
+	 * the part of the model path string that indicates the revision number
+	 */
+	private static final String REVISION_INDICATOR_IN_MODEL_PATH = "_rev";
+
+	/**
+	 * flag to decide whether to consider subprocesses while analyzing or not
+	 */
 	private static final boolean HANDLE_SUB_PROCESSES = true;
 
-//	/**
-//	 * path of the model metrics result file
-//	 */
-//	private static final String MODEL_RESULT_FILE_PATH = 
-//			new File("").getAbsolutePath() + "/resources/analysis/new.model_results.csv";
-	
-//	/**
-//	 * path of the metrics analysis result file, that analyzes the model metrics results
-//	 */
-//	private static final String METRICS_ANALYSIS_ABSOLUTE_RESULT_FILE_PATH = 
-//			new File("").getAbsolutePath() + "/resources/analysis/new.model_results_absolute_analyzed.csv";
-//	
-//	/**
-//	 * path of the metrics analysis result file, that analyzes the model metrics results
-//	 */
-//	private static final String METRICS_ANALYSIS_RELATIVE_RESULT_FILE_PATH = 
-//			new File("").getAbsolutePath() + "/resources/analysis/new.model_results_relative_analyzed.csv";
-//	
 	/**
-	 * path of the metrics analysis analysis result file, that analyzes the metrics analysis
+	 * file path of the high-level analysis 
 	 */
 	private static final String ANALYSIS_ANALYSIS_RESULT_FILE_PATH = 
 			new File("").getAbsolutePath() + "/resources/analysis/new.analysis_results_analyzed.csv";
-	
-//	private static final String ADD_DELETE_RESULT_FILE_PATH = 
-//			new File("").getAbsolutePath() + "/resources/analysis/new.add_delete_results.csv";
-//	
-//	private static final String MOVED_ELEMENTS_ANALYSIS_RESULT_FILE_PATH = 
-//			new File("").getAbsolutePath() + "/resources/analysis/new.layout_changes_results.csv";
-//	
-//	private static final String MODEL_LANGUAGE_RESULT_FILE_PATH = 
-//			new File("").getAbsolutePath() + "/resources/analysis/new.model_language_results.csv";
-	
+
+	/**
+	 * the logger of this class to display results on the console
+	 */
 	private static final Logger logger = Logger.getLogger(ProcessEvolution.class.getName());
 	
+	/**
+	 * flag to decide whether the clustering is done or not
+	 */
 	private static boolean doneWithClustering = false; 
 	
 	/**
@@ -103,6 +95,9 @@ public class ProcessEvolution {
 	 */
 	private static final boolean useFullDB = true;
 
+	/**
+	 * the maximum number of threads that cluster the analyzed models
+	 */
 	private static final int THREAD_NUMBER = 10;
 
 	/**
@@ -110,8 +105,16 @@ public class ProcessEvolution {
 	 */
 	private static Collection<METRICS> processModelMetrics;
 	
+	/**
+	 * the list of configurations to cluster by 
+	 */
 	private static List<ProcessEvolutionClusteringConfiguration> configurations = new ArrayList<>();
 
+	/**
+	 * {@link ClusteringThread}s take configurations from the herein list as long as there are some.
+	 * If this list is empty, the threads stop and the clustering is done.
+	 * @return the top configuration from the list and remove it from the list
+	 */
 	public static synchronized ProcessEvolutionClusteringConfiguration getNextConfiguration() {
 		if (!configurations.isEmpty())
 			return configurations.remove(0);
@@ -123,36 +126,39 @@ public class ProcessEvolution {
 	}
 	
 	/**
+	 * run the process evolution by executing the defined chain of utility units,
+	 * analyzing the resulting models and clustering the analyzed models
 	 * @param args
-	 * @throws IllegalTypeException 
-	 * @throws IllegalArgumentException 
-	 * @throws IOException 
+	 * @throws IllegalArgumentException
+	 * @throws IllegalTypeException
+	 * @throws IOException
 	 */
 	public static void main(String[] args) throws IllegalArgumentException, IllegalTypeException, IOException {
 
-		for (int i = 0; i < 1; i++) {
+		
 			long startTime = System.currentTimeMillis();
 			
 			IUnitChainBuilder chainBuilder = buildUpUnitChain(useFullDB);		
 			logger.info(chainBuilder.getChain().toString() + "\n");		
 			
 			Collection<IUnitDataProcessMetrics<Object>> result = executeChain(chainBuilder);
-			
 			Map<String,ProcessEvolutionModel> models = buildUpInternalDataStructure(result);
 			long endTime = logTime(startTime, "Finished Data Structure");
-	
-			models = performAnalyses(models);
+		
+			Map<String,ProcessEvolutionModel> analyzedModels = performAnalyses(models);
 			endTime = logTime(endTime,"Finished Analysis");
 			
 			doneWithClustering = false;
-			executeClusterTraining(models);
+			executeClusterTraining(analyzedModels);
 			endTime = logTime(endTime, "Finished Clustering");
-		}
 	}
 
 	/**
-	 * @param startTime
-	 * @return
+	 * calculate the time an action took and log it
+	 * @param startTime the point in time the previous action ended at
+	 * @param message the message to display in log
+	 * @return the point in time when this method was called and 
+	 * therefore the point in time when the action to be logged ended approximately
 	 */
 	private static long logTime(long startTime, String message) {
 		long time = System.currentTimeMillis();
@@ -200,9 +206,10 @@ public class ProcessEvolution {
 	}
 
 	/**
-	 * @param chainBuilder
-	 * @return
-	 * @throws IllegalTypeException
+	 * execute the defined unit chain and collect the results
+	 * @param chainBuilder the defined unit chain
+	 * @return the results of the unit chain executions
+	 * @exception IllegalTypeException if the input/output types between units do not match
 	 */
 	private static Collection<IUnitDataProcessMetrics<Object>> executeChain(
 			IUnitChainBuilder chainBuilder) throws IllegalTypeException {
@@ -235,14 +242,16 @@ public class ProcessEvolution {
 		
 		for (IUnitDataProcessMetrics<Object> resultItem : resultSet){
 			String modelPathWithRevision = resultItem.getModelPath();
-			int revisionStringIndex = modelPathWithRevision.indexOf("_rev");
-			String processFolder = "2011-04-19_signavio_academic_processes";
-			String modelPath = modelPathWithRevision.substring(
-					modelPathWithRevision.indexOf(processFolder) + processFolder.length(),revisionStringIndex);
+			// extract the revision number
+			int revisionStringIndex = modelPathWithRevision.indexOf(REVISION_INDICATOR_IN_MODEL_PATH);
 			int revisionNumber = Integer.valueOf(
-					modelPathWithRevision.substring(revisionStringIndex + 4, modelPathWithRevision.indexOf(".json")));
+					modelPathWithRevision.substring(
+							revisionStringIndex + REVISION_INDICATOR_IN_MODEL_PATH.length(), modelPathWithRevision.indexOf(MODEL_FILE_TYPE)));
+			// extract the model path without revision number 
+			String modelPath = modelPathWithRevision.substring(0,revisionStringIndex);
 			
-			// new model to be analyzed, so add it to the map of models
+			
+			// if it is a revision of a new model, add it to the list of models
 			if (!models.containsKey(modelPath)) {
 				ProcessEvolutionModel model = new ProcessEvolutionModel(modelPath);
 				models.put(model.getName(), model);
@@ -252,13 +261,16 @@ public class ProcessEvolution {
 			ProcessEvolutionModelRevision revision = new ProcessEvolutionModelRevision(revisionNumber);
 			for (METRICS metric : getProcessModelMetrics())
 				revision.add(metric, metric.getAttribute(resultItem));
-			revision.addProcessModel((ProcessModel)resultItem.getValue());
+			revision.setProcessModel((ProcessModel)resultItem.getValue());
 			models.get(modelPath).add(revision);
 		}
 		
 		return models;
 	}
 	
+	/**
+	 * @return the metrics used for analyses
+	 */
 	private static Collection<METRICS> getProcessModelMetrics() {
 		if (processModelMetrics == null)
 			processModelMetrics = AnalysisHelper.getProcessModelMetrics();
@@ -267,35 +279,48 @@ public class ProcessEvolution {
 
 	/**
 	 * executes all analyses that are listed in here.
-	 * every analysis also takes care of being written, e.g. to file.
-	 * @param models
-	 * @throws IOException
+	 * @param models to analyze
+	 * @throws IOException if the result file can not be written
 	 */
 	private static Map<String, ProcessEvolutionModel> performAnalyses(Map<String, ProcessEvolutionModel> models)
 			throws IOException {
-		// high level analysis of model metrics
+
 		IAnalysis highLevel = AnalysisHelper.highLevelAnalysis(models, HANDLE_SUB_PROCESSES);
-		WriterHelper.writeToCSVFile(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, highLevel);
+		writeToCSVFile(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, highLevel);
 		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH + "\n");
 		
 		return highLevel.getAnalyzedModels();
 	}
+	
+	 /** Write the result of the analysis into a CSV file
+	 * @param filePath the path to write the results to
+	 * @param analysis the analysis that should be written
+	 * @throws IOException if the result file can not be written
+	 */
+	private static void writeToCSVFile(String filePath, IAnalysis analysis) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new FileWriter(filePath));
+		writer.write(analysis.toResultCSVString());
+		writer.close();
+	}
 
 	/**
-	 * Create hierarchical clusterer with his attributes
-	 * @throws IOException 
+	 * Create the clusterer with his attributes and run it afterwards.
+	 * @throws IOException if the result can not be written to file
 	 */
 	private static void executeClusterTraining(Map<String, ProcessEvolutionModel> models) throws IOException{
+		// get several attributes like clustering method and number of clusters
 		Map<String, Double> numericAttributes = getNumericAttributeVariants();
 		String linkType = getLinkType();
 		for (int numClusters : getNumClusters())
 			configurations.add(new ProcessEvolutionClusteringConfiguration(numericAttributes, linkType, numClusters));
-		
+
+		// execute the clustering in separate threads for every configuration
 		int numberOfThreads = configurations.size() > THREAD_NUMBER ? THREAD_NUMBER : configurations.size();
 		for (int i = 0; i < numberOfThreads; i++) {
 			new ClusteringThread(models);
 		}
 		
+		// wait for the threads to finish to get an exact measurement on how long it took
 		while(!doneWithClustering){
 			try {
 				// wait a bit, maybe all jobs are done by then
@@ -307,6 +332,9 @@ public class ProcessEvolution {
 		}
 	}
 
+	/**
+	 * @return the numeric attributes that should be considered in clustering
+	 */
 	private static Map<String, Double> getNumericAttributeVariants() {
 		String[] metrics = {
 				PROCESS_EVOLUTION_METRIC.NUM_ADDITIONS.name(),
@@ -314,6 +342,7 @@ public class ProcessEvolution {
 				PROCESS_EVOLUTION_METRIC.NUM_ITERATIONS.name(),
 				PROCESS_EVOLUTION_METRIC.NUM_LAYOUT_CHANGES.name()};
 		Map<String, Double> attributes = new HashMap<>();
+
 		// same weight for every parameter since it does not
 		// make a difference (as empirical study proved)
 		for (String metric : metrics)
@@ -321,10 +350,17 @@ public class ProcessEvolution {
 		return attributes;
 	}
 
+	/**
+	 * @return the link type to cluster by
+	 */
 	private static String getLinkType() {
 		return "MEAN";
 	}
 
+	/**
+	 * @return the number of clusters that must occur in the end.
+	 * needs to be defined in the clusterer beforehand.
+	 */
 	private static int[] getNumClusters() {
 		int[] numClusters = {4,5};
 		return numClusters;
