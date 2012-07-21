@@ -21,10 +21,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,7 +34,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.parser.EpcParser;
 import de.uni_potsdam.hpi.bpt.promnicat.persistenceApi.DbFilterConfig;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionConstants.PROCESS_EVOLUTION_METRIC;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.clustering.ClusteringThread;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.clustering.ProcessEvolutionClusterer;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.clustering.ProcessEvolutionClusteringConfiguration;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModelRevision;
@@ -70,61 +68,42 @@ public class ProcessEvolution {
 	private static final String REVISION_INDICATOR_IN_MODEL_PATH = "_rev";
 
 	/**
-	 * flag to decide whether to consider subprocesses while analyzing or not
-	 */
-	private static final boolean HANDLE_SUB_PROCESSES = true;
-
-	/**
-	 * file path of the high-level analysis 
-	 */
-	private static final String ANALYSIS_ANALYSIS_RESULT_FILE_PATH = 
-			new File("").getAbsolutePath() + "/resources/analysis/new.analysis_results_analyzed.csv";
-
-	/**
 	 * the logger of this class to display results on the console
 	 */
 	private static final Logger logger = Logger.getLogger(ProcessEvolution.class.getName());
 	
 	/**
-	 * flag to decide whether the clustering is done or not
+	 * the collection of metrics all model revisions will be analyzed by
 	 */
-	private static boolean doneWithClustering = false; 
-	
+	private static Collection<METRICS> processModelMetrics;
+
+	/*  ---------------------------------------------------------------------------------------------
+	 * |start of parameters that can be changed for customization 									 |
+	 *  ---------------------------------------------------------------------------------------------
+	 */
+	/**
+	 * file path of the results of the high-level analysis 
+	 */
+	private static final String ANALYSIS_ANALYSIS_RESULT_FILE_PATH = 
+			new File("").getAbsolutePath() + "/resources/new.highlevel_results.csv";
+
 	/**
 	 * flag to decide whether to use the full database or just a small test subset
 	 */
 	private static final boolean useFullDB = true;
 
 	/**
-	 * the maximum number of threads that cluster the analyzed models
+	 * flag to decide whether to consider subprocesses while analyzing or not
 	 */
-	private static final int THREAD_NUMBER = 10;
+	private static final boolean HANDLE_SUB_PROCESSES = true;
 
-	/**
-	 * the collection of metrics all model revisions will be analyzed by
-	 */
-	private static Collection<METRICS> processModelMetrics;
+	private static final int MIN_REVISIONS = 0;
 	
-	/**
-	 * the list of configurations to cluster by 
+	/*  ---------------------------------------------------------------------------------------------
+	 * |end of parameters that can be changed for customization 									 |
+	 *  ---------------------------------------------------------------------------------------------
 	 */
-	private static List<ProcessEvolutionClusteringConfiguration> configurations = new ArrayList<>();
 
-	/**
-	 * {@link ClusteringThread}s take configurations from the herein list as long as there are some.
-	 * If this list is empty, the threads stop and the clustering is done.
-	 * @return the top configuration from the list and remove it from the list
-	 */
-	public static synchronized ProcessEvolutionClusteringConfiguration getNextConfiguration() {
-		if (!configurations.isEmpty())
-			return configurations.remove(0);
-		else {
-			System.out.println("List of configs is empty.");
-			doneWithClustering = true;
-			return null;
-		}
-	}
-	
 	/**
 	 * run the process evolution by executing the defined chain of utility units,
 	 * analyzing the resulting models and clustering the analyzed models
@@ -148,26 +127,8 @@ public class ProcessEvolution {
 			Map<String,ProcessEvolutionModel> analyzedModels = performAnalyses(models);
 			endTime = logTime(endTime,"Finished Analysis");
 			
-			doneWithClustering = false;
-			executeClusterTraining(analyzedModels);
+			executeClustering(analyzedModels);
 			endTime = logTime(endTime, "Finished Clustering");
-	}
-
-	/**
-	 * calculate the time an action took and log it
-	 * @param startTime the point in time the previous action ended at
-	 * @param message the message to display in log
-	 * @return the point in time when this method was called and 
-	 * therefore the point in time when the action to be logged ended approximately
-	 */
-	private static long logTime(long startTime, String message) {
-		long time = System.currentTimeMillis();
-		long endTime = time - startTime;
-		int[] timeParts = new int[2];
-		timeParts[0] =  (int) (endTime/1000 < 60 ? 0 : endTime/1000/60);
-		timeParts[1] = (int) (endTime/1000 % 60);
-		logger.info(message + " in " + timeParts[0]+ " min " + timeParts[1] + " sec \n\n");
-		return time;
 	}
 
 	/**
@@ -264,8 +225,30 @@ public class ProcessEvolution {
 			revision.setProcessModel((ProcessModel)resultItem.getValue());
 			models.get(modelPath).add(revision);
 		}
+		// filter out the models with too few revisions
+		Map<String, ProcessEvolutionModel> modelsWithManyRevisions = new HashMap<>();
+		for (ProcessEvolutionModel model : models.values())
+			if (model.getRevisions().size() >= MIN_REVISIONS)
+				modelsWithManyRevisions.put(model.getName(), model);
 		
-		return models;
+		return modelsWithManyRevisions;
+	}
+	
+	/**
+	 * calculate the time an action took and log it
+	 * @param startTime the point in time the previous action ended at
+	 * @param message the message to display in log
+	 * @return the point in time when this method was called and 
+	 * therefore the point in time when the action to be logged ended approximately
+	 */
+	private static long logTime(long startTime, String message) {
+		long time = System.currentTimeMillis();
+		long endTime = time - startTime;
+		int[] timeParts = new int[2];
+		timeParts[0] =  (int) (endTime/1000 < 60 ? 0 : endTime/1000/60);
+		timeParts[1] = (int) (endTime/1000 % 60);
+		logger.info(message + " in " + timeParts[0]+ " min " + timeParts[1] + " sec \n\n");
+		return time;
 	}
 	
 	/**
@@ -288,7 +271,7 @@ public class ProcessEvolution {
 		IAnalysis highLevel = AnalysisHelper.highLevelAnalysis(models, HANDLE_SUB_PROCESSES);
 		writeToCSVFile(ANALYSIS_ANALYSIS_RESULT_FILE_PATH, highLevel);
 		logger.info("Wrote analysis of metrics analysis to " + ANALYSIS_ANALYSIS_RESULT_FILE_PATH + "\n");
-		
+				
 		return highLevel.getAnalyzedModels();
 	}
 	
@@ -307,29 +290,13 @@ public class ProcessEvolution {
 	 * Create the clusterer with his attributes and run it afterwards.
 	 * @throws IOException if the result can not be written to file
 	 */
-	private static void executeClusterTraining(Map<String, ProcessEvolutionModel> models) throws IOException{
+	private static void executeClustering(Map<String, ProcessEvolutionModel> models) throws IOException{
 		// get several attributes like clustering method and number of clusters
 		Map<String, Double> numericAttributes = getNumericAttributeVariants();
-		String linkType = getLinkType();
-		for (int numClusters : getNumClusters())
-			configurations.add(new ProcessEvolutionClusteringConfiguration(numericAttributes, linkType, numClusters));
-
-		// execute the clustering in separate threads for every configuration
-		int numberOfThreads = configurations.size() > THREAD_NUMBER ? THREAD_NUMBER : configurations.size();
-		for (int i = 0; i < numberOfThreads; i++) {
-			new ClusteringThread(models);
-		}
-		
-		// wait for the threads to finish to get an exact measurement on how long it took
-		while(!doneWithClustering){
-			try {
-				// wait a bit, maybe all jobs are done by then
-				Thread.sleep(15000);
-				System.out.println("checking...");
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+		String linkType = "MEAN";
+		int numClusters = 4;
+		ProcessEvolutionClusteringConfiguration configuration = new ProcessEvolutionClusteringConfiguration(numericAttributes, linkType, numClusters);
+		ProcessEvolutionClusterer.doClustering(models, configuration);
 	}
 
 	/**
@@ -337,10 +304,11 @@ public class ProcessEvolution {
 	 */
 	private static Map<String, Double> getNumericAttributeVariants() {
 		String[] metrics = {
+				PROCESS_EVOLUTION_METRIC.NUM_LAYOUT_CHANGES.name(),
 				PROCESS_EVOLUTION_METRIC.NUM_ADDITIONS.name(),
 				PROCESS_EVOLUTION_METRIC.NUM_DELETIONS.name(),
 				PROCESS_EVOLUTION_METRIC.NUM_ITERATIONS.name(),
-				PROCESS_EVOLUTION_METRIC.NUM_LAYOUT_CHANGES.name()};
+				};
 		Map<String, Double> attributes = new HashMap<>();
 
 		// same weight for every parameter since it does not
@@ -348,21 +316,5 @@ public class ProcessEvolution {
 		for (String metric : metrics)
 			attributes.put(metric, 1.0);
 		return attributes;
-	}
-
-	/**
-	 * @return the link type to cluster by
-	 */
-	private static String getLinkType() {
-		return "MEAN";
-	}
-
-	/**
-	 * @return the number of clusters that must occur in the end.
-	 * needs to be defined in the clusterer beforehand.
-	 */
-	private static int[] getNumClusters() {
-		int[] numClusters = {4,5};
-		return numClusters;
 	}
 }

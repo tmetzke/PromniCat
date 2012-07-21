@@ -65,11 +65,6 @@ public class DifferenceAnalysis extends AbstractMetricsAnalysis {
 					// revision
 					oldValues.put(metric, actualValue);
 					newRevision.add(metric, difference);
-					// if a metric is actually lower than in the previous
-					// revision,
-					// the model is not growing continuously
-					if (difference < 0)
-						newModel.setGrowing(false);
 				}
 				newModel.add(newRevision);
 			}

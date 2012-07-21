@@ -68,6 +68,7 @@ public class ModelLanguageUsageAnalysis extends AbstractAnalysis {
 				Collection<String> languageElements = revision.getMetrics().keySet();
 				behavior = findBehavior(languageElements,behavior);
 			}
+			model.setLanguageUsage(behavior);
 			String behaviorString = behavior.getDescription();
 			// add 1 to the number of found occurrences of the found behavior
 			int numberOfBehaviorOccurrences = results.containsKey(behaviorString) ? results.get(behaviorString) : 0;

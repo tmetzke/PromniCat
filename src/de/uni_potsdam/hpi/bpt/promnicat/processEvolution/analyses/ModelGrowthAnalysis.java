@@ -50,8 +50,8 @@ public class ModelGrowthAnalysis extends AbstractAnalysis {
 	@Override
 	protected void performAnalysis() {
 		// the difference analysis marks models as growing or not growing
-		IAnalysis differenceAnalysis = AnalysisHelper.analyzeDifferencesInMetrics(modelsToAnalyze, false);
-		analyzedModels = differenceAnalysis.getAnalyzedModels();
+		IAnalysis addDeleteAnalysis = AnalysisHelper.analyzeAdditionsAndDeletions(modelsToAnalyze, true);
+		analyzedModels = addDeleteAnalysis.getAnalyzedModels();
 		numberOfModels = analyzedModels.size();
 		for (ProcessEvolutionModel model : analyzedModels.values())
 			if (model.isGrowing()) growingModels++;

@@ -20,6 +20,8 @@ package de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisConstants;
+
 /**
  * The representation of a process model for further process evolution analysis.
  * A model consists of all its revisions and several attributes that can be set throughout
@@ -39,6 +41,7 @@ public class ProcessEvolutionModel {
 	private int numberOfAdditions = 0;
 	private int numberOfDeletions = 0;
 	private int numberOfMovedOrResizedElements = 0;
+	private AnalysisConstants languageUsage = AnalysisConstants.NONE;
 
 	/**
 	 * default constructor
@@ -221,4 +224,14 @@ public class ProcessEvolutionModel {
 			if (!getRevisions().containsKey(revision2.getRevisionNumber()))
 				add(revision2);
 	}
+
+	public AnalysisConstants getLanguageUsage() {
+		return languageUsage;
+	}
+	
+	public void setLanguageUsage(AnalysisConstants behavior) {
+		languageUsage  = behavior;
+	}
+
+	
 }

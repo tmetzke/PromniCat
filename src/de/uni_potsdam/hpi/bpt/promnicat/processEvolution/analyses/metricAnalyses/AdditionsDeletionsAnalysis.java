@@ -69,23 +69,28 @@ public class AdditionsDeletionsAnalysis extends AbstractMetricsAnalysis {
 		for (ProcessEvolutionModel model : modelsToAnalyze.values()) {
 			ProcessEvolutionModel newModel = new ProcessEvolutionModel(model.getName());
 			Map<String, List<String>> oldElements = new HashMap<>();
-			int additions = 0, deletions = 0;
+			int modelAdditions = 0, modelDeletions = 0;
 			for (ProcessEvolutionModelRevision revision : model.getRevisions().values()) {
+				int revisionAdditions = 0, revisionDeletions = 0;
 				ProcessEvolutionModelRevision newRevision = new ProcessEvolutionModelRevision(revision.getRevisionNumber());
 				// check adds and deletes for every class like Activities, Gateways, Edges etc.
 				for (AnalysisConstants classToAnalyze : metrics) {
 					Map<AnalysisConstants, Integer> addsAndDeletes = analyzeAddsAndDeletesFor(classToAnalyze, oldElements, revision, includeSubprocesses);
 					int newAdditions = addsAndDeletes.get(AnalysisConstants.ADDITIONS);
 					int newDeletions = addsAndDeletes.get(AnalysisConstants.DELETIONS);
-					additions += newAdditions;
-					deletions += newDeletions;
+					revisionAdditions += newAdditions;
+					revisionDeletions += newDeletions;
+					modelAdditions += newAdditions;
+					modelDeletions += newDeletions;
 					newRevision.add(classToAnalyze.getDescription() + AnalysisConstants.ADDITIONS.getDescription(), newAdditions);
 					newRevision.add(classToAnalyze.getDescription() + AnalysisConstants.DELETIONS.getDescription(), newDeletions);
 				}
+				if (revisionAdditions < revisionDeletions)
+					newModel.setGrowing(false);
 				newModel.add(newRevision);
 			}
-			newModel.setNumberOfAdditions(additions);
-			newModel.setNumberOfDeletions(deletions);
+			newModel.setNumberOfAdditions(modelAdditions);
+			newModel.setNumberOfDeletions(modelDeletions);
 			analyzedModels.put(model.getName(), newModel);
 		}
 	}

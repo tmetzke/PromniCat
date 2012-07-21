@@ -23,6 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,83 +35,49 @@ import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ClusterTree;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.HierarchicalProcessClusterer;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ProcessInstance;
 import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ProcessInstances;
-import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolution;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisHelper;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionConstants.PROCESS_EVOLUTION_METRIC;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.ModelLanguageUsageAnalysis;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
 
 /**
- * A specific {@link Thread} that is able to cluster models.
- * Every thread works independently on a configuration it takes from the {@link ProcessEvolution}
- * until all configurations are taken.
- * Refer to the {@link Thread} implementation for further information on how to use this class.
- * .
+ * A specific helper that is able to cluster models and sets all necessary parameters.
+ * The results are written into a file afterwards.
+ * 
  * @author Tobias Metzke
  *
  */
-public class ClusteringThread extends Thread {
+public class ProcessEvolutionClusterer {
 
-	private final HierarchicalProcessClusterer clusterer = new HierarchicalProcessClusterer(new EuclideanDistance());
-	private StringBuilder clusterResultStringBuilder = new StringBuilder();
-	private final String LINEBREAK = "\n";
-	private Map<String, ProcessEvolutionModel> models;
-	private final String FILE_PATH = "/resources/analysis/clustering/new.cluster_training_thread" + this.getId() + ".txt";
+	private final static HierarchicalProcessClusterer clusterer = new HierarchicalProcessClusterer(new EuclideanDistance());
+	private final static String LINEBREAK = "\n";
+	private final static String FILE_PATH = "/resources/new.cluster_results.txt";
 	
-	public ClusteringThread(Map<String, ProcessEvolutionModel> models) {
-		this.models = models;
-		start();
-	}
-	
-	@Override
-	public void run() {
-		
-		boolean done = false;
-		while(!done) {
-			try {
-				// get a configuration and cluster according to it if it exists,
-				// otherwise this thread is done because no more configurations exist
-				ProcessEvolutionClusteringConfiguration configuration = ProcessEvolution.getNextConfiguration();
-				if (configuration != null)
-					doClustering(configuration);
-				else
-					done = true;
-				
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
 	/**
-	 * Execute the clustering. Write the results into a file, 
-	 * specified in the {@link #FILE_PATH}.
-	 * @param configuration the cluster configuration to work on
-	 * @throws IOException if the result can not be written to file
+	 * cluster the models according to the given configuration
+	 * @param models
+	 * @param configuration
+	 * @throws IOException
 	 */
-	private void doClustering(ProcessEvolutionClusteringConfiguration configuration) throws IOException {
+	public static void doClustering(Map<String, ProcessEvolutionModel> models, ProcessEvolutionClusteringConfiguration configuration)  throws IOException {
 		// add an initial header to the result string
-		clusterResultStringBuilder
-		.append(LINEBREAK)
+		StringBuilder clusterResultStringBuilder = new StringBuilder()
 		.append("Configuration:")
 		.append("[");
 
-		setClusterAttributes(configuration);
+		setClusterAttributes(configuration, clusterResultStringBuilder);
 		// cluster the models
 		ProcessInstances instances = getInstances(models, getNumericAttributes(configuration));
-		clusterModels(instances);
+		clusterModels(instances, clusterResultStringBuilder);
 		// write the results into a file
-		File resultFile = new File("");
-		BufferedWriter writer = new BufferedWriter(new FileWriter(resultFile.getAbsolutePath() + FILE_PATH, true));
-		writer.append(clusterResultStringBuilder.toString());
-		writer.close();
-		// reset the result string
-		clusterResultStringBuilder = new StringBuilder();
+		writeResults(clusterResultStringBuilder);
 	}
-	
+
 	/**
 	 * @param configuration the configuration to get the numeric values from
 	 * @return the numeric attributes in a {@link FastVector}
 	 */
-	private FastVector getNumericAttributes(ProcessEvolutionClusteringConfiguration configuration) {
+	private static FastVector getNumericAttributes(ProcessEvolutionClusteringConfiguration configuration) {
 		FastVector numericAttributes = new FastVector();
 		Map<String,Double> attributes = configuration.getNumericAttributes();
 		// add every attribute to the fast vector
@@ -129,7 +96,7 @@ public class ClusteringThread extends Thread {
 	 * @param numericAttributes the numeric attributes to cluster by
 	 * @return the instances that can be passed on to the clusterer
 	 */
-	private ProcessInstances getInstances(Map<String, ProcessEvolutionModel> models, FastVector numericAttributes) {
+	private static ProcessInstances getInstances(Map<String, ProcessEvolutionModel> models, FastVector numericAttributes) {
 		ProcessInstances instances = new ProcessInstances("", numericAttributes, null, models.values().size());
 		// every model's numeric values and the model itself are added to a ProcessInstance
 		for (ProcessEvolutionModel model : models.values()){
@@ -147,8 +114,9 @@ public class ClusteringThread extends Thread {
 
 	/**
 	 * set the attributes from the configuration on the clusterer
+	 * @param clusterResultStringBuilder 
 	 */
-	private void setClusterAttributes(ProcessEvolutionClusteringConfiguration configuration) {
+	private static void setClusterAttributes(ProcessEvolutionClusteringConfiguration configuration, StringBuilder clusterResultStringBuilder) {
 		FastVector extractedAttributes = getNumericAttributes(configuration);
 		String linkType = configuration.getLinkType();
 		int numClusters = configuration.getNumClusters();
@@ -156,16 +124,17 @@ public class ClusteringThread extends Thread {
 		clusterer.setNumClusters(numClusters);
 		clusterer.setAttributes(extractedAttributes);
 		clusterer.setDebug(true);
-		addAttributesToResult(extractedAttributes, linkType, numClusters);
+		addAttributesToResult(clusterResultStringBuilder, extractedAttributes, linkType, numClusters);
 	}
 
 	/**
 	 * add the attributes to the header of the resultString
+	 * @param clusterResultStringBuilder 
 	 * @param numericAttributes
 	 * @param linkType
 	 * @param numberOfClusters
 	 */
-	private void addAttributesToResult(FastVector numericAttributes, String linkType, int numberOfClusters) {
+	private static void addAttributesToResult(StringBuilder clusterResultStringBuilder, FastVector numericAttributes, String linkType, int numberOfClusters) {
 		for (Object attribute : numericAttributes.toArray())
 			if (attribute != null && attribute instanceof Attribute) {
 				Attribute realAttribute = (Attribute) attribute;
@@ -183,13 +152,14 @@ public class ClusteringThread extends Thread {
 	 * and analyze the clusters afterwards.
 	 * For all cluster tree operations see {@link ClusterTree}.
 	 * @param instances
+	 * @param clusterResultStringBuilder 
 	 */
-	private void clusterModels(ProcessInstances instances) {
+	private static void clusterModels(ProcessInstances instances, StringBuilder clusterResultStringBuilder) {
 		try {
 			clusterer.buildClusterer(instances);
 			ClusterTree<ProcessInstances> clusters = clusterer.getClusters();
 			ClusterTree<ProcessInstances> newCluster = clusters.getSubtreeWithMinClusterSize(1);
-			analyzeClusters(newCluster);
+			analyzeClusters(newCluster, clusterResultStringBuilder);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -198,31 +168,42 @@ public class ClusteringThread extends Thread {
 	/**
 	 * analyze the resulting clusters.
 	 * @param cluster
+	 * @param clusterResultStringBuilder 
 	 */
-	private void analyzeClusters(ClusterTree<ProcessInstances> cluster) {
+	private static void analyzeClusters(ClusterTree<ProcessInstances> cluster, StringBuilder clusterResultStringBuilder) {
 		Collection<Collection<ProcessEvolutionModel>> modelGroups = findDistinctModelGroups(cluster);
 		int i= 1;
 		for (Collection<ProcessEvolutionModel> models : modelGroups) {
 			clusterResultStringBuilder
 				.append(LINEBREAK + "Cluster " + i++ + ": (" + models.size() + " models)," + LINEBREAK);
-			double[] averages = new double[4];
+			double[] averages = new double[5];
+			
 			// collect some of the metrics of the groups
 			for (ProcessEvolutionModel model : models) {
 				averages[0] += model.getNumberOfAdditions();
 				averages[1] += model.getNumberOfDeletions();
 				averages[2] += model.getCMRIterations();
 				averages[3] += model.getNumberOfMovedOrResizedElements();
+				averages[4] += model.getRevisions().size();
 			}
 			// calculate some averages out of the metrics
 			for (int j = 0; j < averages.length; j++) {
 				averages[j] /= models.size();
 			}
+			
+			// model language analysis of the clusters
+			Map<String, ProcessEvolutionModel> modelsToAnalyze = new HashMap<>();
+			for(ProcessEvolutionModel model : models)
+				modelsToAnalyze.put(model.getName(), model);
+			
 			// add the results to the result string
 			clusterResultStringBuilder
-			.append("avg additions: " + averages[0] + LINEBREAK)
-			.append("avg deletions: " + averages[1] + LINEBREAK)
-			.append("avg CMR: " + averages[2] + LINEBREAK)
-			.append("avg layout changes: " + averages[3] + LINEBREAK);
+			.append("avg no. additions: " + averages[0] + LINEBREAK)
+			.append("avg no. deletions: " + averages[1] + LINEBREAK)
+			.append("avg no. reconciliations: " + averages[3] + LINEBREAK)
+			.append("avg no. CMR iterations: " + averages[2] + LINEBREAK)
+			.append("avg no. revisions: " + averages[4] + LINEBREAK)
+			.append(new ModelLanguageUsageAnalysis(modelsToAnalyze, AnalysisHelper.getModelLanguageMetrics()).toResultCSVString());
 		}
 	}
 
@@ -233,7 +214,7 @@ public class ClusteringThread extends Thread {
 	 * @param clusters the initial clusters to find our groups in
 	 * @return a collection of groups, that contain the process models
 	 */
-	private Collection<Collection<ProcessEvolutionModel>> findDistinctModelGroups(
+	private static Collection<Collection<ProcessEvolutionModel>> findDistinctModelGroups(
 			ClusterTree<ProcessInstances> clusters) {
 		Collection<Collection<ProcessEvolutionModel>> clustersWithModels = new ArrayList<>();
 		List<ClusterNode<ProcessInstances>> clusterNodes = null;
@@ -256,5 +237,17 @@ public class ClusteringThread extends Thread {
 				}
 		}
 		return clustersWithModels;
+	}
+
+	/**
+	 * write the results to file
+	 * @param clusterResultStringBuilder 
+	 * @throws IOException
+	 */
+	private static void writeResults(StringBuilder clusterResultStringBuilder) throws IOException {
+		File resultFile = new File("");
+		BufferedWriter writer = new BufferedWriter(new FileWriter(resultFile.getAbsolutePath() + FILE_PATH, true));
+		writer.append(clusterResultStringBuilder.toString());
+		writer.close();
 	}
 }
