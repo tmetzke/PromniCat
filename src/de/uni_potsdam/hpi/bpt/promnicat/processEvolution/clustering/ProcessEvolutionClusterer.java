@@ -38,6 +38,7 @@ import de.uni_potsdam.hpi.bpt.promnicat.analysisModules.clustering.ProcessInstan
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.AnalysisHelper;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.ProcessEvolutionConstants.PROCESS_EVOLUTION_METRIC;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.analyses.ModelLanguageUsageAnalysis;
+import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.api.IAnalysis;
 import de.uni_potsdam.hpi.bpt.promnicat.processEvolution.model.ProcessEvolutionModel;
 
 /**
@@ -51,7 +52,8 @@ public class ProcessEvolutionClusterer {
 
 	private final static HierarchicalProcessClusterer clusterer = new HierarchicalProcessClusterer(new EuclideanDistance());
 	private final static String LINEBREAK = "\n";
-	private final static String FILE_PATH = "/resources/new.cluster_results.txt";
+	private final static String CSV_DELIMITER= ";";
+	private final static String FILE_PATH = new File("").getAbsolutePath() + "/resources/new.cluster_results.csv";
 	
 	/**
 	 * cluster the models according to the given configuration
@@ -175,7 +177,7 @@ public class ProcessEvolutionClusterer {
 		int i= 1;
 		for (Collection<ProcessEvolutionModel> models : modelGroups) {
 			clusterResultStringBuilder
-				.append(LINEBREAK + "Cluster " + i++ + ": (" + models.size() + " models)," + LINEBREAK);
+				.append(LINEBREAK + "Cluster models" + i++ + CSV_DELIMITER + models.size() + LINEBREAK);
 			double[] averages = new double[5];
 			
 			// collect some of the metrics of the groups
@@ -195,15 +197,16 @@ public class ProcessEvolutionClusterer {
 			Map<String, ProcessEvolutionModel> modelsToAnalyze = new HashMap<>();
 			for(ProcessEvolutionModel model : models)
 				modelsToAnalyze.put(model.getName(), model);
+			IAnalysis language = new ModelLanguageUsageAnalysis(modelsToAnalyze, AnalysisHelper.getModelLanguageMetrics());
 			
 			// add the results to the result string
 			clusterResultStringBuilder
-			.append("avg no. additions: " + averages[0] + LINEBREAK)
-			.append("avg no. deletions: " + averages[1] + LINEBREAK)
-			.append("avg no. reconciliations: " + averages[3] + LINEBREAK)
-			.append("avg no. CMR iterations: " + averages[2] + LINEBREAK)
-			.append("avg no. revisions: " + averages[4] + LINEBREAK)
-			.append(new ModelLanguageUsageAnalysis(modelsToAnalyze, AnalysisHelper.getModelLanguageMetrics()).toResultCSVString());
+			.append(toCSVString("avg no. additions", averages[0]))
+			.append(toCSVString("avg no. deletions", averages[1]))
+			.append(toCSVString("avg no. reconciliations", averages[3]))
+			.append(toCSVString("avg no. CMR iterations", averages[2]))
+			.append(toCSVString("avg no. revisions", averages[4]))
+			.append(language.toResultCSVString() + LINEBREAK + LINEBREAK);
 		}
 	}
 
@@ -240,14 +243,23 @@ public class ProcessEvolutionClusterer {
 	}
 
 	/**
+	 * convert the values so their appear appropriate in a CSV format
+	 * @param key the string key of the feature
+	 * @param value the value of the feature
+	 * @return the CSV formatted string
+	 */
+	private static String toCSVString(String key, double value) {
+		return  key + CSV_DELIMITER + String.valueOf(value).replace('.', ',') + LINEBREAK;
+	}
+
+	/**
 	 * write the results to file
 	 * @param clusterResultStringBuilder 
 	 * @throws IOException
 	 */
 	private static void writeResults(StringBuilder clusterResultStringBuilder) throws IOException {
-		File resultFile = new File("");
-		BufferedWriter writer = new BufferedWriter(new FileWriter(resultFile.getAbsolutePath() + FILE_PATH, true));
-		writer.append(clusterResultStringBuilder.toString());
+		BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH));
+		writer.write(clusterResultStringBuilder.toString());
 		writer.close();
 	}
 }
