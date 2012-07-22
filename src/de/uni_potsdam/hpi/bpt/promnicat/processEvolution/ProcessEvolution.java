@@ -97,6 +97,9 @@ public class ProcessEvolution {
 	 */
 	private static final boolean HANDLE_SUB_PROCESSES = true;
 
+	/**
+	 * minimum number of revisions a model has to have to be considered in the analyses
+	 */
 	private static final int MIN_REVISIONS = 0;
 	
 	/*  ---------------------------------------------------------------------------------------------
